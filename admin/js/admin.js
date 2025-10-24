@@ -701,25 +701,32 @@ function displayExistingImages(images) {
 
 async function saveProduct() {
     const productId = document.getElementById('productId').value;
-    const imageUrl = document.getElementById('productImageUrl').value;
     
     try {
-        // Handle image URL instead of file uploads
+        // Handle multiple image URLs
         let productImages = [];
         
-        if (imageUrl) {
-            // Validate URL format
-            try {
-                new URL(imageUrl);
-                productImages = [{
-                    url: imageUrl,
-                    isPrimary: true
-                }];
-            } catch (error) {
-                throw new Error('Please enter a valid image URL');
+        // Get all image URL inputs
+        const imageInputs = document.querySelectorAll('#imageUrlContainer input[type="url"]');
+        const imageUrls = Array.from(imageInputs)
+            .map(input => input.value.trim())
+            .filter(url => url !== '');
+        
+        if (imageUrls.length > 0) {
+            // Validate all URLs
+            for (let i = 0; i < imageUrls.length; i++) {
+                try {
+                    new URL(imageUrls[i]);
+                    productImages.push({
+                        url: imageUrls[i],
+                        isPrimary: i === 0 // First image is primary
+                    });
+                } catch (error) {
+                    throw new Error(`Please enter a valid image URL for image ${i + 1}`);
+                }
             }
         } else {
-            // Use placeholder image if no URL provided
+            // Use placeholder image if no URLs provided
             productImages = [{
                 url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
                 isPrimary: true
@@ -1032,3 +1039,84 @@ style.textContent = `
     .status-inactive { background: #fee2e2; color: #991b1b; }
 `;
 document.head.appendChild(style);
+
+// Multiple image URL functions
+function addImageUrl() {
+    const container = document.getElementById('imageUrlContainer');
+    const currentInputs = container.querySelectorAll('input[type="url"]');
+    const newIndex = currentInputs.length;
+    
+    const newInputGroup = document.createElement('div');
+    newInputGroup.className = 'input-group mb-2';
+    newInputGroup.innerHTML = `
+        <input type="url" class="form-control" placeholder="https://example.com/image${newIndex + 1}.jpg" data-image-index="${newIndex}">
+        <button type="button" class="btn btn-outline-danger" onclick="removeImageUrl(this)">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+    
+    container.appendChild(newInputGroup);
+    
+    // Show remove buttons for all inputs if more than 1
+    updateRemoveButtons();
+    
+    // Add event listener for real-time preview
+    const newInput = newInputGroup.querySelector('input');
+    newInput.addEventListener('input', updateImagePreview);
+}
+
+function removeImageUrl(button) {
+    const inputGroup = button.parentElement;
+    inputGroup.remove();
+    updateRemoveButtons();
+    updateImagePreview();
+}
+
+function updateRemoveButtons() {
+    const container = document.getElementById('imageUrlContainer');
+    const inputs = container.querySelectorAll('input[type="url"]');
+    const removeButtons = container.querySelectorAll('.btn-outline-danger');
+    
+    // Show remove buttons only if more than 1 input
+    removeButtons.forEach(button => {
+        button.style.display = inputs.length > 1 ? 'block' : 'none';
+    });
+}
+
+function updateImagePreview() {
+    const preview = document.getElementById('imagePreview');
+    if (!preview) return;
+    
+    const imageInputs = document.querySelectorAll('#imageUrlContainer input[type="url"]');
+    const imageUrls = Array.from(imageInputs)
+        .map(input => input.value.trim())
+        .filter(url => url !== '');
+    
+    preview.innerHTML = '';
+    
+    if (imageUrls.length === 0) {
+        preview.innerHTML = '<p class="text-muted">No images provided</p>';
+        return;
+    }
+    
+    imageUrls.forEach((url, index) => {
+        const imgContainer = document.createElement('div');
+        imgContainer.className = 'position-relative d-inline-block me-2 mb-2';
+        imgContainer.innerHTML = `
+            <img src="${url}" alt="Product Image ${index + 1}" 
+                 style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #ddd;"
+                 onerror="this.src='https://via.placeholder.com/100x100?text=Invalid+URL'">
+            ${index === 0 ? '<span class="badge bg-success position-absolute top-0 start-0">Primary</span>' : ''}
+        `;
+        preview.appendChild(imgContainer);
+    });
+}
+
+// Add event listeners when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to existing image inputs
+    const existingInputs = document.querySelectorAll('#imageUrlContainer input[type="url"]');
+    existingInputs.forEach(input => {
+        input.addEventListener('input', updateImagePreview);
+    });
+});
