@@ -223,6 +223,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from frontend
 app.use(express.static(path.join(__dirname, '../')));
 
+// Root route fallback
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../index.html'));
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({
@@ -583,52 +588,92 @@ app.use((err, req, res, next) => {
 // Initialize database and start server
 const startServer = async () => {
     try {
+        console.log('🚀 Starting server initialization...');
+        console.log('🌍 Environment:', process.env.NODE_ENV);
+        console.log('🔌 Port:', process.env.PORT || 10000);
+        
         const dbConnected = await syncDatabase();
         if (!dbConnected) {
             console.error('❌ Failed to connect to database');
-            process.exit(1);
+            console.log('⚠️ Continuing without database - some features may not work');
+            // Don't exit - let the server start with limited functionality
+        } else {
+            console.log('✅ Database connection established');
         }
 
-        // Create admin user if it doesn't exist
-        const adminExists = await User.findOne({ where: { email: 'admin@goldensource.com' } });
-        if (!adminExists) {
-            await User.create({
-                name: 'Admin User',
-                email: 'admin@goldensource.com',
-                password: process.env.ADMIN_PASSWORD || 'SecureAdmin2024!',
-                role: 'admin',
-                phone: process.env.ADMIN_PHONE || '+254 724 369 971'
-            });
-            console.log('✅ Admin user created');
+        // Only perform database operations if database is connected
+        if (dbConnected) {
+            try {
+                // Create admin user if it doesn't exist
+                const adminExists = await User.findOne({ where: { email: 'admin@goldensource.com' } });
+                if (!adminExists) {
+                    await User.create({
+                        name: 'Admin User',
+                        email: 'admin@goldensource.com',
+                        password: process.env.ADMIN_PASSWORD || 'SecureAdmin2024!',
+                        role: 'admin',
+                        phone: process.env.ADMIN_PHONE || '+254 724 369 971'
+                    });
+                    console.log('✅ Admin user created');
+                }
+
+                // Try to restore data from backup
+                await restoreData(Product, User, Order);
+                
+                // Check if we have any products after restore
+                const productCount = await Product.count();
+                console.log(`📦 Database initialized with ${productCount} existing products`);
+                
+                // If no products exist, create some sample products
+                if (productCount === 0) {
+                    console.log('📦 No products found, creating sample products...');
+                    await createSampleProducts(Product);
+                    const newProductCount = await Product.count();
+                    console.log(`✅ Created ${newProductCount} sample products`);
+                }
+                
+                // Create backup of current data
+                await backupData(Product, User, Order);
+            } catch (dbError) {
+                console.error('❌ Database operation error:', dbError);
+                console.log('⚠️ Continuing with limited functionality');
+            }
+        } else {
+            console.log('⚠️ Skipping database operations - database not connected');
         }
 
-        // Try to restore data from backup
-        await restoreData(Product, User, Order);
-        
-        // Check if we have any products after restore
-        const productCount = await Product.count();
-        console.log(`📦 Database initialized with ${productCount} existing products`);
-        
-        // If no products exist, create some sample products
-        if (productCount === 0) {
-            console.log('📦 No products found, creating sample products...');
-            await createSampleProducts(Product);
-            const newProductCount = await Product.count();
-            console.log(`✅ Created ${newProductCount} sample products`);
-        }
-        
-        // Create backup of current data
-        await backupData(Product, User, Order);
-
-        app.listen(PORT, '0.0.0.0', () => {
+        console.log('🚀 Starting HTTP server...');
+        const server = app.listen(PORT, '0.0.0.0', () => {
             console.log('🚀 Server running on port', PORT);
-            console.log('📱 Frontend: https://your-app-name.onrender.com');
-            console.log('🔧 API: https://your-app-name.onrender.com/api');
-            console.log('💚 Health Check: https://your-app-name.onrender.com/api/health');
+            console.log('📱 Frontend: https://nairobi-cameras-website-store.onrender.com');
+            console.log('🔧 API: https://nairobi-cameras-website-store.onrender.com/api');
+            console.log('💚 Health Check: https://nairobi-cameras-website-store.onrender.com/api/health');
             console.log('🗄️ Database: SQLite (file-based)');
+            console.log('✅ Server startup completed successfully');
         });
+
+        // Handle server errors
+        server.on('error', (error) => {
+            console.error('❌ Server error:', error);
+            if (error.code === 'EADDRINUSE') {
+                console.error('❌ Port', PORT, 'is already in use');
+            }
+            process.exit(1);
+        });
+
+        // Graceful shutdown
+        process.on('SIGTERM', () => {
+            console.log('🛑 SIGTERM received, shutting down gracefully');
+            server.close(() => {
+                console.log('✅ Server closed');
+                process.exit(0);
+            });
+        });
+
     } catch (error) {
         console.error('❌ Server startup error:', error);
+        console.error('❌ Error details:', error.message);
+        console.error('❌ Error stack:', error.stack);
         process.exit(1);
     }
 };
