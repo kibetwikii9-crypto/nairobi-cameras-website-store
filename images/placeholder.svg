@@ -1,0 +1,7 @@
+<svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="500" height="500" fill="#F3F4F6"/>
+<path d="M250 200H300V300H250V200Z" fill="#9CA3AF"/>
+<path d="M200 250H300V300H200V250Z" fill="#9CA3AF"/>
+<circle cx="250" cy="150" r="30" fill="#9CA3AF"/>
+<text x="250" y="400" text-anchor="middle" fill="#6B7280" font-family="Arial" font-size="14">No Image Available</text>
+</svg>

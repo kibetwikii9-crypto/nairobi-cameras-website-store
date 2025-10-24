@@ -1,0 +1,24 @@
+{
+  "name": "nairobi-cameras-website",
+  "version": "1.0.0",
+  "description": "Nairobi Cameras and Computers - E-commerce Website",
+  "main": "backend/server-sqlite.js",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "build": "echo 'No build step required for this project'",
+    "dev": "cd backend && npm run dev",
+    "install-deps": "cd backend && npm install",
+    "postinstall": "cd backend && npm install"
+  },
+  "keywords": ["ecommerce", "cameras", "computers", "electronics", "nairobi"],
+  "author": "Golden Source Technologies",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/nairobi-cameras-website.git"
+  }
+}

@@ -1,0 +1,25 @@
+# Ignore system files
+AppData/
+.vscode/
+.cursor/
+*.log
+*.tmp
+
+# Ignore node_modules
+node_modules/
+
+# Ignore database files (will be created fresh on deployment)
+*.sqlite
+*.db
+
+# Keep only website files
+!index.html
+!*.html
+!css/
+!js/
+!images/
+!video/
+!admin/
+!backend/
+!run-website.bat
+!README.md

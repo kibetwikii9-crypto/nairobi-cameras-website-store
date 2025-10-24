@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https: http: blob:; font-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src 'self' http://localhost:5000 https: http:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <title>Product Details - Golden Source Technologies</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .product-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+
+        .product-image-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .main-product-image {
+            max-width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .thumbnail-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: #007bff;
+            transform: scale(1.1);
+        }
+
+        .product-info-section {
+            padding: 2rem;
+        }
+
+        .product-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .product-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #28a745;
+            margin-bottom: 0.5rem;
+        }
+
+        .original-price {
+            font-size: 1.2rem;
+            color: #6c757d;
+            text-decoration: line-through;
+            margin-left: 1rem;
+        }
+
+        .product-description {
+            color: #6c757d;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .availability-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        .in-stock {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .low-stock {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .out-of-stock {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+
+        .btn-buy-now {
+            background: transparent;
+            border: 2px solid #007bff;
+            color: #007bff;
+            padding: 10px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-buy-now:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .feature-icon {
+            color: #007bff;
+            font-size: 1.2rem;
+        }
+
+        .product-tabs {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-top: 2rem;
+        }
+
+        .nav-tabs {
+            border-bottom: 1px solid #dee2e6;
+            padding: 0 2rem;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            border-radius: 0;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #007bff;
+            border-bottom: 3px solid #007bff;
+            background: transparent;
+        }
+
+        .tab-content {
+            padding: 2rem;
+        }
+
+        .specifications-table {
+            width: 100%;
+        }
+
+        .specifications-table th,
+        .specifications-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .specifications-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .related-products {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-top: 2rem;
+        }
+
+        .related-product-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .related-product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .related-product-image {
+            height: 150px;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .related-product-info {
+            padding: 1rem;
+        }
+
+        .related-product-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .related-product-price {
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 3rem;
+            color: #dc3545;
+        }
+
+        .error-message i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+
+        @media (max-width: 768px) {
+            .product-title {
+                font-size: 1.5rem;
+            }
+
+            .product-price {
+                font-size: 2rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1e3a8a, #3b82f6);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="fas fa-laptop me-2"></i>
+                Golden Source Technologies
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="index.html">Home</a>
+                <a class="nav-link" href="laptops.html">Laptops</a>
+                <a class="nav-link" href="phones.html">Phones</a>
+                <a class="nav-link" href="cameras.html">Cameras</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb -->
+    <div class="container mt-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                <li class="breadcrumb-item" id="categoryBreadcrumb">Products</li>
+                <li class="breadcrumb-item active" id="productBreadcrumb">Product Details</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Product Content -->
+    <div class="container my-4">
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="error-message" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Product Not Found</h3>
+            <p>The product you're looking for doesn't exist or has been removed.</p>
+            <a href="index.html" class="btn btn-primary">Back to Home</a>
+        </div>
+
+        <!-- Product Content -->
+        <div id="productContent" style="display: none;">
+            <div class="product-container">
+                <div class="row g-0">
+                    <!-- Product Images -->
+                    <div class="col-lg-6">
+                        <div class="product-image-section">
+                            <img id="mainProductImage" class="main-product-image" src="" alt="Product Image">
+                            <div class="thumbnail-container" id="thumbnailContainer">
+                                <!-- Thumbnails will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Information -->
+                    <div class="col-lg-6">
+                        <div class="product-info-section">
+                            <h1 id="productTitle" class="product-title">Product Name</h1>
+                            
+                            <div class="product-price-container">
+                                <span id="productPrice" class="product-price">KSh 0</span>
+                                <span id="originalPrice" class="original-price" style="display: none;">KSh 0</span>
+                            </div>
+
+                            <p id="productDescription" class="product-description">Product description will appear here.</p>
+
+                            <div class="availability-container">
+                                <div id="availabilityBadge" class="availability-status in-stock">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <span>In Stock</span>
+                                </div>
+                            </div>
+
+                            <div class="action-buttons">
+                                <button id="buyNowBtn" class="btn btn-buy-now">
+                                    <i class="fas fa-bolt me-2"></i>
+                                    Buy Now
+                                </button>
+                            </div>
+
+                            <div class="features-grid">
+                                <div class="feature-item">
+                                    <i class="fas fa-shipping-fast feature-icon"></i>
+                                    <span>Free Delivery</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-shield-alt feature-icon"></i>
+                                    <span>1 Year Warranty</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-undo feature-icon"></i>
+                                    <span>30 Day Returns</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-headset feature-icon"></i>
+                                    <span>24/7 Support</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Tabs -->
+            <div class="product-tabs">
+                <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">
+                            <i class="fas fa-info-circle me-2"></i>Description
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button" role="tab">
+                            <i class="fas fa-cogs me-2"></i>Specifications
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
+                            <i class="fas fa-star me-2"></i>Reviews <span id="reviewCount" class="badge bg-primary ms-2">0</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="productTabContent">
+                    <!-- Description Tab -->
+                    <div class="tab-pane fade show active" id="description" role="tabpanel">
+                        <div id="productFullDescription">
+                            <!-- Full description will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Specifications Tab -->
+                    <div class="tab-pane fade" id="specifications" role="tabpanel">
+                        <table class="table specifications-table" id="specificationsTable">
+                            <!-- Specifications will be populated here -->
+                        </table>
+                    </div>
+
+                    <!-- Reviews Tab -->
+                    <div class="tab-pane fade" id="reviews" role="tabpanel">
+                        <div id="reviewsContainer">
+                            <!-- Reviews will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Products -->
+            <div class="related-products">
+                <h3 class="mb-4">
+                    <i class="fas fa-th-large text-primary me-2"></i>
+                    Related Products
+                </h3>
+                <div class="row" id="relatedProductsContainer">
+                    <!-- Related products will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        // Global variables
+        let currentProduct = null;
+
+        // Get product ID from URL
+        function getProductId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+            
+            // Validate product ID
+            if (!productId || productId === 'undefined' || productId === 'null' || productId.trim() === '') {
+                console.error('❌ Invalid product ID from URL:', productId);
+                return null;
+            }
+            
+            return productId.trim();
+        }
+
+        // Load product data
+        async function loadProduct() {
+            const productId = getProductId();
+            if (!productId) {
+                showError('Invalid product ID. Please check the URL and try again.');
+                return;
+            }
+
+            try {
+                showLoading();
+                console.log('🔍 Loading product with ID:', productId);
+                const response = await api.getProductById(productId);
+                
+                if (response.success && response.data && response.data.product) {
+                    currentProduct = response.data.product;
+                    console.log('✅ Product loaded successfully:', currentProduct.name);
+                    displayProduct(currentProduct);
+                    loadRelatedProducts(currentProduct.category);
+                } else {
+                    console.error('❌ Product not found in response:', response);
+                    showError('Product not found. The product may have been removed or the link is invalid.');
+                }
+            } catch (error) {
+                console.error('❌ Error loading product:', error);
+                showError('Error loading product. Please check your connection and try again.');
+            }
+        }
+
+        // Display product information
+        function displayProduct(product) {
+            console.log('Full product data received:', product);
+            console.log('Product images:', product.images);
+            
+            // Update page title
+            document.title = `${product.name} - Golden Source Technologies`;
+            
+            // Update breadcrumb
+            document.getElementById('categoryBreadcrumb').textContent = product.category.charAt(0).toUpperCase() + product.category.slice(1);
+            document.getElementById('productBreadcrumb').textContent = product.name;
+
+            // Display basic info
+            document.getElementById('productTitle').textContent = product.name;
+            document.getElementById('productDescription').textContent = product.description;
+            
+            // Display price
+            const priceElement = document.getElementById('productPrice');
+            priceElement.textContent = `KSh ${product.price.toLocaleString()}`;
+            
+            if (product.originalPrice && product.originalPrice > product.price) {
+                const originalPriceElement = document.getElementById('originalPrice');
+                originalPriceElement.textContent = `KSh ${product.originalPrice.toLocaleString()}`;
+                originalPriceElement.style.display = 'inline';
+            }
+
+            // Display availability
+            updateAvailabilityStatus(product.stock);
+
+            // Display images
+            displayProductImages(product.images || []);
+
+            // Display full description
+            document.getElementById('productFullDescription').innerHTML = product.description || 'No detailed description available.';
+
+            // Display specifications
+            displaySpecifications(product.specifications || {});
+
+            // Display reviews
+            displayReviews(product.reviews || []);
+
+            // Setup action buttons
+            setupActionButtons(product);
+
+            hideLoading();
+            showContent();
+        }
+
+        // Update availability status
+        function updateAvailabilityStatus(stock) {
+            const badge = document.getElementById('availabilityBadge');
+            const icon = badge.querySelector('i');
+            const text = badge.querySelector('span');
+
+            if (stock > 10) {
+                badge.className = 'availability-status in-stock';
+                icon.className = 'fas fa-check-circle me-2';
+                text.textContent = 'In Stock';
+            } else if (stock > 0) {
+                badge.className = 'availability-status low-stock';
+                icon.className = 'fas fa-exclamation-triangle me-2';
+                text.textContent = `Only ${stock} left`;
+            } else {
+                badge.className = 'availability-status out-of-stock';
+                icon.className = 'fas fa-times-circle me-2';
+                text.textContent = 'Out of Stock';
+            }
+        }
+
+        // Display product images
+        function displayProductImages(images) {
+            console.log('Displaying product images:', images);
+            
+            if (!images || images.length === 0) {
+                console.log('No images found, using placeholder');
+                // Use default image
+                const mainImg = document.getElementById('mainProductImage');
+                mainImg.src = 'images/placeholder.jpg';
+                mainImg.alt = 'Product Image';
+                return;
+            }
+
+            console.log(`Found ${images.length} images`);
+
+            // Display main image
+            const mainImg = document.getElementById('mainProductImage');
+            const firstImageUrl = images[0].url || images[0];
+            console.log('Setting main image to:', firstImageUrl);
+            mainImg.src = firstImageUrl;
+            mainImg.alt = currentProduct.name;
+
+            // Display thumbnails
+            const thumbnailContainer = document.getElementById('thumbnailContainer');
+            thumbnailContainer.innerHTML = '';
+
+            images.forEach((image, index) => {
+                const imageUrl = image.url || image;
+                console.log(`Creating thumbnail ${index + 1}:`, imageUrl);
+                
+                const thumbnail = document.createElement('img');
+                thumbnail.src = imageUrl;
+                thumbnail.alt = currentProduct.name;
+                thumbnail.className = 'thumbnail';
+                if (index === 0) thumbnail.classList.add('active');
+
+                thumbnail.addEventListener('click', () => {
+                    changeMainImage(imageUrl, index);
+                });
+
+                thumbnailContainer.appendChild(thumbnail);
+            });
+        }
+
+        // Change main image
+        function changeMainImage(imageUrl, index) {
+            const mainImg = document.getElementById('mainProductImage');
+            mainImg.src = imageUrl;
+
+            // Update active thumbnail
+            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === index);
+            });
+        }
+
+        // Display specifications
+        function displaySpecifications(specs) {
+            const table = document.getElementById('specificationsTable');
+            table.innerHTML = '';
+
+            if (!specs || Object.keys(specs).length === 0) {
+                table.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No specifications available</td></tr>';
+                return;
+            }
+
+            Object.entries(specs).forEach(([key, value]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <th>${key.charAt(0).toUpperCase() + key.slice(1)}</th>
+                    <td>${value}</td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        // Display reviews
+        function displayReviews(reviews) {
+            const container = document.getElementById('reviewsContainer');
+            const reviewCount = document.getElementById('reviewCount');
+            
+            reviewCount.textContent = reviews.length;
+
+            if (reviews.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">No reviews yet. Be the first to review this product!</p>';
+                return;
+            }
+
+            container.innerHTML = reviews.map(review => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="card-title mb-0">${review.user?.name || 'Anonymous'}</h6>
+                            <small class="text-muted">${new Date(review.createdAt).toLocaleDateString()}</small>
+                        </div>
+                        <div class="text-warning mb-2">
+                            ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                        </div>
+                        <p class="card-text">${review.comment || 'No comment provided'}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Setup action buttons
+        function setupActionButtons(product) {
+            const buyNowBtn = document.getElementById('buyNowBtn');
+
+            buyNowBtn.addEventListener('click', () => {
+                if (product.stock <= 0) {
+                    alert('This product is out of stock');
+                    return;
+                }
+                alert('Buy Now functionality coming soon!');
+            });
+
+            // Disable button if out of stock
+            if (product.stock <= 0) {
+                buyNowBtn.disabled = true;
+                buyNowBtn.innerHTML = '<i class="fas fa-times me-2"></i> Out of Stock';
+            }
+        }
+
+
+        // Load related products
+        async function loadRelatedProducts(category) {
+            try {
+                const response = await api.getProducts(category, 4);
+                if (response.success && response.data && response.data.products) {
+                    displayRelatedProducts(response.data.products);
+                }
+            } catch (error) {
+                console.error('Error loading related products:', error);
+            }
+        }
+
+        // Display related products
+        function displayRelatedProducts(products) {
+            const container = document.getElementById('relatedProductsContainer');
+            container.innerHTML = '';
+
+            products.forEach(product => {
+                if (product._id === currentProduct._id || product.id === currentProduct.id) return; // Skip current product
+
+                const productCard = document.createElement('div');
+                productCard.className = 'col-md-3 mb-3';
+                productCard.innerHTML = `
+                    <div class="related-product-card" onclick="window.location.href='product.html?id=${product._id || product.id}'">
+                        <img src="${product.images?.[0]?.url || product.images?.[0] || 'images/placeholder.jpg'}" 
+                             alt="${product.name}" class="related-product-image">
+                        <button class="floating-wishlist" onclick="event.stopPropagation(); event.preventDefault(); toggleWishlist('${product._id || product.id}', '${product.name.replace(/'/g, '\\\'').replace(/"/g, '\\"')}', ${product.price}, '${(product.images?.[0]?.url || product.images?.[0] || 'images/placeholder.jpg').replace(/'/g, '\\\'').replace(/"/g, '\\"')}', '${product.description.replace(/'/g, '\\\'').replace(/"/g, '\\"')}')" title="Add to Wishlist">
+                            <i class="fas fa-heart-o"></i>
+                        </button>
+                        <div class="related-product-info">
+                            <h6 class="related-product-title">${product.name}</h6>
+                            <div class="related-product-price">KSh ${product.price.toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(productCard);
+            });
+        }
+
+        // Show/hide states
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('productContent').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('productContent').style.display = 'none';
+            document.querySelector('#errorState h3').textContent = message;
+        }
+
+        function showContent() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('productContent').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingState').style.display = 'none';
+        }
+
+
+        // Wishlist functionality
+        function toggleWishlist() {
+            if (!currentProduct) {
+                console.error('No current product to add to wishlist');
+                return;
+            }
+
+            const wishlistBtn = document.getElementById('wishlistBtn');
+            const productId = currentProduct._id || currentProduct.id;
+            const productName = currentProduct.name;
+            const productPrice = currentProduct.price;
+            const productImage = currentProduct.images?.[0]?.url || currentProduct.images?.[0] || 'images/placeholder.jpg';
+            const productDescription = currentProduct.description || '';
+
+            // Get existing wishlist from localStorage
+            let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+            
+            // Check if product is already in wishlist
+            const existingIndex = wishlist.findIndex(item => item.id === productId);
+            
+            if (existingIndex > -1) {
+                // Remove from wishlist
+                wishlist.splice(existingIndex, 1);
+                wishlistBtn.innerHTML = '<i class="fas fa-heart me-2"></i>Add to Wishlist';
+                wishlistBtn.classList.remove('wishlisted');
+                console.log('✅ Product removed from wishlist');
+            } else {
+                // Add to wishlist
+                wishlist.push({
+                    id: productId,
+                    name: productName,
+                    price: productPrice,
+                    image: productImage,
+                    description: productDescription
+                });
+                wishlistBtn.innerHTML = '<i class="fas fa-heart me-2"></i>Added to Wishlist';
+                wishlistBtn.classList.add('wishlisted');
+                console.log('✅ Product added to wishlist');
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('wishlist', JSON.stringify(wishlist));
+        }
+
+        // Check wishlist status on page load
+        function checkWishlistStatus() {
+            if (!currentProduct) return;
+            
+            const productId = currentProduct._id || currentProduct.id;
+            const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+            const isInWishlist = wishlist.some(item => item.id === productId);
+            
+            const wishlistBtn = document.getElementById('wishlistBtn');
+            if (isInWishlist) {
+                wishlistBtn.innerHTML = '<i class="fas fa-heart me-2"></i>Added to Wishlist';
+                wishlistBtn.classList.add('wishlisted');
+            } else {
+                wishlistBtn.innerHTML = '<i class="fas fa-heart me-2"></i>Add to Wishlist';
+                wishlistBtn.classList.remove('wishlisted');
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing product page...');
+            loadProduct();
+        });
+    </script>
+</body>
+</html>

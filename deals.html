@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Deals - Golden Source Technologies</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .hero-deals {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-deals::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="100" fill="url(%23a)"/><circle cx="800" cy="300" r="150" fill="url(%23a)"/><circle cx="400" cy="700" r="120" fill="url(%23a)"/></svg>');
+            opacity: 0.3;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        .deals-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .product-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .product-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .product-image {
+            height: 200px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+        }
+        .product-image::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shine 3s infinite;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        .product-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .flash-sale-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+            animation: flash 1s infinite;
+        }
+        @keyframes flash {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.7; }
+        }
+        .product-info {
+            padding: 25px;
+        }
+        .product-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .product-price {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .current-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #27ae60;
+        }
+        .original-price {
+            font-size: 1.1rem;
+            color: #95a5a6;
+            text-decoration: line-through;
+        }
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .stars {
+            color: #f39c12;
+            font-size: 1.1rem;
+        }
+        .rating-text {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        .add-to-cart-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .add-to-cart-btn:hover {
+            background: linear-gradient(45deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+        }
+        .filter-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        .filter-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .filter-btn {
+            background: #ecf0f1;
+            border: none;
+            color: #7f8c8d;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 50px 0;
+        }
+        .feature-card {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        .feature-description {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 50px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #e74c3c;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .countdown-timer {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .countdown-item {
+            display: inline-block;
+            margin: 0 10px;
+            text-align: center;
+        }
+        .countdown-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+        .countdown-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <img src="images/logo.png" alt="Golden Source Technologies" height="40" class="me-3">
+                <span class="fw-bold text-primary">GOLDEN SOURCE TECHNOLOGIES</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="laptops.html">Laptops</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="phones.html">Phones</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="cameras.html">Cameras</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="audio.html">Audio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="accessories.html">Accessories</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="smart-home.html">Smart Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="deals.html">Deals</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-deals">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <div class="deals-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <h1 class="display-4 fw-bold mb-4">Special Deals</h1>
+                        <p class="lead mb-4">Don't miss out on our exclusive deals and limited-time offers on premium electronics and accessories.</p>
+                        <div class="d-flex gap-3">
+                            <a href="#products" class="btn btn-light btn-lg px-4">
+                                <i class="fas fa-shopping-bag me-2"></i>Shop Deals
+                            </a>
+                            <a href="#features" class="btn btn-outline-light btn-lg px-4">
+                                <i class="fas fa-info-circle me-2"></i>Learn More
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="text-center">
+                        <i class="fas fa-tags" style="font-size: 15rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Countdown Timer -->
+    <section class="py-4">
+        <div class="container">
+            <div class="countdown-timer">
+                <h3 class="mb-3"><i class="fas fa-clock me-2"></i>Flash Sale Ends In:</h3>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="days">05</span>
+                    <span class="countdown-label">Days</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="hours">12</span>
+                    <span class="countdown-label">Hours</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="minutes">30</span>
+                    <span class="countdown-label">Minutes</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="seconds">45</span>
+                    <span class="countdown-label">Seconds</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Why Shop Our Deals?</h2>
+            <p class="section-subtitle">Get the best value with our exclusive offers and promotions</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <h3 class="feature-title">Massive Discounts</h3>
+                    <p class="feature-description">Save up to 50% on premium electronics with our exclusive deals and limited-time offers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <h3 class="feature-title">Free Shipping</h3>
+                    <p class="feature-description">Enjoy free shipping on all orders over KSh 50,000 with our special deal promotions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h3 class="feature-title">Bundle Offers</h3>
+                    <p class="feature-description">Get amazing bundle deals when you buy multiple items together with additional savings.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Extended Warranty</h3>
+                    <p class="feature-description">Special extended warranty offers on select items during our promotional periods.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="filter-section">
+                <h3 class="filter-title">Filter by Deal Type</h3>
+                <div class="d-flex flex-wrap justify-content-center">
+                    <button class="filter-btn active" data-filter="all">All Deals</button>
+                    <button class="filter-btn" data-filter="flash-sale">Flash Sale</button>
+                    <button class="filter-btn" data-filter="bundle">Bundle Deals</button>
+                    <button class="filter-btn" data-filter="clearance">Clearance</button>
+                    <button class="filter-btn" data-filter="new-arrival">New Arrivals</button>
+                    <button class="filter-btn" data-filter="limited">Limited Time</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="products" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Exclusive Deal Collection</h2>
+            <p class="section-subtitle">Limited-time offers you won't want to miss</p>
+            
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p class="mt-3">Loading amazing deals...</p>
+            </div>
+            
+            <div class="row" id="productsContainer">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Golden Source Technologies</h5>
+                    <p>Your trusted electronics store. Quality products, computers, and accessories at competitive prices.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" class="text-light">Home</a></li>
+                        <li><a href="laptops.html" class="text-light">Laptops</a></li>
+                        <li><a href="phones.html" class="text-light">Phones</a></li>
+                        <li><a href="cameras.html" class="text-light">Cameras</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Info</h5>
+                    <p><i class="fas fa-phone me-2"></i> +254 724 369 971</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@goldensource.com</p>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> Nairobi, Kenya</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        // Deals-specific products data
+        const dealsProducts = [
+            {
+                id: 1,
+                name: "Apple MacBook Pro M3 14-inch 512GB",
+                price: 249999,
+                originalPrice: 299999,
+                category: "flash-sale",
+                brand: "Apple",
+                description: "Latest MacBook Pro with M3 chip - Flash Sale!",
+                rating: { average: 4.9, count: 45 },
+                discount: { percentage: 17 },
+                images: [{ url: "images/macbook-pro-m3.jpg", alt: "MacBook Pro M3" }]
+            },
+            {
+                id: 2,
+                name: "Samsung Galaxy S24 Ultra + Galaxy Buds Pro Bundle",
+                price: 149999,
+                originalPrice: 189999,
+                category: "bundle",
+                brand: "Samsung",
+                description: "Premium phone with wireless earbuds bundle deal",
+                rating: { average: 4.8, count: 78 },
+                discount: { percentage: 21 },
+                images: [{ url: "images/samsung-s24-bundle.jpg", alt: "Samsung S24 Bundle" }]
+            },
+            {
+                id: 3,
+                name: "Canon EOS R5 Mirrorless Camera Kit",
+                price: 399999,
+                originalPrice: 499999,
+                category: "clearance",
+                brand: "Canon",
+                description: "Professional camera kit - Clearance sale!",
+                rating: { average: 4.7, count: 23 },
+                discount: { percentage: 20 },
+                images: [{ url: "images/canon-eos-r5.jpg", alt: "Canon EOS R5" }]
+            },
+            {
+                id: 4,
+                name: "Sony WH-1000XM5 + Sony WF-1000XM5 Bundle",
+                price: 99999,
+                originalPrice: 139999,
+                category: "bundle",
+                brand: "Sony",
+                description: "Premium headphones and earbuds bundle",
+                rating: { average: 4.6, count: 56 },
+                discount: { percentage: 29 },
+                images: [{ url: "images/sony-audio-bundle.jpg", alt: "Sony Audio Bundle" }]
+            },
+            {
+                id: 5,
+                name: "Gaming Setup Bundle: PC + Monitor + Keyboard + Mouse",
+                price: 199999,
+                originalPrice: 299999,
+                category: "bundle",
+                brand: "Multiple",
+                description: "Complete gaming setup with everything you need",
+                rating: { average: 4.5, count: 34 },
+                discount: { percentage: 33 },
+                images: [{ url: "images/gaming-bundle.jpg", alt: "Gaming Bundle" }]
+            },
+            {
+                id: 6,
+                name: "iPhone 15 Pro Max 256GB - Limited Time Offer",
+                price: 179999,
+                originalPrice: 199999,
+                category: "limited",
+                brand: "Apple",
+                description: "Latest iPhone with limited-time pricing",
+                rating: { average: 4.9, count: 89 },
+                discount: { percentage: 10 },
+                images: [{ url: "images/iphone-15-pro-max.jpg", alt: "iPhone 15 Pro Max" }]
+            }
+        ];
+
+        // Countdown timer
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const endTime = now + (5 * 24 * 60 * 60 * 1000) + (12 * 60 * 60 * 1000) + (30 * 60 * 1000) + (45 * 1000);
+            
+            const timer = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = endTime - now;
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                document.getElementById("days").innerHTML = days.toString().padStart(2, '0');
+                document.getElementById("hours").innerHTML = hours.toString().padStart(2, '0');
+                document.getElementById("minutes").innerHTML = minutes.toString().padStart(2, '0');
+                document.getElementById("seconds").innerHTML = seconds.toString().padStart(2, '0');
+                
+                if (distance < 0) {
+                    clearInterval(timer);
+                    document.getElementById("days").innerHTML = "00";
+                    document.getElementById("hours").innerHTML = "00";
+                    document.getElementById("minutes").innerHTML = "00";
+                    document.getElementById("seconds").innerHTML = "00";
+                }
+            }, 1000);
+        }
+
+        // Display products
+        function displayProducts(products) {
+            const container = document.getElementById('productsContainer');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            loadingSpinner.style.display = 'none';
+            
+            container.innerHTML = products.map(product => `
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="product-card h-100">
+                        <div class="product-image">
+                            <i class="fas fa-tags" style="font-size: 4rem; color: #e74c3c;"></i>
+                            <div class="product-badge">${product.discount.percentage}% OFF</div>
+                            ${product.category === 'flash-sale' ? '<div class="flash-sale-badge">FLASH SALE</div>' : ''}
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title">${product.name}</h3>
+                            <div class="product-price">
+                                <span class="current-price">KSh ${product.price.toLocaleString()}</span>
+                                <span class="original-price">KSh ${product.originalPrice.toLocaleString()}</span>
+                            </div>
+                            <div class="product-rating">
+                                <div class="stars">${'★'.repeat(Math.floor(product.rating.average))}</div>
+                                <span class="rating-text">(${product.rating.count} reviews)</span>
+                            </div>
+                            <p class="text-muted mb-3">${product.description}</p>
+                            <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
+                                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter functionality
+        function filterProducts(category) {
+            const filteredProducts = category === 'all' 
+                ? dealsProducts 
+                : dealsProducts.filter(product => product.category === category);
+            
+            displayProducts(filteredProducts);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🏷️ Deals page loaded');
+            
+            // Start countdown timer
+            updateCountdown();
+            
+            // Show loading spinner
+            document.getElementById('loadingSpinner').style.display = 'block';
+            
+            // Simulate loading delay for better UX
+            setTimeout(() => {
+                displayProducts(dealsProducts);
+            }, 1000);
+            
+            // Filter button event listeners
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    // Filter products
+                    filterProducts(this.dataset.filter);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
