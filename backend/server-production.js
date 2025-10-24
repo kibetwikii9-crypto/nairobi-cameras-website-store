@@ -72,17 +72,36 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    const allowedOrigins = process.env.ALLOWED_ORIGINS ? 
-      process.env.ALLOWED_ORIGINS.split(',') : 
-      [process.env.RENDER_EXTERNAL_URL || 'https://nairobi-cameras.onrender.com'];
+    // Get the current Render URL dynamically
+    const renderUrl = process.env.RENDER_EXTERNAL_URL;
+    const allowedOrigins = [
+      renderUrl,
+      'https://nairobi-cameras.onrender.com',
+      'https://nairobi-cameras-website-store.onrender.com',
+      'http://localhost:3000',
+      'http://localhost:5000',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5000'
+    ].filter(Boolean); // Remove undefined values
+    
+    // Add custom allowed origins from environment
+    if (process.env.ALLOWED_ORIGINS) {
+      allowedOrigins.push(...process.env.ALLOWED_ORIGINS.split(','));
+    }
+    
+    console.log('🌐 CORS check for origin:', origin);
+    console.log('🌐 Allowed origins:', allowedOrigins);
     
     if (allowedOrigins.includes(origin)) {
+      console.log('✅ CORS allowed for:', origin);
       callback(null, true);
     } else {
-      // For production, be more strict
-      if (process.env.NODE_ENV === 'production') {
+      console.log('❌ CORS blocked for:', origin);
+      // For production, be more strict but allow Render domains
+      if (process.env.NODE_ENV === 'production' && !origin.includes('onrender.com')) {
         callback(new Error('Not allowed by CORS'));
       } else {
+        console.log('✅ CORS allowed (fallback) for:', origin);
         callback(null, true);
       }
     }
@@ -90,10 +109,25 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 };
 
+// Apply CORS with fallback for development
 app.use(cors(corsOptions));
+
+// Additional CORS fallback for development/testing
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
+}
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
