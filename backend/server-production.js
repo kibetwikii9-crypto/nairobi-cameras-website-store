@@ -512,14 +512,14 @@ const startServer = async () => {
         }
 
         // Try to restore data from backup
-        await restoreData(sequelize, Product, User, Order);
+        await restoreData(Product, User, Order);
         
         // No automatic product seeding - products should be added via admin panel
         const productCount = await Product.count();
         console.log(`📦 Database initialized with ${productCount} existing products`);
         
         // Create backup of current data
-        await backupData(sequelize, Product, User, Order);
+        await backupData(Product, User, Order);
 
         app.listen(PORT, '0.0.0.0', () => {
             console.log('🚀 Server running on port', PORT);

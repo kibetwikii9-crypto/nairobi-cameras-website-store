@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Backup database data to JSON file
-const backupData = async (sequelize, Product, User, Order) => {
+const backupData = async (Product, User, Order) => {
   try {
     console.log('💾 Creating database backup...');
     
@@ -30,7 +30,7 @@ const backupData = async (sequelize, Product, User, Order) => {
 };
 
 // Restore database data from JSON file
-const restoreData = async (sequelize, Product, User, Order) => {
+const restoreData = async (Product, User, Order) => {
   try {
     const backupPath = path.join(__dirname, 'backup.json');
     
