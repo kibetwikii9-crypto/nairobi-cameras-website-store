@@ -54,17 +54,38 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// Rate limiting for production
+// Rate limiting for production - More lenient for e-commerce
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000, // limit each IP to 1000 requests per windowMs (more lenient)
   message: {
-    error: 'Too many requests from this IP, please try again later.'
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: '15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip rate limiting for certain paths
+  skip: (req) => {
+    // Skip rate limiting for health checks and static files
+    return req.path === '/api/health' || req.path.startsWith('/images/') || req.path.startsWith('/css/') || req.path.startsWith('/js/');
+  }
+});
+app.use(limiter);
+
+// More lenient rate limiting for API endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // 500 requests per 15 minutes for API calls
+  message: {
+    error: 'API rate limit exceeded. Please try again later.',
+    retryAfter: '15 minutes'
   },
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use(limiter);
+
+// Apply API rate limiting only to API routes
+app.use('/api', apiLimiter);
 
 // CORS configuration for production
 const corsOptions = {
