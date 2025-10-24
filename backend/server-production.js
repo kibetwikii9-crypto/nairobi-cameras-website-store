@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const fs = require('fs');
 const { syncDatabase, User, Product, Order } = require('./config/database');
+const { backupData, restoreData } = require('./database/backup-data');
 
 // Load environment variables
 if (process.env.NODE_ENV === 'production') {
@@ -510,9 +511,15 @@ const startServer = async () => {
             console.log('✅ Admin user created');
         }
 
+        // Try to restore data from backup
+        await restoreData(sequelize, Product, User, Order);
+        
         // No automatic product seeding - products should be added via admin panel
         const productCount = await Product.count();
         console.log(`📦 Database initialized with ${productCount} existing products`);
+        
+        // Create backup of current data
+        await backupData(sequelize, Product, User, Order);
 
         app.listen(PORT, '0.0.0.0', () => {
             console.log('🚀 Server running on port', PORT);
