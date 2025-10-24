@@ -281,6 +281,190 @@
             color: #28a745;
         }
 
+        /* New Section Styles */
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .description-content {
+            color: #6c757d;
+            font-size: 1rem;
+            line-height: 1.6;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .specifications-content {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            border-left: 4px solid #28a745;
+        }
+
+        .specifications-table {
+            margin-bottom: 0;
+        }
+
+        .specifications-table th {
+            background: transparent;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            width: 30%;
+        }
+
+        .specifications-table td {
+            border-bottom: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+
+        /* Reviews Section Styles */
+        .reviews-section {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            margin-top: 3rem;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .reviews-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .add-review-form {
+            margin-bottom: 2rem;
+        }
+
+        .add-review-form .card {
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .add-review-form .card-body {
+            padding: 2rem;
+        }
+
+        .add-review-form .card-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Rating Input Styles */
+        .rating-input {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .rating-input input[type="radio"] {
+            display: none;
+        }
+
+        .rating-input .star {
+            font-size: 2rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .rating-input .star:hover,
+        .rating-input .star:hover ~ .star {
+            color: #ffc107;
+        }
+
+        .rating-input input[type="radio"]:checked ~ .star {
+            color: #ffc107;
+        }
+
+        .rating-input input[type="radio"]:checked ~ .star,
+        .rating-input input[type="radio"]:checked ~ .star ~ .star {
+            color: #ffc107;
+        }
+
+        /* Reviews List Styles */
+        .reviews-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .review-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #007bff;
+            transition: all 0.3s ease;
+        }
+
+        .review-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .review-author {
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .review-date {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .review-rating {
+            color: #ffc107;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .review-comment {
+            color: #495057;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .no-reviews {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .no-reviews i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+
         .loading-spinner {
             display: flex;
             justify-content: center;
@@ -422,52 +606,97 @@
                                     <span>Fast Processing</span>
                                 </div>
                             </div>
+
+                            <!-- Product Description Section -->
+                            <div class="product-description-section mt-4">
+                                <h4 class="section-title">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Product Description
+                                </h4>
+                                <div id="productFullDescription" class="description-content">
+                                    <!-- Full description will be loaded here -->
+                                </div>
+                            </div>
+
+                            <!-- Product Specifications Section -->
+                            <div class="product-specifications-section mt-4">
+                                <h4 class="section-title">
+                                    <i class="fas fa-cogs me-2"></i>
+                                    Specifications
+                                </h4>
+                                <div class="specifications-content">
+                                    <table class="table specifications-table" id="specificationsTable">
+                                        <!-- Specifications will be populated here -->
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Product Tabs -->
-            <div class="product-tabs">
-                <ul class="nav nav-tabs" id="productTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">
-                            <i class="fas fa-info-circle me-2"></i>Description
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button" role="tab">
-                            <i class="fas fa-cogs me-2"></i>Specifications
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
-                            <i class="fas fa-star me-2"></i>Reviews <span id="reviewCount" class="badge bg-primary ms-2">0</span>
-                        </button>
-                    </li>
-                </ul>
+            <!-- Reviews Section -->
+            <div class="reviews-section">
+                <div class="reviews-header">
+                    <h3 class="reviews-title">
+                        <i class="fas fa-star text-warning me-2"></i>
+                        Customer Reviews
+                        <span id="reviewCount" class="badge bg-primary ms-2">0</span>
+                    </h3>
+                    <button class="btn btn-outline-primary" id="addReviewBtn">
+                        <i class="fas fa-plus me-2"></i>Write a Review
+                    </button>
+                </div>
 
-                <div class="tab-content" id="productTabContent">
-                    <!-- Description Tab -->
-                    <div class="tab-pane fade show active" id="description" role="tabpanel">
-                        <div id="productFullDescription">
-                            <!-- Full description will be loaded here -->
+                <!-- Add Review Form -->
+                <div class="add-review-form" id="addReviewForm" style="display: none;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Write Your Review</h5>
+                            <form id="reviewForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="reviewerName" class="form-label">Your Name</label>
+                                        <input type="text" class="form-control" id="reviewerName" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="reviewerEmail" class="form-label">Your Email</label>
+                                        <input type="email" class="form-control" id="reviewerEmail" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reviewRating" class="form-label">Rating</label>
+                                    <div class="rating-input">
+                                        <input type="radio" name="rating" value="5" id="star5">
+                                        <label for="star5" class="star">★</label>
+                                        <input type="radio" name="rating" value="4" id="star4">
+                                        <label for="star4" class="star">★</label>
+                                        <input type="radio" name="rating" value="3" id="star3">
+                                        <label for="star3" class="star">★</label>
+                                        <input type="radio" name="rating" value="2" id="star2">
+                                        <label for="star2" class="star">★</label>
+                                        <input type="radio" name="rating" value="1" id="star1">
+                                        <label for="star1" class="star">★</label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reviewComment" class="form-label">Your Review</label>
+                                    <textarea class="form-control" id="reviewComment" rows="4" placeholder="Share your experience with this product..." required></textarea>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Review
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" id="cancelReviewBtn">Cancel</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Specifications Tab -->
-                    <div class="tab-pane fade" id="specifications" role="tabpanel">
-                        <table class="table specifications-table" id="specificationsTable">
-                            <!-- Specifications will be populated here -->
-                        </table>
-                    </div>
-
-                    <!-- Reviews Tab -->
-                    <div class="tab-pane fade" id="reviews" role="tabpanel">
-                        <div id="reviewsContainer">
-                            <!-- Reviews will be populated here -->
-                        </div>
-                    </div>
+                <!-- Reviews List -->
+                <div class="reviews-list" id="reviewsContainer">
+                    <!-- Reviews will be populated here -->
                 </div>
             </div>
 
@@ -565,14 +794,20 @@
             // Display images
             displayProductImages(product.images || []);
 
-            // Display full description
-            document.getElementById('productFullDescription').innerHTML = product.description || 'No detailed description available.';
+            // Display full description in the main product box
+            const descriptionElement = document.getElementById('productFullDescription');
+            if (descriptionElement) {
+                descriptionElement.innerHTML = product.description || 'No detailed description available.';
+            }
 
-            // Display specifications
+            // Display specifications in the main product box
             displaySpecifications(product.specifications || {});
 
-            // Display reviews
-            displayReviews(product.reviews || []);
+            // Display reviews in the reviews section (combine API reviews with localStorage reviews)
+            const apiReviews = product.reviews || [];
+            const localReviews = loadReviewsFromStorage();
+            const allReviews = [...localReviews, ...apiReviews];
+            displayReviews(allReviews);
 
             // Setup action buttons
             setupActionButtons(product);
@@ -682,25 +917,31 @@
             const container = document.getElementById('reviewsContainer');
             const reviewCount = document.getElementById('reviewCount');
             
-            reviewCount.textContent = reviews.length;
+            if (reviewCount) {
+                reviewCount.textContent = reviews.length;
+            }
 
             if (reviews.length === 0) {
-                container.innerHTML = '<p class="text-muted text-center">No reviews yet. Be the first to review this product!</p>';
+                container.innerHTML = `
+                    <div class="no-reviews">
+                        <i class="fas fa-star"></i>
+                        <h5>No reviews yet</h5>
+                        <p>Be the first to review this product!</p>
+                    </div>
+                `;
                 return;
             }
 
             container.innerHTML = reviews.map(review => `
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="card-title mb-0">${review.user?.name || 'Anonymous'}</h6>
-                            <small class="text-muted">${new Date(review.createdAt).toLocaleDateString()}</small>
-                        </div>
-                        <div class="text-warning mb-2">
-                            ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
-                        </div>
-                        <p class="card-text">${review.comment || 'No comment provided'}</p>
+                <div class="review-item">
+                    <div class="review-header">
+                        <h6 class="review-author">${review.user?.name || review.name || 'Anonymous'}</h6>
+                        <small class="review-date">${new Date(review.createdAt || review.date || Date.now()).toLocaleDateString()}</small>
                     </div>
+                    <div class="review-rating">
+                        ${'★'.repeat(review.rating || 5)}${'☆'.repeat(5 - (review.rating || 5))}
+                    </div>
+                    <p class="review-comment">${review.comment || review.text || 'No comment provided'}</p>
                 </div>
             `).join('');
         }
@@ -851,10 +1092,94 @@
             }
         }
 
+        // Review functionality
+        function setupReviewForm() {
+            const addReviewBtn = document.getElementById('addReviewBtn');
+            const addReviewForm = document.getElementById('addReviewForm');
+            const cancelReviewBtn = document.getElementById('cancelReviewBtn');
+            const reviewForm = document.getElementById('reviewForm');
+
+            if (addReviewBtn) {
+                addReviewBtn.addEventListener('click', function() {
+                    addReviewForm.style.display = 'block';
+                    addReviewBtn.style.display = 'none';
+                });
+            }
+
+            if (cancelReviewBtn) {
+                cancelReviewBtn.addEventListener('click', function() {
+                    addReviewForm.style.display = 'none';
+                    addReviewBtn.style.display = 'inline-block';
+                    reviewForm.reset();
+                });
+            }
+
+            if (reviewForm) {
+                reviewForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitReview();
+                });
+            }
+        }
+
+        function submitReview() {
+            const name = document.getElementById('reviewerName').value;
+            const email = document.getElementById('reviewerEmail').value;
+            const rating = document.querySelector('input[name="rating"]:checked')?.value;
+            const comment = document.getElementById('reviewComment').value;
+
+            if (!name || !email || !rating || !comment) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Create new review object
+            const newReview = {
+                name: name,
+                email: email,
+                rating: parseInt(rating),
+                comment: comment,
+                date: new Date().toISOString()
+            };
+
+            // Get existing reviews from localStorage
+            const productId = currentProduct?.id || currentProduct?._id;
+            const storageKey = `reviews_${productId}`;
+            let reviews = JSON.parse(localStorage.getItem(storageKey)) || [];
+            
+            // Add new review
+            reviews.unshift(newReview);
+            
+            // Save to localStorage
+            localStorage.setItem(storageKey, JSON.stringify(reviews));
+            
+            // Update display
+            displayReviews(reviews);
+            
+            // Hide form
+            document.getElementById('addReviewForm').style.display = 'none';
+            document.getElementById('addReviewBtn').style.display = 'inline-block';
+            
+            // Reset form
+            document.getElementById('reviewForm').reset();
+            
+            // Show success message
+            alert('Thank you for your review!');
+        }
+
+        function loadReviewsFromStorage() {
+            if (!currentProduct) return [];
+            
+            const productId = currentProduct.id || currentProduct._id;
+            const storageKey = `reviews_${productId}`;
+            return JSON.parse(localStorage.getItem(storageKey)) || [];
+        }
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing product page...');
             loadProduct();
+            setupReviewForm();
         });
     </script>
 </body>
