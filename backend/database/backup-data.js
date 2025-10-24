@@ -44,23 +44,31 @@ const restoreData = async (Product, User, Order) => {
     
     // Check if data already exists
     const existingProducts = await Product.count();
-    if (existingProducts > 0) {
-      console.log('📦 Data already exists, skipping restore');
-      return true;
-    }
+    console.log(`📊 Current products in database: ${existingProducts}`);
     
-    // Restore data
-    if (backupData.products && backupData.products.length > 0) {
+    // Only restore if we have backup data and no existing products
+    if (existingProducts === 0 && backupData.products && backupData.products.length > 0) {
+      console.log(`🔄 Restoring ${backupData.products.length} products from backup...`);
       await Product.bulkCreate(backupData.products);
       console.log(`✅ Restored ${backupData.products.length} products`);
+    } else if (existingProducts > 0) {
+      console.log('📦 Products already exist, skipping restore');
+    } else {
+      console.log('📄 No products in backup to restore');
     }
     
-    if (backupData.users && backupData.users.length > 0) {
+    // Restore users if needed
+    const existingUsers = await User.count();
+    if (existingUsers === 0 && backupData.users && backupData.users.length > 0) {
+      console.log(`🔄 Restoring ${backupData.users.length} users from backup...`);
       await User.bulkCreate(backupData.users);
       console.log(`✅ Restored ${backupData.users.length} users`);
     }
     
-    if (backupData.orders && backupData.orders.length > 0) {
+    // Restore orders if needed
+    const existingOrders = await Order.count();
+    if (existingOrders === 0 && backupData.orders && backupData.orders.length > 0) {
+      console.log(`🔄 Restoring ${backupData.orders.length} orders from backup...`);
       await Order.bulkCreate(backupData.orders);
       console.log(`✅ Restored ${backupData.orders.length} orders`);
     }

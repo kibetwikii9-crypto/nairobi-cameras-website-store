@@ -9,6 +9,73 @@ const fs = require('fs');
 const { syncDatabase, User, Product, Order } = require('./config/database');
 const { backupData, restoreData } = require('./database/backup-data');
 
+// Function to create sample products
+const createSampleProducts = async (Product) => {
+  try {
+    const sampleProducts = [
+      {
+        name: 'Canon EOS R5 Camera',
+        description: 'Professional mirrorless camera with 45MP full-frame sensor',
+        price: 3899.99,
+        category: 'cameras',
+        images: [{
+          url: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=500&h=500&fit=crop&crop=center',
+          isPrimary: true
+        }],
+        specifications: {
+          'Sensor': '45MP Full-Frame',
+          'Video': '8K RAW',
+          'ISO': '100-51200',
+          'Weight': '650g'
+        },
+        featured: true,
+        status: 'active'
+      },
+      {
+        name: 'MacBook Pro 16-inch',
+        description: 'Powerful laptop with M2 Pro chip for professional work',
+        price: 2499.99,
+        category: 'laptops',
+        images: [{
+          url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
+          isPrimary: true
+        }],
+        specifications: {
+          'Processor': 'M2 Pro',
+          'RAM': '16GB',
+          'Storage': '512GB SSD',
+          'Display': '16.2-inch Liquid Retina XDR'
+        },
+        featured: true,
+        status: 'active'
+      },
+      {
+        name: 'iPhone 15 Pro',
+        description: 'Latest iPhone with titanium design and A17 Pro chip',
+        price: 999.99,
+        category: 'phones',
+        images: [{
+          url: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=500&h=500&fit=crop&crop=center',
+          isPrimary: true
+        }],
+        specifications: {
+          'Display': '6.1-inch Super Retina XDR',
+          'Chip': 'A17 Pro',
+          'Camera': '48MP Main Camera',
+          'Storage': '128GB'
+        },
+        featured: true,
+        status: 'active'
+      }
+    ];
+
+    await Product.bulkCreate(sampleProducts);
+    console.log('✅ Sample products created successfully');
+  } catch (error) {
+    console.error('❌ Error creating sample products:', error);
+  }
+};
+
 // Load environment variables
 if (process.env.NODE_ENV === 'production') {
   dotenv.config({ path: './env.production' });
@@ -514,9 +581,17 @@ const startServer = async () => {
         // Try to restore data from backup
         await restoreData(Product, User, Order);
         
-        // No automatic product seeding - products should be added via admin panel
+        // Check if we have any products after restore
         const productCount = await Product.count();
         console.log(`📦 Database initialized with ${productCount} existing products`);
+        
+        // If no products exist, create some sample products
+        if (productCount === 0) {
+            console.log('📦 No products found, creating sample products...');
+            await createSampleProducts(Product);
+            const newProductCount = await Product.count();
+            console.log(`✅ Created ${newProductCount} sample products`);
+        }
         
         // Create backup of current data
         await backupData(Product, User, Order);
