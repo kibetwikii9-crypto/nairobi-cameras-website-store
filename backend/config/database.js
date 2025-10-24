@@ -48,6 +48,16 @@ if (process.env.NODE_ENV === 'production') {
       console.log('❌ Cannot write to:', testPath, error.message);
     }
   }
+  
+  // If no persistent path worked, fall back to local directory
+  if (finalDbDir === dbDir) {
+    console.log('⚠️ No persistent path found, using fallback directory');
+    finalDbDir = path.join(__dirname, '../database');
+    dbPath = path.join(finalDbDir, 'golden-source-tech.sqlite');
+    if (!fs.existsSync(finalDbDir)) {
+      fs.mkdirSync(finalDbDir, { recursive: true });
+    }
+  }
 } else {
   // Local development
   if (!fs.existsSync(dbDir)) {
