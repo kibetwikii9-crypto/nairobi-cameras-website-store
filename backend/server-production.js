@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const fs = require('fs');
 const { syncDatabase, User, Product, Order } = require('./config/database');
-const { backupData, restoreData } = require('./database/backup-data');
+const { backupData, restoreData, startAutoBackup } = require('./database/backup-data');
 
 // Function to create sample products
 const createSampleProducts = async (Product) => {
@@ -248,6 +248,25 @@ app.get('/api/health', (req, res) => {
         uptime: process.uptime(),
         database: 'SQLite'
     });
+});
+
+// Manual backup endpoint
+app.post('/api/backup', async (req, res) => {
+    try {
+        await backupData(Product, User, Order);
+        res.json({
+            success: true,
+            message: 'Backup created successfully',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Manual backup error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Backup failed',
+            error: error.message
+        });
+    }
 });
 
 // Products API
@@ -643,6 +662,9 @@ const startServer = async () => {
                 
                 // Create backup of current data
                 await backupData(Product, User, Order);
+                
+                // Start automatic backup system
+                startAutoBackup(Product, User, Order);
             } catch (dbError) {
                 console.error('❌ Database operation error:', dbError);
                 console.log('⚠️ Continuing with limited functionality');

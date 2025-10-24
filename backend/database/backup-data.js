@@ -2,6 +2,10 @@
 const fs = require('fs');
 const path = require('path');
 
+// Enhanced backup with automatic scheduling
+const BACKUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+let backupInterval = null;
+
 // Backup database data to JSON file
 const backupData = async (Product, User, Order) => {
   try {
@@ -81,4 +85,32 @@ const restoreData = async (Product, User, Order) => {
   }
 };
 
-module.exports = { backupData, restoreData };
+// Start automatic backup system
+const startAutoBackup = (Product, User, Order) => {
+  if (backupInterval) {
+    clearInterval(backupInterval);
+  }
+  
+  console.log('🔄 Starting automatic backup system...');
+  backupInterval = setInterval(async () => {
+    try {
+      await backupData(Product, User, Order);
+      console.log('✅ Automatic backup completed');
+    } catch (error) {
+      console.error('❌ Automatic backup failed:', error);
+    }
+  }, BACKUP_INTERVAL);
+  
+  console.log(`⏰ Automatic backup scheduled every ${BACKUP_INTERVAL / 1000} seconds`);
+};
+
+// Stop automatic backup system
+const stopAutoBackup = () => {
+  if (backupInterval) {
+    clearInterval(backupInterval);
+    backupInterval = null;
+    console.log('🛑 Automatic backup system stopped');
+  }
+};
+
+module.exports = { backupData, restoreData, startAutoBackup, stopAutoBackup };
