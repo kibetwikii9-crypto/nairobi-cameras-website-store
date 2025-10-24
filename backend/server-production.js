@@ -12,62 +12,71 @@ const { backupData, restoreData } = require('./database/backup-data');
 // Function to create sample products
 const createSampleProducts = async (Product) => {
   try {
-    const sampleProducts = [
-      {
-        name: 'Canon EOS R5 Camera',
-        description: 'Professional mirrorless camera with 45MP full-frame sensor',
-        price: 3899.99,
-        category: 'cameras',
-        images: [{
-          url: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=500&h=500&fit=crop&crop=center',
-          isPrimary: true
-        }],
-        specifications: {
-          'Sensor': '45MP Full-Frame',
-          'Video': '8K RAW',
-          'ISO': '100-51200',
-          'Weight': '650g'
-        },
-        featured: true,
-        status: 'active'
-      },
-      {
-        name: 'MacBook Pro 16-inch',
-        description: 'Powerful laptop with M2 Pro chip for professional work',
-        price: 2499.99,
-        category: 'laptops',
-        images: [{
-          url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
-          isPrimary: true
-        }],
-        specifications: {
-          'Processor': 'M2 Pro',
-          'RAM': '16GB',
-          'Storage': '512GB SSD',
-          'Display': '16.2-inch Liquid Retina XDR'
-        },
-        featured: true,
-        status: 'active'
-      },
-      {
-        name: 'iPhone 15 Pro',
-        description: 'Latest iPhone with titanium design and A17 Pro chip',
-        price: 999.99,
-        category: 'phones',
-        images: [{
-          url: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=500&h=500&fit=crop&crop=center',
-          isPrimary: true
-        }],
-        specifications: {
-          'Display': '6.1-inch Super Retina XDR',
-          'Chip': 'A17 Pro',
-          'Camera': '48MP Main Camera',
-          'Storage': '128GB'
-        },
-        featured: true,
-        status: 'active'
-      }
-    ];
+        const sampleProducts = [
+          {
+            name: 'Canon EOS R5 Camera',
+            description: 'Professional mirrorless camera with 45MP full-frame sensor',
+            price: 3899.99,
+            category: 'cameras',
+            brand: 'Canon',
+            model: 'EOS R5',
+            stock: 10,
+            images: [{
+              url: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=500&h=500&fit=crop&crop=center',
+              isPrimary: true
+            }],
+            specifications: {
+              'Sensor': '45MP Full-Frame',
+              'Video': '8K RAW',
+              'ISO': '100-51200',
+              'Weight': '650g'
+            },
+            isFeatured: true,
+            isActive: true
+          },
+          {
+            name: 'MacBook Pro 16-inch',
+            description: 'Powerful laptop with M2 Pro chip for professional work',
+            price: 2499.99,
+            category: 'laptops',
+            brand: 'Apple',
+            model: 'MacBook Pro 16-inch',
+            stock: 5,
+            images: [{
+              url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
+              isPrimary: true
+            }],
+            specifications: {
+              'Processor': 'M2 Pro',
+              'RAM': '16GB',
+              'Storage': '512GB SSD',
+              'Display': '16.2-inch Liquid Retina XDR'
+            },
+            isFeatured: true,
+            isActive: true
+          },
+          {
+            name: 'iPhone 15 Pro',
+            description: 'Latest iPhone with titanium design and A17 Pro chip',
+            price: 999.99,
+            category: 'phones',
+            brand: 'Apple',
+            model: 'iPhone 15 Pro',
+            stock: 15,
+            images: [{
+              url: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=500&h=500&fit=crop&crop=center',
+              isPrimary: true
+            }],
+            specifications: {
+              'Display': '6.1-inch Super Retina XDR',
+              'Chip': 'A17 Pro',
+              'Camera': '48MP Main Camera',
+              'Storage': '128GB'
+            },
+            isFeatured: true,
+            isActive: true
+          }
+        ];
 
     await Product.bulkCreate(sampleProducts);
     console.log('✅ Sample products created successfully');
@@ -249,7 +258,7 @@ app.get('/api/products', async (req, res) => {
         
         const { page = 1, limit = 12, category, search, minPrice, maxPrice } = req.query;
         
-        const where = { status: 'active' };
+        const where = { isActive: true };
         if (category) where.category = category;
         if (search) {
             where.name = { [require('sequelize').Op.like]: `%${search}%` };
