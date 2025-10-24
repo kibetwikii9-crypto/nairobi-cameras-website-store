@@ -241,7 +241,7 @@ app.get('/api/products', async (req, res) => {
     try {
         const { page = 1, limit = 12, category, search, minPrice, maxPrice } = req.query;
         
-        const where = { isActive: true };
+        const where = { status: 'active' };
         if (category) where.category = category;
         if (search) {
             where.name = { [require('sequelize').Op.like]: `%${search}%` };
@@ -252,12 +252,16 @@ app.get('/api/products', async (req, res) => {
             if (maxPrice) where.price[require('sequelize').Op.lte] = parseFloat(maxPrice);
         }
 
+        console.log('🔍 Products API - Where clause:', where);
+        
         const products = await Product.findAndCountAll({
             where,
             limit: parseInt(limit),
             offset: (parseInt(page) - 1) * parseInt(limit),
             order: [['createdAt', 'DESC']]
         });
+
+        console.log(`📦 Found ${products.count} products, returning ${products.rows.length} products`);
 
         res.json({
             success: true,
