@@ -239,6 +239,9 @@ app.get('/api/health', (req, res) => {
 // Products API
 app.get('/api/products', async (req, res) => {
     try {
+        console.log('🔍 Products API called');
+        console.log('🔍 Product model available:', !!Product);
+        
         const { page = 1, limit = 12, category, search, minPrice, maxPrice } = req.query;
         
         const where = { status: 'active' };
@@ -253,6 +256,16 @@ app.get('/api/products', async (req, res) => {
         }
 
         console.log('🔍 Products API - Where clause:', where);
+        
+        // Check if Product model is available
+        if (!Product) {
+            console.error('❌ Product model not available');
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Database model not available',
+                error: 'Product model not found'
+            });
+        }
         
         const products = await Product.findAndCountAll({
             where,
@@ -275,8 +288,15 @@ app.get('/api/products', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Get products error:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('❌ Get products error:', error);
+        console.error('❌ Error details:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error',
+            error: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 });
 
