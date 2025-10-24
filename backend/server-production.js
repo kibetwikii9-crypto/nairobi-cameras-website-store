@@ -18,23 +18,10 @@ if (process.env.NODE_ENV === 'production') {
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../images/uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Multer configuration for Render deployment
+// Use memory storage since Render doesn't support file system writes
 const upload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(), // Use memory storage instead of disk storage
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB limit
   },
@@ -472,7 +459,7 @@ const startServer = async () => {
         const productCount = await Product.count();
         console.log(`📦 Database initialized with ${productCount} existing products`);
 
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log('🚀 Server running on port', PORT);
             console.log('📱 Frontend: https://your-app-name.onrender.com');
             console.log('🔧 API: https://your-app-name.onrender.com/api');
