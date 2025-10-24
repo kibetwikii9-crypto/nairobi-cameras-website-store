@@ -110,10 +110,9 @@ let homeProductsLoaded = false;
             // Show message to add products via admin
             document.getElementById('homeFeatured').innerHTML = `
                 <div class="no-products-message">
-                    <i class="fas fa-plus-circle"></i>
-                    <h4>No products yet</h4>
-                    <p>Add products through the admin panel to see them here</p>
-                    <a href="/admin" class="btn btn-primary">Go to Admin</a>
+                    <i class="fas fa-box-open"></i>
+                    <h4>No products available</h4>
+                    <p>Check back soon for our latest products!</p>
                 </div>
             `;
         }

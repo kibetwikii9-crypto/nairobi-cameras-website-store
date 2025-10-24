@@ -156,8 +156,7 @@ class ProductLoader {
                     <i class="fas fa-box-open"></i>
                     <h3>No products found</h3>
                     <p>No products are available in this category at the moment.</p>
-                    <p>Add products through the admin panel to see them here.</p>
-                    <a href="/admin" class="btn btn-primary">Go to Admin Panel</a>
+                    <p>Check back soon for our latest products!</p>
                 </div>
             `;
         }
