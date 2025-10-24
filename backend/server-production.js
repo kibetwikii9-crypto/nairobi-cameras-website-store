@@ -363,19 +363,46 @@ app.post('/api/auth/login', async (req, res) => {
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));
 
-// Image upload endpoint - Disabled for Render deployment
+// Image upload endpoint - Modified for Render deployment
 app.post('/api/upload', (req, res) => {
-  // File uploads disabled for Render deployment
-  // Use external image URLs instead
-  res.json({
-    success: false,
-    message: 'File uploads are disabled. Please use external image URLs.',
-    data: {
-      filename: 'placeholder.jpg',
-      url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
-      size: 0
-    }
-  });
+  // For Render deployment, we'll accept image URLs instead of file uploads
+  const { imageUrl } = req.body;
+  
+  if (!imageUrl) {
+    return res.status(400).json({
+      success: false,
+      message: 'Image URL is required. Please provide an external image URL.',
+      data: {
+        filename: 'placeholder.jpg',
+        url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
+        size: 0
+      }
+    });
+  }
+  
+  // Validate URL format
+  try {
+    new URL(imageUrl);
+    res.json({
+      success: true,
+      message: 'Image URL accepted successfully',
+      data: {
+        filename: 'external-image.jpg',
+        url: imageUrl,
+        size: 0
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: 'Invalid image URL format. Please provide a valid URL.',
+      data: {
+        filename: 'placeholder.jpg',
+        url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
+        size: 0
+      }
+    });
+  }
 });
 
 // Serve uploaded images

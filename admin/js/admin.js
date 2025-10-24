@@ -701,29 +701,30 @@ function displayExistingImages(images) {
 
 async function saveProduct() {
     const productId = document.getElementById('productId').value;
-    const imageFiles = document.getElementById('productImages').files;
+    const imageUrl = document.getElementById('productImageUrl').value;
     
     try {
-        // Get existing images from preview
-        let existingImages = [];
-        const imagePreviews = document.querySelectorAll('#imagePreview img');
-        imagePreviews.forEach(img => {
-            if (img.src && !img.src.includes('data:')) { // Not a preview image
-                existingImages.push({
-                    url: img.src,
-                    isPrimary: img.closest('.position-relative').querySelector('.badge.bg-success') ? true : false
-                });
+        // Handle image URL instead of file uploads
+        let productImages = [];
+        
+        if (imageUrl) {
+            // Validate URL format
+            try {
+                new URL(imageUrl);
+                productImages = [{
+                    url: imageUrl,
+                    isPrimary: true
+                }];
+            } catch (error) {
+                throw new Error('Please enter a valid image URL');
             }
-        });
-        
-        // Upload new images if any
-        let uploadedImages = [];
-        if (imageFiles.length > 0) {
-            uploadedImages = await uploadImages(imageFiles);
+        } else {
+            // Use placeholder image if no URL provided
+            productImages = [{
+                url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
+                isPrimary: true
+            }];
         }
-        
-        // Combine existing and new images
-        const allImages = [...existingImages, ...uploadedImages];
 
         // Parse specifications JSON
         let specifications = {};
@@ -748,7 +749,7 @@ async function saveProduct() {
             description: document.getElementById('productDescription').value,
             specifications: specifications,
             isFeatured: document.getElementById('productFeatured').checked,
-            images: allImages
+            images: productImages
         };
 
         const url = productId ? `${API_BASE}/products/${productId}` : `${API_BASE}/products`;
@@ -795,24 +796,25 @@ async function uploadImages(files) {
 }
 
 async function uploadSingleImage(file) {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const response = await fetch(`${API_BASE}/upload`, {
-        method: 'POST',
-        body: formData
-    });
-
-    const data = await response.json();
+    // For Render deployment, we'll use a placeholder approach
+    // In a real implementation, you'd upload to a cloud service like AWS S3, Cloudinary, etc.
     
-    if (data.success) {
-        return {
-            url: data.data.url,
-            isPrimary: false
-        };
-    } else {
-        throw new Error(data.message);
-    }
+    // For now, we'll use a placeholder image URL
+    const placeholderUrls = [
+        'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
+        'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=500&h=500&fit=crop&crop=center',
+        'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&h=500&fit=crop&crop=center',
+        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop&crop=center',
+        'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&h=500&fit=crop&crop=center'
+    ];
+    
+    // Return a random placeholder URL
+    const randomUrl = placeholderUrls[Math.floor(Math.random() * placeholderUrls.length)];
+    
+    return {
+        url: randomUrl,
+        isPrimary: false
+    };
 }
 
 function previewImages(files) {
