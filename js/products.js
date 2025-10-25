@@ -143,9 +143,14 @@ class ProductLoader {
 
     // Handle image loading errors
     handleImageError(img) {
-        img.onerror = null; // Prevent infinite loop
-        img.src = '/images/default.jpg';
-        img.classList.remove('loading');
+        if (window.imageHandler) {
+            window.imageHandler.handleImageError(img);
+        } else {
+            // Fallback to basic error handling
+            img.onerror = null;
+            img.src = '/images/default.jpg';
+            img.classList.remove('loading');
+        }
     }
 
     showNoProducts() {

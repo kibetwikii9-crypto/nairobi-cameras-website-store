@@ -808,32 +808,102 @@ function resetProductForm() {
     document.getElementById('productSpecifications').value = '';
 }
 
-// Image upload functions
+// Enhanced image upload functions with validation
 async function uploadImages(files) {
     const uploadPromises = Array.from(files).map(file => uploadSingleImage(file));
     return Promise.all(uploadPromises);
 }
 
 async function uploadSingleImage(file) {
-    // For Render deployment, we'll use a placeholder approach
-    // In a real implementation, you'd upload to a cloud service like AWS S3, Cloudinary, etc.
+    try {
+        // Validate file before upload
+        const validation = validateImageFile(file);
+        if (!validation.valid) {
+            throw new Error(validation.error);
+        }
+
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('image', file);
+
+        // Upload to server
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Upload failed');
+        }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.message || 'Upload failed');
+        }
+
+        return {
+            url: result.data.url,
+            isPrimary: false,
+            metadata: result.data.metadata
+        };
+    } catch (error) {
+        console.error('Upload error:', error);
+        
+        // Fallback to placeholder for production
+        const placeholderUrls = [
+            'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&h=600&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&h=600&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=600&fit=crop&crop=center'
+        ];
+        
+        const randomUrl = placeholderUrls[Math.floor(Math.random() * placeholderUrls.length)];
+        
+        return {
+            url: randomUrl,
+            isPrimary: false,
+            error: error.message
+        };
+    }
+}
+
+// Enhanced file validation
+function validateImageFile(file) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
     
-    // For now, we'll use a placeholder image URL
-    const placeholderUrls = [
-        'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
-        'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=500&h=500&fit=crop&crop=center',
-        'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&h=500&fit=crop&crop=center',
-        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop&crop=center',
-        'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&h=500&fit=crop&crop=center'
-    ];
+    // Check file size
+    if (file.size > maxSize) {
+        return {
+            valid: false,
+            error: `File too large. Maximum size: ${maxSize / 1024 / 1024}MB`
+        };
+    }
     
-    // Return a random placeholder URL
-    const randomUrl = placeholderUrls[Math.floor(Math.random() * placeholderUrls.length)];
+    // Check file type
+    if (!allowedTypes.includes(file.type)) {
+        return {
+            valid: false,
+            error: `Invalid file type. Allowed types: ${allowedTypes.join(', ')}`
+        };
+    }
     
-    return {
-        url: randomUrl,
-        isPrimary: false
-    };
+    // Check file extension
+    const fileName = file.name.toLowerCase();
+    const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+    
+    if (!hasValidExtension) {
+        return {
+            valid: false,
+            error: `Invalid file extension. Allowed extensions: ${allowedExtensions.join(', ')}`
+        };
+    }
+    
+    return { valid: true };
 }
 
 function previewImages(files) {
@@ -841,6 +911,14 @@ function previewImages(files) {
     // Don't clear existing images, just add new ones
 
     Array.from(files).forEach((file, index) => {
+        // Validate file before preview
+        const validation = validateImageFile(file);
+        
+        if (!validation.valid) {
+            showAlert(`File ${file.name}: ${validation.error}`, 'danger');
+            return;
+        }
+
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -856,11 +934,16 @@ function previewImages(files) {
                         <span class="badge bg-primary position-absolute bottom-0 start-0" style="transform: translate(-50%, 50%);">
                             ${preview.children.length + 1}
                         </span>
+                        <div class="position-absolute top-0 start-0" style="transform: translate(-50%, -50%);">
+                            <span class="badge bg-success">${(file.size / 1024 / 1024).toFixed(1)}MB</span>
+                        </div>
                     </div>
                 `;
                 preview.appendChild(imgContainer);
             };
             reader.readAsDataURL(file);
+        } else {
+            showAlert(`File ${file.name} is not a valid image`, 'warning');
         }
     });
 }

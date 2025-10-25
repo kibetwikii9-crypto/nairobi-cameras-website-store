@@ -43,7 +43,7 @@ function renderInto(containerId, products) {
         return (
             '<div class="product-item clickable-card" data-product-id="'+pid+'" onclick="console.log(\'Card clicked, product ID:\', \''+pid+'\'); viewProduct(\''+pid+'\');">'
             +  '<div class="product-image">'
-            +    '<img src="'+img+'" alt="'+p.name+'" class="product-img" onerror="this.onerror=null;this.src=\'/images/default.jpg\';">'
+            +    '<img src="'+img+'" alt="'+p.name+'" class="product-img" onerror="window.imageHandler.handleImageError(this)">'
             +    discountBadge
             +  '</div>'
             +  '<div class="product-info">'
@@ -434,7 +434,7 @@ class HomePageTabs {
             return (
                 '<div class="product-item clickable-card" data-product-id="'+pid+'" onclick="console.log(\'HomePageTabs card clicked, product ID:\', \''+pid+'\'); viewProduct(\''+pid+'\');">'
                 +  '<div class="product-image">'
-                +    '<img src="'+img+'" alt="'+p.name+'" class="product-img" onerror="this.onerror=null;this.src=\'/images/default.jpg\';">'
+                +    '<img src="'+img+'" alt="'+p.name+'" class="product-img" onerror="window.imageHandler.handleImageError(this)">'
                 +    discountBadge
                 +  '</div>'
                 +  '<div class="product-info">'

@@ -5,6 +5,7 @@ const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
+const imageService = require('./services/imageService');
 const fs = require('fs');
 const { syncDatabase, User, Product, Order } = require('./config/database');
 const { backupData, restoreData, startAutoBackup } = require('./database/backup-data');
@@ -95,25 +96,8 @@ if (process.env.NODE_ENV === 'production') {
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Multer configuration for Render deployment
-// Use memory storage since Render doesn't support file system writes
-const upload = multer({
-  storage: multer.memoryStorage(), // Use memory storage instead of disk storage
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'));
-    }
-  }
-});
+// Use the unified image service
+const upload = imageService.getMulterConfig();
 
 // Security middleware
 app.use(helmet({
@@ -566,44 +550,91 @@ app.post('/api/auth/login', async (req, res) => {
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));
 
-// Image upload endpoint - Modified for Render deployment
-app.post('/api/upload', (req, res) => {
-  // For Render deployment, we'll accept image URLs instead of file uploads
-  const { imageUrl } = req.body;
-  
-  if (!imageUrl) {
-    return res.status(400).json({
-      success: false,
-      message: 'Image URL is required. Please provide an external image URL.',
-      data: {
-        filename: 'placeholder.jpg',
-        url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
-        size: 0
-      }
-    });
-  }
-  
-  // Validate URL format
+// Image management routes
+app.use('/api/images', require('./routes/images'));
+
+// Enhanced image upload endpoint for production
+app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
-    new URL(imageUrl);
-    res.json({
-      success: true,
-      message: 'Image URL accepted successfully',
-      data: {
-        filename: 'external-image.jpg',
-        url: imageUrl,
-        size: 0
-      }
-    });
+    // Handle file uploads
+    if (req.file) {
+      // Process image with compression and optimization
+      const processedImage = await imageService.processImage(req.file, {
+        width: 800,
+        height: 600,
+        quality: 85
+      });
+
+      // Save processed image
+      const result = await imageService.saveImage(processedImage, req.file.filename);
+      
+      // Generate metadata
+      const metadata = imageService.generateImageMetadata(req.file);
+
+      return res.json({
+        success: true,
+        message: 'Image uploaded and processed successfully',
+        data: {
+          ...result,
+          metadata
+        }
+      });
+    }
+
+    // Handle external URLs
+    const { imageUrl } = req.body;
+    
+    if (!imageUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Either image file or image URL is required.',
+        data: {
+          filename: 'placeholder.jpg',
+          url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&h=600&fit=crop&crop=center',
+          size: 0
+        }
+      });
+    }
+    
+    // Validate external URL
+    try {
+      await imageService.validateExternalUrl(imageUrl);
+      
+      const metadata = {
+        id: require('crypto').randomUUID(),
+        uploadedAt: new Date().toISOString(),
+        size: 0,
+        type: 'image/jpeg',
+        isExternal: true,
+        status: 'active'
+      };
+
+      res.json({
+        success: true,
+        message: 'External image URL validated successfully',
+        data: {
+          filename: 'external-image.jpg',
+          url: imageUrl,
+          size: 0,
+          metadata
+        }
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: `Invalid image URL: ${error.message}`,
+        data: {
+          filename: 'placeholder.jpg',
+          url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&h=600&fit=crop&crop=center',
+          size: 0
+        }
+      });
+    }
   } catch (error) {
-    res.status(400).json({
+    console.error('Upload error:', error);
+    res.status(500).json({
       success: false,
-      message: 'Invalid image URL format. Please provide a valid URL.',
-      data: {
-        filename: 'placeholder.jpg',
-        url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center',
-        size: 0
-      }
+      message: `Upload failed: ${error.message}`
     });
   }
 });

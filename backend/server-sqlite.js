@@ -6,6 +6,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const fs = require('fs');
+const imageService = require('./services/imageService');
+const imageSecurity = require('./middleware/imageSecurity');
 const { syncDatabase, User, Product, Order } = require('./config/database');
 
 // Load environment variables
@@ -14,38 +16,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../images/uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'));
-    }
-  }
-});
+// Use the unified image service
+const upload = imageService.getMulterConfig();
 
 // Security middleware
 app.use(helmet({
@@ -363,28 +335,76 @@ app.post('/api/auth/login', async (req, res) => {
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));
 
-// Image upload endpoint
-app.post('/api/upload', upload.single('image'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No image file provided' });
-    }
+// Image management routes
+app.use('/api/images', require('./routes/images'));
 
-    const imageUrl = `/images/uploads/${req.file.filename}`;
-    res.json({
-      success: true,
-      message: 'Image uploaded successfully',
-      data: {
-        filename: req.file.filename,
-        url: imageUrl,
-        size: req.file.size
+// Image upload endpoint with enhanced processing and security
+app.post('/api/upload', 
+  imageSecurity.createUploadRateLimit(),
+  imageSecurity.setImageCSP,
+  upload.single('image'), 
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'No image file provided' 
+        });
       }
-    });
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ success: false, message: 'Upload failed' });
+
+      // Log upload attempt
+      imageSecurity.logImageOperation('upload_attempt', {
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        filename: req.file.originalname,
+        size: req.file.size
+      });
+
+      // Process image with compression and optimization
+      const processedImage = await imageService.processImage(req.file, {
+        width: 800,
+        height: 600,
+        quality: 85
+      });
+
+      // Save processed image
+      const result = await imageService.saveImage(processedImage, req.file.filename);
+      
+      // Generate metadata
+      const metadata = imageService.generateImageMetadata(req.file);
+
+      // Log successful upload
+      imageSecurity.logImageOperation('upload_success', {
+        ip: req.ip,
+        filename: req.file.originalname,
+        url: result.url
+      });
+
+      res.json({
+        success: true,
+        message: 'Image uploaded and processed successfully',
+        data: {
+          ...result,
+          metadata
+        }
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      
+      // Log failed upload
+      imageSecurity.logImageOperation('upload_failed', {
+        ip: req.ip,
+        error: error.message,
+        filename: req.file?.originalname
+      });
+      
+      res.status(500).json({ 
+        success: false, 
+        message: `Upload failed: ${error.message}` 
+      });
+    }
   }
-});
+);
 
 // Serve uploaded images
 app.use('/images/uploads', express.static(path.join(__dirname, '../images/uploads')));
