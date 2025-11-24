@@ -195,14 +195,28 @@ class ImageCacheService {
             try {
                 const cached = await this.getCachedImage(url, options);
                 if (!cached.found) {
-                    // Process and cache image
-                    const response = await fetch(url);
-                    if (response.ok) {
-                        const buffer = await response.arrayBuffer();
-                        const cachePath = await this.cacheImage(url, Buffer.from(buffer), options);
-                        results.push({ url, cached: true, path: cachePath });
-                    } else {
-                        results.push({ url, cached: false, error: 'Failed to fetch' });
+                    // Process and cache image with timeout
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                    
+                    try {
+                        const response = await fetch(url, { signal: controller.signal });
+                        clearTimeout(timeoutId);
+                        
+                        if (response.ok) {
+                            const buffer = await response.arrayBuffer();
+                            const cachePath = await this.cacheImage(url, Buffer.from(buffer), options);
+                            results.push({ url, cached: true, path: cachePath });
+                        } else {
+                            results.push({ url, cached: false, error: 'Failed to fetch' });
+                        }
+                    } catch (fetchError) {
+                        clearTimeout(timeoutId);
+                        if (fetchError.name === 'AbortError') {
+                            results.push({ url, cached: false, error: 'Request timeout' });
+                        } else {
+                            results.push({ url, cached: false, error: fetchError.message });
+                        }
                     }
                 } else {
                     results.push({ url, cached: true, path: cached.path });

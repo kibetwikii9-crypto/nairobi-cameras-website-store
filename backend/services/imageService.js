@@ -166,22 +166,35 @@ class ImageService {
         throw new Error('Only HTTPS URLs are allowed');
       }
 
-      // Check if URL is accessible
-      const response = await fetch(url, { 
-        method: 'HEAD',
-        timeout: 5000 
-      });
+      // Check if URL is accessible with timeout using AbortController
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      if (!response.ok) {
-        throw new Error(`URL not accessible: ${response.status}`);
-      }
+      try {
+        const response = await fetch(url, { 
+          method: 'HEAD',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`URL not accessible: ${response.status}`);
+        }
 
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.startsWith('image/')) {
-        throw new Error('URL does not point to an image');
-      }
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.startsWith('image/')) {
+          throw new Error('URL does not point to an image');
+        }
 
-      return true;
+        return true;
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Request timeout - URL validation took too long');
+        }
+        throw fetchError;
+      }
     } catch (error) {
       throw new Error(`Invalid image URL: ${error.message}`);
     }
