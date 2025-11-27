@@ -663,10 +663,203 @@ async function loadAnalytics() {
             createSalesChart(data.data.salesData || []);
             createCategoryChart(data.data.categoryStats || []);
         }
+        
+        renderLocalAnalyticsInsights();
     } catch (error) {
         console.error('Analytics load error:', error);
         showAlert('Failed to load analytics', 'danger');
+        renderLocalAnalyticsInsights();
     }
+}
+
+function renderLocalAnalyticsInsights() {
+    const events = getLocalAnalyticsEvents();
+    renderEngagementSummary(events);
+    renderLocalTopProducts(events);
+    renderFunnelBreakdown(events);
+    renderEventStream(events);
+}
+
+function getLocalAnalyticsEvents() {
+    try {
+        const stored = localStorage.getItem('gst-analytics-events');
+        const parsed = stored ? JSON.parse(stored) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        console.warn('Unable to parse local analytics events', error);
+        return [];
+    }
+}
+
+function renderEngagementSummary(events) {
+    const container = document.getElementById('engagementSummary');
+    if (!container) return;
+
+    if (!events.length) {
+        container.innerHTML = '<p class="text-muted mb-0">No onsite engagement captured yet.</p>';
+        return;
+    }
+
+    const cartAdds = events.filter(event => event.name === 'cart:add').length;
+    const cartViews = events.filter(event => event.name === 'cart:view').length;
+    const checkoutStarts = events.filter(event => event.name === 'checkout:start').length;
+    const paymentSelections = events.filter(event => event.name === 'checkout:paymentSelected').length;
+    const lastEvent = events[events.length - 1];
+    const lastEventTime = new Date(lastEvent.at).toLocaleString();
+
+    const conversion = cartAdds > 0 ? Math.min(((checkoutStarts / cartAdds) * 100), 100).toFixed(1) : 0;
+    const paymentFollowThrough = checkoutStarts > 0 ? ((paymentSelections / checkoutStarts) * 100).toFixed(1) : 0;
+
+    const summaryHtml = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <div class="text-muted text-uppercase small">Cart adds</div>
+                <div class="h4 mb-0">${cartAdds}</div>
+            </div>
+            <div class="text-end">
+                <div class="text-muted text-uppercase small">Checkouts started</div>
+                <div class="h4 mb-0">${checkoutStarts}</div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <div>
+                <div class="text-muted text-uppercase small">Cart views</div>
+                <div class="fw-semibold">${cartViews}</div>
+            </div>
+            <div class="text-end">
+                <div class="text-muted text-uppercase small">Payment intents</div>
+                <div class="fw-semibold">${paymentSelections}</div>
+            </div>
+        </div>
+        <hr>
+        <p class="small text-muted mb-1">Local conversion estimates</p>
+        <ul class="list-unstyled mb-3">
+            <li class="d-flex justify-content-between">
+                <span>Checkout rate</span>
+                <strong>${conversion}%</strong>
+            </li>
+            <li class="d-flex justify-content-between">
+                <span>Payment follow-through</span>
+                <strong>${paymentFollowThrough}%</strong>
+            </li>
+        </ul>
+        <small class="text-muted">Last activity: ${lastEventTime}</small>
+    `;
+
+    container.innerHTML = summaryHtml;
+
+    const conversionRateEl = document.getElementById('conversionRate');
+    if (conversionRateEl && conversion > 0) {
+        conversionRateEl.textContent = `${conversion}%`;
+    }
+}
+
+function renderLocalTopProducts(events) {
+    const container = document.getElementById('localTopProducts');
+    if (!container) return;
+
+    const adds = events.filter(event => event.name === 'cart:add' && event.payload?.productId);
+    if (!adds.length) {
+        container.innerHTML = '<p class="text-muted mb-0">Waiting for customers to add items.</p>';
+        return;
+    }
+
+    const productMap = adds.reduce((acc, event) => {
+        const id = event.payload.productId;
+        if (!acc[id]) {
+            acc[id] = {
+                name: event.payload.name || `Product ${id}`,
+                count: 0
+            };
+        }
+        acc[id].count += event.payload.quantity || 1;
+        return acc;
+    }, {});
+
+    const topProducts = Object.values(productMap)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 4);
+
+    container.innerHTML = `
+        <ul class="list-group list-group-flush">
+            ${topProducts.map(product => `
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <span>${product.name}</span>
+                    <span class="badge bg-primary">${product.count}</span>
+                </li>
+            `).join('')}
+        </ul>
+    `;
+}
+
+function renderFunnelBreakdown(events) {
+    const container = document.getElementById('funnelBreakdown');
+    if (!container) return;
+
+    const funnelSteps = [
+        { label: 'Cart viewed', value: events.filter(e => e.name === 'cart:view').length },
+        { label: 'Items added', value: events.filter(e => e.name === 'cart:add').length },
+        { label: 'Checkout started', value: events.filter(e => e.name === 'checkout:start').length },
+        { label: 'Payment chosen', value: events.filter(e => e.name === 'checkout:paymentSelected').length }
+    ];
+
+    if (funnelSteps.every(step => step.value === 0)) {
+        container.innerHTML = '<p class="text-muted mb-0">Once shoppers interact, the funnel will populate automatically.</p>';
+        return;
+    }
+
+    const maxValue = Math.max(...funnelSteps.map(step => step.value));
+    container.innerHTML = `
+        <ul class="list-unstyled mb-0">
+            ${funnelSteps.map(step => `
+                <li class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>${step.label}</span>
+                        <strong>${step.value}</strong>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-gradient" role="progressbar" style="width: ${maxValue ? (step.value / maxValue) * 100 : 0}%"></div>
+                    </div>
+                </li>
+            `).join('')}
+        </ul>
+    `;
+}
+
+function renderEventStream(events) {
+    const container = document.getElementById('eventStream');
+    if (!container) return;
+
+    if (!events.length) {
+        container.innerHTML = '<p class="text-muted mb-0">No recent events. Ask customers to browse the storefront to generate data.</p>';
+        return;
+    }
+
+    const iconMap = {
+        'cart:view': 'fa-eye',
+        'cart:add': 'fa-plus-circle',
+        'cart:remove': 'fa-minus-circle',
+        'cart:updateQuantity': 'fa-sync',
+        'checkout:start': 'fa-credit-card',
+        'checkout:paymentSelected': 'fa-money-check-alt',
+        'cart:clear': 'fa-trash'
+    };
+
+    const latestEvents = events.slice(-8).reverse();
+    container.innerHTML = latestEvents.map(event => `
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-light text-dark">
+                    <i class="fas ${iconMap[event.name] || 'fa-info-circle'}"></i>
+                </span>
+                <div>
+                    <div class="fw-semibold text-capitalize">${event.name.replace(':', ' → ')}</div>
+                    <small class="text-muted">${event.payload?.name || event.payload?.method || 'Event recorded'}</small>
+                </div>
+            </div>
+            <small class="text-muted">${new Date(event.at).toLocaleTimeString()}</small>
+        </div>
+    `).join('');
 }
 
 // Create sales chart
@@ -680,7 +873,7 @@ function createSalesChart(salesData) {
             datasets: [{
                 label: 'Sales',
                 data: salesData.map(item => item.totalSales || item.revenue || 0),
-                borderColor: '#3b82f6',
+                borderColor: '#e21b1f',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 tension: 0.4
             }]
@@ -713,7 +906,7 @@ function createCategoryChart(categoryData) {
             datasets: [{
                 data: categoryData.map(item => item.count || item.totalProducts || 1),
                 backgroundColor: [
-                    '#3b82f6',
+                    '#e21b1f',
                     '#10b981',
                     '#f59e0b',
                     '#ef4444',

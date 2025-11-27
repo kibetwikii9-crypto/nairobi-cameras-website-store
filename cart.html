@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart - Golden Source Technologies</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #3b82f6;
+            --primary-color: #e21b1f;
             --secondary-color: #1e40af;
             --success-color: #10b981;
             --warning-color: #f59e0b;
@@ -242,6 +243,87 @@
             font-size: 0.9rem;
         }
 
+        .delivery-progress {
+            margin: 1.5rem 0;
+            background: rgba(247, 250, 252, 0.8);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-track {
+            height: 10px;
+            background: rgba(226, 232, 240, 0.8);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: inherit;
+            transition: width 0.4s ease;
+        }
+
+        .timeline-card,
+        .support-card {
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.85);
+            margin-top: 1rem;
+        }
+
+        .timeline-card h6,
+        .support-card h6 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+            color: #1f2937;
+        }
+
+        .timeline-card p,
+        .support-card p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #4b5563;
+        }
+
+        .payment-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .payment-pill {
+            flex: 1 0 30%;
+            min-width: 120px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 12px;
+            padding: 0.65rem 0.75rem;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1f2937;
+        }
+
+        .payment-pill i {
+            color: var(--primary-color);
+        }
+
         @media (max-width: 768px) {
             .cart-content {
                 grid-template-columns: 1fr;
@@ -385,6 +467,16 @@
                     <h6><i class="fas fa-shipping-fast me-2"></i>Free Delivery</h6>
                     <p>Enjoy free delivery on orders over KSh 50,000</p>
                 </div>
+
+                <div class="delivery-progress" id="deliveryProgress">
+                    <div class="progress-label">
+                        <span id="freeDeliveryMessage">Spend KSh 50,000 more to unlock free delivery</span>
+                        <span id="freeDeliveryPercent">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="freeDeliveryProgress"></div>
+                    </div>
+                </div>
                 
                 <div class="summary-section">
                     <div class="summary-row">
@@ -403,6 +495,33 @@
                     <div class="summary-row total-row">
                         <span><strong>Total Amount</strong></span>
                         <span id="totalAmount"><strong>KSh 500</strong></span>
+                    </div>
+                </div>
+
+                <div class="timeline-card">
+                    <h6><i class="fas fa-clock me-2 text-danger"></i>Estimated delivery</h6>
+                    <p id="deliveryEta">Checkout before 3:00 PM for same-day dispatch within Nairobi.</p>
+                </div>
+
+                <div class="timeline-card">
+                    <h6><i class="fas fa-store me-2 text-danger"></i>Pickup option</h6>
+                    <p id="pickupMessage">Prefer to collect? Reserve online and pick up at our CBD experience center within 2 hours.</p>
+                </div>
+
+                <div class="support-card">
+                    <h6><i class="fas fa-headset me-2 text-danger"></i>Need help completing payment?</h6>
+                    <p>Talk to a checkout specialist: <strong>+254 724 369 971</strong> or <strong>orders@goldensource.com</strong></p>
+                </div>
+
+                <div class="payment-pills">
+                    <div class="payment-pill">
+                        <i class="fas fa-mobile-alt"></i> M-Pesa & Paybill
+                    </div>
+                    <div class="payment-pill">
+                        <i class="fas fa-credit-card"></i> Cards & Tap-to-pay
+                    </div>
+                    <div class="payment-pill">
+                        <i class="fas fa-university"></i> Secure bank transfer
                     </div>
                 </div>
                 
@@ -443,3 +562,4 @@
     </script>
 </body>
 </html>
+

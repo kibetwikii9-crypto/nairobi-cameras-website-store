@@ -1,0 +1,199 @@
+<div class="mobile-shell">
+    <div class="menu-overlay" id="menuOverlay" aria-hidden="true"></div>
+
+    <header class="mobile-header top-header">
+        <button class="icon-btn menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileMenu">
+            <span class="sr-only">Open navigation</span>
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <a href="/" class="brand">
+            <img src="images/logo.png" alt="Golden Source Technologies" class="brand-logo">
+            <span>Golden Source</span>
+        </a>
+
+        <div class="header-icons">
+            <button class="icon-btn" aria-label="Search products" onclick="performGlobalSearch('globalSearchMobile')">
+                <i class="fas fa-search"></i>
+            </button>
+            <a href="/wishlist" class="icon-btn" aria-label="View wishlist">
+                <i class="fas fa-heart"></i>
+                <span class="badge" id="wishlistBadge" style="display:none;">0</span>
+            </a>
+            <a href="/cart" class="icon-btn" aria-label="View cart">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="badge" id="cartBadge" style="display:none;">0</span>
+            </a>
+        </div>
+    </header>
+
+    <nav class="mobile-menu" id="mobileMenu" aria-hidden="true">
+        <div class="menu-header">
+            <p>Browse categories</p>
+            <button class="icon-btn close-menu" id="closeMenu" aria-label="Close navigation">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="menu-links">
+            <a href="/">Home</a>
+            <a href="/laptops">Laptops</a>
+            <a href="/phones">Phones</a>
+            <a href="/cameras">Cameras</a>
+            <a href="/audio">Audio & Headphones</a>
+            <a href="/accessories">Accessories</a>
+            <a href="/smart-home">Smart Home</a>
+            <a href="/deals">Deals & Promotions</a>
+        </div>
+        <div class="menu-contact">
+            <p class="menu-label">Need help?</p>
+            <a href="tel:+254724369971" id="contactPhoneMobile"><i class="fas fa-phone"></i> +254 724 369 971</a>
+            <a href="mailto:info@goldensource.com" id="contactEmailMobile"><i class="fas fa-envelope"></i> info@goldensource.com</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <p class="eyebrow">Premium electronics & smart solutions</p>
+                <h1>Tech that fits your life.</h1>
+                <p class="hero-copy">
+                    Shop laptops, phones, cameras, audio gear, and smart-home devices curated for creators and businesses across Kenya.
+                </p>
+
+                <div class="hero-search">
+                    <label for="globalSearchMobile" class="sr-only">Search products</label>
+                    <input type="search" id="globalSearchMobile" placeholder="Search products, brands, or categories">
+                    <button type="button" class="icon-btn" onclick="performGlobalSearch('globalSearchMobile')" aria-label="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+
+                <div class="hero-actions">
+                    <a href="/deals" class="btn primary">See hot deals</a>
+                    <a href="/laptops" class="btn ghost">Browse laptops</a>
+                </div>
+
+                <div class="hero-stats">
+                    <article>
+                        <p class="stat">10K+</p>
+                        <p class="label">Happy customers</p>
+                    </article>
+                    <article>
+                        <p class="stat">500+</p>
+                        <p class="label">Products in stock</p>
+                    </article>
+                    <article>
+                        <p class="stat">5?</p>
+                        <p class="label">Customer rating</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section featured-products">
+            <div class="section-header">
+                <div>
+                    <p class="eyebrow">Today’s spotlight</p>
+                    <h2>Fantastic Deals</h2>
+                </div>
+                <div class="section-tabs">
+                    <button class="tab-btn active">Under KSh 30,000</button>
+                    <button class="tab-btn">Under KSh 75,000</button>
+                    <button class="tab-btn">Shop All</button>
+                </div>
+            </div>
+            <div class="card-grid" id="homeFeaturedMobile">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading products...</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section popular-products">
+            <div class="section-header">
+                <div>
+                    <p class="eyebrow">Trending now</p>
+                    <h2>Popular Picks</h2>
+                </div>
+                <div class="section-tabs">
+                    <button class="tab-btn active">Best Sellers</button>
+                    <button class="tab-btn">Top Rated</button>
+                    <button class="tab-btn">New Arrivals</button>
+                </div>
+            </div>
+            <div class="card-grid" id="homePopularMobile">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading products...</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section hot-offers">
+            <div class="section-header">
+                <div>
+                    <p class="eyebrow">Limited-time</p>
+                    <h2>Hot Offers</h2>
+                </div>
+                <div class="section-tabs">
+                    <button class="tab-btn active">Flash Deals</button>
+                    <button class="tab-btn">Limited Time</button>
+                    <button class="tab-btn">Clearance</button>
+                </div>
+            </div>
+            <div class="card-grid" id="homeOffersMobile">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading products...</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section guarantees">
+            <div class="section-header">
+                <div>
+                    <p class="eyebrow">Why shop with us?</p>
+                    <h2>Peace-of-mind perks</h2>
+                </div>
+            </div>
+            <div class="guarantee-grid">
+                <article>
+                    <i class="fas fa-truck"></i>
+                    <h3>Fast, free delivery</h3>
+                    <p>Same-day dispatch in Nairobi and next-day shipping nationwide.</p>
+                </article>
+                <article>
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Extended warranty</h3>
+                    <p>Every purchase comes with verified warranties and support.</p>
+                </article>
+                <article>
+                    <i class="fas fa-headset"></i>
+                    <h3>24/7 experts</h3>
+                    <p>Talk to real technicians via chat, phone, or WhatsApp anytime.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-brand">
+            <img src="images/logo.png" alt="Golden Source logo">
+            <p>Your trusted electronics partner for cameras, computers, and smart living essentials.</p>
+        </div>
+        <div class="footer-links">
+            <h4>Shop</h4>
+            <a href="/laptops">Laptops</a>
+            <a href="/phones">Phones</a>
+            <a href="/cameras">Cameras</a>
+            <a href="/deals">Deals</a>
+        </div>
+        <div class="footer-links">
+            <h4>Support</h4>
+            <a href="mailto:support@goldensource.com">support@goldensource.com</a>
+            <a href="tel:+254724369971">+254 724 369 971</a>
+            <span>Nairobi, Kenya</span>
+        </div>
+    </footer>
+</div>

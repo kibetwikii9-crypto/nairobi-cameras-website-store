@@ -663,7 +663,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
 
 // Handle favicon requests (prevent 404)
 app.get('/favicon.ico', (req, res) => {
-    res.status(204).end();
+    res.sendFile(path.join(__dirname, '../images/favicon.png'));
 });
 
 // Serve uploaded images with proper headers

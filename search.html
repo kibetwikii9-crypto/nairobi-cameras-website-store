@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https: http: blob:; font-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src 'self' http://localhost:5000 https: http:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
     <title>Search Results - Golden Source Technologies</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous">
     <link href="css/style.css" rel="stylesheet">
     <style>
@@ -266,6 +267,7 @@
     <script src="js/sticky-nav.js"></script>
     <script>
         // Global variables
+        const FILTER_STORAGE_KEY = 'gst-search-filters';
         let currentSearchTerm = '';
         let currentFilters = {
             category: '',
@@ -288,6 +290,29 @@
                 performSearch();
             }
             
+            const savedFilters = loadPersistedFilters();
+            if (savedFilters) {
+                if (savedFilters.category) {
+                    document.getElementById('categoryFilter').value = savedFilters.category;
+                    currentFilters.category = savedFilters.category;
+                }
+                if (savedFilters.brand) {
+                    document.getElementById('brandFilter').value = savedFilters.brand;
+                    currentFilters.brand = savedFilters.brand;
+                }
+                if (savedFilters.minPrice) {
+                    document.getElementById('minPrice').value = savedFilters.minPrice;
+                    currentFilters.minPrice = savedFilters.minPrice;
+                }
+                if (savedFilters.maxPrice) {
+                    document.getElementById('maxPrice').value = savedFilters.maxPrice;
+                    currentFilters.maxPrice = savedFilters.maxPrice;
+                }
+                if (savedFilters.sort) {
+                    document.getElementById('sortSelect').value = savedFilters.sort;
+                }
+            }
+
             setupEventListeners();
         });
 
@@ -307,26 +332,31 @@
             // Filter changes
             document.getElementById('categoryFilter').addEventListener('change', function() {
                 currentFilters.category = this.value;
+                persistFilters();
                 performSearch();
             });
 
             document.getElementById('brandFilter').addEventListener('change', function() {
                 currentFilters.brand = this.value;
+                persistFilters();
                 performSearch();
             });
 
             document.getElementById('minPrice').addEventListener('input', function() {
                 currentFilters.minPrice = this.value;
+                persistFilters();
                 performSearch();
             });
 
             document.getElementById('maxPrice').addEventListener('input', function() {
                 currentFilters.maxPrice = this.value;
+                persistFilters();
                 performSearch();
             });
 
             // Sort change
             document.getElementById('sortSelect').addEventListener('change', function() {
+                persistFilters();
                 performSearch();
             });
         }
@@ -357,6 +387,10 @@
 
                 if (data.success) {
                     displayResults(data.data.products, data.data.query);
+                    persistFilters();
+                    if (window.searchEnhancements && typeof window.searchEnhancements.recordSearchTerm === 'function') {
+                        window.searchEnhancements.recordSearchTerm(currentSearchTerm);
+                    }
                 } else {
                     showError('Search failed. Please try again.');
                 }
@@ -378,13 +412,36 @@
                 return;
             }
 
+            const sortedProducts = applySort(products);
             const container = document.getElementById('searchResults');
             container.innerHTML = '';
 
-            products.forEach(product => {
+            sortedProducts.forEach(product => {
                 const productCard = createProductCard(product);
                 container.appendChild(productCard);
             });
+        }
+
+        function applySort(products) {
+            const sortValue = document.getElementById('sortSelect').value;
+            const list = [...products];
+
+            switch (sortValue) {
+                case 'name':
+                    return list.sort((a, b) => a.name.localeCompare(b.name));
+                case 'price-low':
+                    return list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+                case 'price-high':
+                    return list.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+                case 'newest':
+                    return list.sort((a, b) => {
+                        const aDate = new Date(a.createdAt || 0);
+                        const bDate = new Date(b.createdAt || 0);
+                        return bDate - aDate;
+                    });
+                default:
+                    return list;
+            }
         }
 
         // Create product card
@@ -464,10 +521,35 @@
             window.history.pushState({}, '', url);
         }
 
+        function persistFilters() {
+            const payload = {
+                ...currentFilters,
+                sort: document.getElementById('sortSelect').value
+            };
+            try {
+                localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(payload));
+            } catch (error) {
+                console.warn('Unable to persist filters', error);
+            }
+        }
+
+        function loadPersistedFilters() {
+            try {
+                const stored = localStorage.getItem(FILTER_STORAGE_KEY);
+                return stored ? JSON.parse(stored) : null;
+            } catch (error) {
+                console.warn('Unable to read stored filters', error);
+                return null;
+            }
+        }
+
         // Search for suggestion
         function searchFor(term) {
             document.getElementById('searchInput').value = term;
             currentSearchTerm = term;
+            if (window.searchEnhancements && typeof window.searchEnhancements.recordSearchTerm === 'function') {
+                window.searchEnhancements.recordSearchTerm(term);
+            }
             updateURL(term);
             performSearch();
         }
@@ -484,3 +566,4 @@
     </script>
 </body>
 </html>
+

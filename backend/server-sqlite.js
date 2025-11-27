@@ -377,6 +377,11 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
   }
 });
 
+// Handle favicon requests (prevent 404 locally)
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, '../images/favicon.png'));
+});
+
 // Serve uploaded images with proper headers
 app.use('/images/uploads', express.static(path.join(__dirname, '../images/uploads'), {
     setHeaders: (res, filePath) => {

@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Golden Source Technologies</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #1e3a8a;
-            --secondary-color: #3b82f6;
+            --secondary-color: #e21b1f;
             --success-color: #10b981;
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
@@ -118,7 +119,7 @@
             margin-bottom: 1rem;
         }
 
-        .stat-icon.primary { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .stat-icon.primary { background: linear-gradient(135deg, #e21b1f, #1d4ed8); color: white; }
         .stat-icon.success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
         .stat-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
         .stat-icon.danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
@@ -832,6 +833,50 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Live engagement (local analytics) -->
+                <div class="row mt-4">
+                    <div class="col-lg-4">
+                        <div class="content-card h-100">
+                            <div class="card-header">
+                                <h5 class="card-title">Engagement Snapshot</h5>
+                            </div>
+                            <div class="card-body" id="engagementSummary">
+                                <p class="text-muted mb-0">No onsite activity captured yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="content-card h-100">
+                            <div class="card-header">
+                                <h5 class="card-title">Top Carted Products</h5>
+                            </div>
+                            <div class="card-body" id="localTopProducts">
+                                <p class="text-muted mb-0">Waiting for customers to add items.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="content-card h-100">
+                            <div class="card-header">
+                                <h5 class="card-title">Checkout Funnel</h5>
+                            </div>
+                            <div class="card-body" id="funnelBreakdown">
+                                <p class="text-muted mb-0">Once shoppers interact, we'll visualize the funnel here.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card mt-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Live Event Stream</h5>
+                        <small class="text-muted">Sourced from local engagement trackers</small>
+                    </div>
+                    <div class="card-body" id="eventStream">
+                        <p class="text-muted mb-0">No recent events. Ask customers to browse the storefront to generate data.</p>
                     </div>
                 </div>
             </div>

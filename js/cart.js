@@ -1,8 +1,51 @@
+class AnalyticsTracker {
+    constructor() {
+        this.storageKey = 'gst-analytics-events';
+        this.queue = this.loadEvents();
+    }
+
+    loadEvents() {
+        try {
+            const stored = localStorage.getItem(this.storageKey);
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.warn('📊 Unable to load analytics events', error);
+            return [];
+        }
+    }
+
+    saveEvents() {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(this.queue));
+        } catch (error) {
+            console.warn('📊 Unable to persist analytics events', error);
+        }
+    }
+
+    record(eventName, payload = {}) {
+        const entry = {
+            name: eventName,
+            payload,
+            at: new Date().toISOString()
+        };
+        this.queue.push(entry);
+        if (this.queue.length > 100) {
+            this.queue.shift();
+        }
+        this.saveEvents();
+        console.log(`📊 Event: ${eventName}`, payload);
+    }
+}
+
+const analyticsTracker = new AnalyticsTracker();
+window.analyticsTracker = analyticsTracker;
+
 // Enhanced Cart functionality for Golden Source Technologies
 class CartManager {
     constructor() {
         console.log('🛒 Enhanced CartManager initialized');
         this.cart = this.loadCart();
+        this.trackEvent('cart:init');
         this.init();
     }
 
@@ -39,6 +82,7 @@ class CartManager {
             localStorage.setItem('goldenSourceCart', JSON.stringify(this.cart));
             this.updateCartBadge();
             console.log('✅ Cart saved');
+            this.trackEvent('cart:save');
         } catch (error) {
             console.error('🛒 Error saving cart:', error);
         }
@@ -53,6 +97,7 @@ class CartManager {
         if (existingItem) {
             existingItem.quantity += quantity;
             this.showNotification(`${productName} quantity updated!`, 'success');
+            this.trackEvent('cart:quantityIncrement', { productId, quantity: existingItem.quantity });
         } else {
             const newItem = {
                 id: productId,
@@ -64,6 +109,7 @@ class CartManager {
             };
             this.cart.push(newItem);
             this.showNotification(`${productName} added to cart!`, 'success');
+            this.trackEvent('cart:add', { productId, name: productName, quantity });
         }
         
         this.saveCart();
@@ -82,6 +128,7 @@ class CartManager {
             this.saveCart();
             this.updateCartDisplay();
             this.showNotification(`${item.name} removed from cart`, 'info');
+            this.trackEvent('cart:remove', { productId });
         }
     }
 
@@ -95,6 +142,7 @@ class CartManager {
                 item.quantity = quantity;
                 this.saveCart();
                 this.updateCartDisplay();
+                this.trackEvent('cart:updateQuantity', { productId, quantity });
             }
         }
     }
@@ -105,6 +153,7 @@ class CartManager {
         this.saveCart();
         this.updateCartDisplay();
         this.showNotification('Cart cleared', 'info');
+        this.trackEvent('cart:clear');
     }
 
     // Get cart total
@@ -126,6 +175,11 @@ class CartManager {
         const taxAmount = document.getElementById('taxAmount');
         const totalAmount = document.getElementById('totalAmount');
         const checkoutBtn = document.getElementById('checkoutBtn');
+        const freeDeliveryMessage = document.getElementById('freeDeliveryMessage');
+        const freeDeliveryPercent = document.getElementById('freeDeliveryPercent');
+        const freeDeliveryProgress = document.getElementById('freeDeliveryProgress');
+        const deliveryEta = document.getElementById('deliveryEta');
+        const pickupMessage = document.getElementById('pickupMessage');
 
         if (!cartItems) {
             this.updateCartBadge();
@@ -185,6 +239,32 @@ class CartManager {
         if (deliveryFee) deliveryFee.textContent = deliveryCost === 0 ? 'FREE' : `KSh ${deliveryCost.toLocaleString()}`;
         if (taxAmount) taxAmount.textContent = `KSh ${taxValue.toLocaleString()}`;
         if (totalAmount) totalAmount.innerHTML = `<strong>KSh ${totalValue.toLocaleString()}</strong>`;
+
+        const milestone = 50000;
+        const progress = Math.min(productValue / milestone, 1);
+        if (freeDeliveryProgress) {
+            freeDeliveryProgress.style.width = `${progress * 100}%`;
+        }
+        if (freeDeliveryPercent) {
+            freeDeliveryPercent.textContent = `${Math.round(progress * 100)}%`;
+        }
+        if (freeDeliveryMessage) {
+            freeDeliveryMessage.textContent = productValue >= milestone
+                ? '🎉 You unlocked free nationwide delivery'
+                : `Spend KSh ${(milestone - productValue).toLocaleString()} more to unlock free delivery`;
+        }
+        if (deliveryEta) {
+            deliveryEta.textContent = productValue >= milestone
+                ? 'Priority slot reserved: dispatch today, upcountry delivery within 24-48 hours.'
+                : 'Checkout before 3:00 PM for same-day dispatch within Nairobi.';
+        }
+        if (pickupMessage) {
+            pickupMessage.textContent = productValue >= milestone
+                ? 'Reserve now and pick up instantly from the CBD experience center.'
+                : 'Reserve online and collect within 2 hours from our CBD experience center.';
+        }
+
+        this.trackEvent('cart:view', { total: totalValue });
     }
 
     // Update cart badge
@@ -230,7 +310,7 @@ class CartManager {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: ${type === 'success' ? '#10b981' : '#3b82f6'};
+            background: ${type === 'success' ? '#10b981' : '#e21b1f'};
             color: white;
             padding: 12px 20px;
             border-radius: 8px;
@@ -272,6 +352,8 @@ class CartManager {
 
         // Save order
         localStorage.setItem('goldenSourceOrder', JSON.stringify(orderData));
+
+        this.trackEvent('checkout:start', { total: totalValue });
         
         // Show checkout modal
         this.showCheckoutModal(orderData);
@@ -283,6 +365,58 @@ class CartManager {
         modal.className = 'checkout-modal';
         modal.innerHTML = `
             <div class="modal-content">
+                <style>
+                    .checkout-grid {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 24px;
+                    }
+                    .checkout-modal .order-summary,
+                    .checkout-modal .checkout-details {
+                        flex: 1 1 280px;
+                        background: #ffffff;
+                        border-radius: 16px;
+                        padding: 20px;
+                        border: 1px solid #f1f1f5;
+                        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+                    }
+                    .checkout-form-group {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 6px;
+                        margin-bottom: 12px;
+                    }
+                    .checkout-form-group label {
+                        font-size: 0.85rem;
+                        color: #475467;
+                        font-weight: 600;
+                    }
+                    .checkout-form-group input,
+                    .checkout-form-group textarea {
+                        border: 1px solid #e4e7ec;
+                        border-radius: 10px;
+                        padding: 10px 12px;
+                        font-size: 0.95rem;
+                        transition: border 0.2s ease, box-shadow 0.2s ease;
+                    }
+                    .checkout-form-group input:focus,
+                    .checkout-form-group textarea:focus {
+                        border-color: #e90100;
+                        box-shadow: 0 0 0 3px rgba(233, 1, 0, 0.12);
+                        outline: none;
+                    }
+                    .checkout-modal .payment-methods {
+                        margin-top: 16px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+                    }
+                    .payment-note {
+                        font-size: 0.85rem;
+                        color: #475467;
+                        text-align: center;
+                    }
+                </style>
                 <div class="modal-header">
                     <h3><i class="fas fa-credit-card me-2"></i>Checkout</h3>
                     <button class="close-btn" onclick="this.closest('.checkout-modal').remove()">
@@ -290,37 +424,81 @@ class CartManager {
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="order-summary">
-                        <h4>Order Summary</h4>
-                        <div class="summary-item">
-                            <span>Products:</span>
-                            <span>KSh ${orderData.productAmount.toLocaleString()}</span>
+                    <div class="checkout-grid">
+                        <div class="order-summary">
+                            <h4>Order Summary</h4>
+                            <div class="summary-item">
+                                <span>Products:</span>
+                                <span>KSh ${orderData.productAmount.toLocaleString()}</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Delivery:</span>
+                                <span>${orderData.deliveryFee === 0 ? 'FREE' : 'KSh ' + orderData.deliveryFee.toLocaleString()}</span>
+                            </div>
+                            <div class="summary-item" style="display: none;">
+                                <span>Tax:</span>
+                                <span>KSh ${orderData.tax.toLocaleString()}</span>
+                            </div>
+                            <div class="summary-item total">
+                                <span><strong>Total:</strong></span>
+                                <span><strong>KSh ${orderData.total.toLocaleString()}</strong></span>
+                            </div>
                         </div>
-                        <div class="summary-item">
-                            <span>Delivery:</span>
-                            <span>${orderData.deliveryFee === 0 ? 'FREE' : 'KSh ' + orderData.deliveryFee.toLocaleString()}</span>
-                        </div>
-                        <div class="summary-item" style="display: none;">
-                            <span>Tax:</span>
-                            <span>KSh ${orderData.tax.toLocaleString()}</span>
-                        </div>
-                        <div class="summary-item total">
-                            <span><strong>Total:</strong></span>
-                            <span><strong>KSh ${orderData.total.toLocaleString()}</strong></span>
-                        </div>
-                    </div>
-                    <div class="checkout-options">
-                        <h4>Payment Options</h4>
-                        <div class="payment-methods">
-                            <button class="payment-btn" onclick="cartManager.processPayment('mpesa')">
-                                <i class="fas fa-mobile-alt"></i> M-Pesa
-                            </button>
-                            <button class="payment-btn" onclick="cartManager.processPayment('card')">
-                                <i class="fas fa-credit-card"></i> Card
-                            </button>
-                            <button class="payment-btn" onclick="cartManager.processPayment('bank')">
-                                <i class="fas fa-university"></i> Bank Transfer
-                            </button>
+                        <div class="checkout-details">
+                            <h4>Contact & Delivery</h4>
+                            <form id="checkoutForm">
+                                <div class="checkout-form-group">
+                                    <label for="fullName">Full Name</label>
+                                    <input type="text" id="fullName" name="fullName" placeholder="e.g. Jane Mwangi" required>
+                                </div>
+                                <div class="checkout-form-row" style="display: flex; gap: 12px;">
+                                    <div class="checkout-form-group" style="flex:1;">
+                                        <label for="email">Email</label>
+                                        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                                    </div>
+                                    <div class="checkout-form-group" style="flex:1;">
+                                        <label for="phone">Phone Number</label>
+                                        <input type="tel" id="phone" name="phone" placeholder="+254 7xx xxx xxx" required>
+                                    </div>
+                                </div>
+                                <div class="checkout-form-group">
+                                    <label for="addressLine1">Delivery Address</label>
+                                    <input type="text" id="addressLine1" name="addressLine1" placeholder="Street, building or estate">
+                                </div>
+                                <div class="checkout-form-row" style="display: flex; gap: 12px;">
+                                    <div class="checkout-form-group" style="flex:1;">
+                                        <label for="city">Town / City</label>
+                                        <input type="text" id="city" name="city" placeholder="Nairobi">
+                                    </div>
+                                    <div class="checkout-form-group" style="flex:1;">
+                                        <label for="state">County</label>
+                                        <input type="text" id="state" name="state" placeholder="Nairobi County">
+                                    </div>
+                                </div>
+                                <div class="checkout-form-row" style="display: flex; gap: 12px;">
+                                    <div class="checkout-form-group" style="flex:1;">
+                                        <label for="addressLine2">Apartment / Landmark</label>
+                                        <input type="text" id="addressLine2" name="addressLine2" placeholder="House / Floor (optional)">
+                                    </div>
+                                    <div class="checkout-form-group" style="flex:1;">
+                                        <label for="postalCode">Postal Code</label>
+                                        <input type="text" id="postalCode" name="postalCode" placeholder="00100">
+                                    </div>
+                                </div>
+                                <div class="checkout-form-group">
+                                    <label for="notes">Delivery Notes</label>
+                                    <textarea id="notes" name="notes" rows="2" placeholder="Anything the rider should know?"></textarea>
+                                </div>
+                            </form>
+                            <div class="payment-methods">
+                                <button class="payment-btn" type="button" data-action="confirm-order">
+                                    <i class="fas fa-headset"></i>
+                                    Confirm order & choose payment with an agent
+                                </button>
+                                <small class="payment-note">
+                                    Our customer care team will call to arrange M-Pesa, bank transfer, or pay-on-delivery.
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -342,13 +520,56 @@ class CartManager {
         `;
         
         document.body.appendChild(modal);
+        this.attachCheckoutHandlers(modal, orderData);
     }
 
     // Process payment
-    processPayment(method) {
-        this.showNotification(`Payment via ${method.toUpperCase()} will be available soon!`, 'info');
-        // Close modal
+    processPayment(method, form, orderData) {
+        const formData = this.collectCheckoutFormData(form);
+        if (!formData || !formData.fullName || !formData.email || !formData.phone) {
+            this.showNotification('Please fill in your contact details before confirming.', 'warning');
+            return;
+        }
+
+        this.trackEvent('checkout:paymentSelected', { method });
+        this.trackEvent('checkout:manualConfirm', { method, total: orderData?.total || 0 });
+
+        this.showNotification('Order received! Our support team will reach out shortly to finalize payment.', 'success');
         document.querySelector('.checkout-modal')?.remove();
+    }
+
+    attachCheckoutHandlers(modal, orderData) {
+        const confirmBtn = modal.querySelector('[data-action="confirm-order"]');
+        const form = modal.querySelector('#checkoutForm');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => this.processPayment('manual', form, orderData));
+        }
+    }
+
+    collectCheckoutFormData(form) {
+        if (!form) return null;
+        const data = new FormData(form);
+        return {
+            fullName: (data.get('fullName') || '').trim(),
+            email: (data.get('email') || '').trim(),
+            phone: (data.get('phone') || '').trim(),
+            line1: (data.get('addressLine1') || '').trim(),
+            line2: (data.get('addressLine2') || '').trim(),
+            city: (data.get('city') || '').trim(),
+            state: (data.get('state') || '').trim(),
+            postalCode: (data.get('postalCode') || '').trim(),
+            notes: (data.get('notes') || '').trim()
+        };
+    }
+
+    trackEvent(eventName, extra = {}) {
+        if (window.analyticsTracker) {
+            window.analyticsTracker.record(eventName, {
+                items: this.getCartItemCount(),
+                total: this.getCartTotal(),
+                ...extra
+            });
+        }
     }
 }
 
@@ -467,9 +688,9 @@ style.textContent = `
     }
     
     .qty-btn-enhanced:hover {
-        background: #3b82f6;
+        background: #e21b1f;
         color: white;
-        border-color: #3b82f6;
+        border-color: #e21b1f;
     }
     
     .qty-value-enhanced {
@@ -573,7 +794,7 @@ style.textContent = `
     }
     
     .payment-btn:hover {
-        border-color: #3b82f6;
+        border-color: #e21b1f;
         background: #f8fafc;
     }
 `;
