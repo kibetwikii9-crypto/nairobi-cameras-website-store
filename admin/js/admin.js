@@ -42,6 +42,15 @@ function setupEventListeners() {
         });
     }
 
+    // Signup form
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        signupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            signup();
+        });
+    }
+
     // Logout
     const logoutBtn = document.getElementById('logout');
     if (logoutBtn) {
@@ -64,12 +73,10 @@ function setupEventListeners() {
         });
     }
 
-    // Image upload preview
-    const productImages = document.getElementById('productImages');
-    if (productImages) {
-        productImages.addEventListener('change', function(e) {
-            previewImages(e.target.files);
-        });
+    // Image uploads (file picker)
+    const imageFileInput = document.getElementById('imageFileInput');
+    if (imageFileInput) {
+        imageFileInput.addEventListener('change', handleImageFileUpload);
     }
 }
 
@@ -105,14 +112,23 @@ async function initializeAdmin() {
 
 // Show login modal
 function showLoginModal() {
-    const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+    const modalElement = document.getElementById('loginModal');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',  // Prevent closing by clicking outside
+        keyboard: false       // Prevent closing with ESC key
+    });
     modal.show();
 }
 
 // Login function
 async function login() {
-    const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+    
+    if (!email || !password) {
+        showAlert('Please enter both email and password', 'warning');
+        return;
+    }
     
     try {
         const response = await fetch(`${API_BASE}/auth/login`, {
@@ -132,17 +148,81 @@ async function login() {
             
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-            modal.hide();
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Clear login form
+            document.getElementById('loginForm').reset();
             
             // Initialize admin
-            await initializeAdmin();
-            showAlert('Login successful!', 'success');
+            try {
+                await initializeAdmin();
+                showAlert('Login successful!', 'success');
+            } catch (initError) {
+                console.error('Initialization error:', initError);
+                showAlert('Login successful! Please refresh if needed.', 'success');
+            }
         } else {
-            showAlert(data.message || 'Login failed', 'danger');
+            showAlert(data.message || 'Invalid email or password', 'danger');
         }
     } catch (error) {
         console.error('Login error:', error);
-        showAlert('Login failed. Please try again.', 'danger');
+        showAlert('Login failed: ' + (error.message || 'Please check your connection and try again.'), 'danger');
+    }
+}
+
+// Signup function
+async function signup() {
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    
+    if (!name || !email || !password) {
+        showAlert('Please fill in all fields', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Store credentials
+            authToken = data.token;
+            localStorage.setItem('adminToken', authToken);
+            currentUser = data.user;
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Clear signup form
+            document.getElementById('signupForm').reset();
+            
+            // Initialize admin panel
+            try {
+                await initializeAdmin();
+                showAlert('Account created and logged in successfully!', 'success');
+            } catch (initError) {
+                console.error('Initialization error:', initError);
+                showAlert('Account created! Please refresh the page.', 'success');
+            }
+        } else {
+            showAlert(data.message || 'Signup failed', 'danger');
+        }
+    } catch (error) {
+        console.error('Signup error:', error);
+        showAlert('Signup failed: ' + (error.message || 'Please try again.'), 'danger');
     }
 }
 
@@ -725,15 +805,34 @@ async function saveProduct() {
             .filter(url => url !== '');
         
         if (imageUrls.length > 0) {
-            // Validate all URLs
+            // Validate all URLs (handle both absolute and relative URLs)
             for (let i = 0; i < imageUrls.length; i++) {
-                try {
-                    new URL(imageUrls[i]);
+                const url = imageUrls[i];
+                // Check if it's a valid absolute URL or a valid relative URL
+                let isValid = false;
+                
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    // Absolute URL - validate with URL constructor
+                    try {
+                        new URL(url);
+                        isValid = true;
+                    } catch (error) {
+                        isValid = false;
+                    }
+                } else if (url.startsWith('/') || url.startsWith('./')) {
+                    // Relative URL - valid
+                    isValid = true;
+                } else {
+                    // Invalid format
+                    isValid = false;
+                }
+                
+                if (isValid) {
                     productImages.push({
-                        url: imageUrls[i],
+                        url: url,
                         isPrimary: i === 0 // First image is primary
                     });
-                } catch (error) {
+                } else {
                     throw new Error(`Please enter a valid image URL for image ${i + 1}`);
                 }
             }
@@ -803,74 +902,21 @@ function resetProductForm() {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
     document.getElementById('productModalTitle').textContent = 'Add Product';
-    document.getElementById('imagePreview').innerHTML = '';
+    const preview = document.getElementById('imagePreview');
+    if (preview) {
+        preview.innerHTML = '<p class="text-muted">No images selected.</p>';
+    }
+    const urlContainer = document.getElementById('imageUrlContainer');
+    if (urlContainer) {
+        urlContainer.innerHTML = '';
+        addImageUrl('');
+        updateRemoveButtons();
+    }
     document.getElementById('productOriginalPrice').value = '';
     document.getElementById('productSpecifications').value = '';
 }
 
-// Enhanced image upload functions with validation
-async function uploadImages(files) {
-    const uploadPromises = Array.from(files).map(file => uploadSingleImage(file));
-    return Promise.all(uploadPromises);
-}
-
-async function uploadSingleImage(file) {
-    try {
-        // Validate file before upload
-        const validation = validateImageFile(file);
-        if (!validation.valid) {
-            throw new Error(validation.error);
-        }
-
-        // Create FormData for file upload
-        const formData = new FormData();
-        formData.append('image', file);
-
-        // Upload to server
-        const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Upload failed');
-        }
-
-        const result = await response.json();
-        
-        if (!result.success) {
-            throw new Error(result.message || 'Upload failed');
-        }
-
-        return {
-            url: result.data.url,
-            isPrimary: false,
-            metadata: result.data.metadata
-        };
-    } catch (error) {
-        console.error('Upload error:', error);
-        
-        // Fallback to placeholder for production
-        const placeholderUrls = [
-            'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&h=600&fit=crop&crop=center',
-            'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop&crop=center',
-            'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&h=600&fit=crop&crop=center',
-            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop&crop=center',
-            'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=600&fit=crop&crop=center'
-        ];
-        
-        const randomUrl = placeholderUrls[Math.floor(Math.random() * placeholderUrls.length)];
-        
-        return {
-            url: randomUrl,
-            isPrimary: false,
-            error: error.message
-        };
-    }
-}
-
-// Enhanced file validation
+// Simple file validation
 function validateImageFile(file) {
     const maxSize = 5 * 1024 * 1024; // 5MB
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
@@ -904,60 +950,6 @@ function validateImageFile(file) {
     }
     
     return { valid: true };
-}
-
-function previewImages(files) {
-    const preview = document.getElementById('imagePreview');
-    // Don't clear existing images, just add new ones
-
-    Array.from(files).forEach((file, index) => {
-        // Validate file before preview
-        const validation = validateImageFile(file);
-        
-        if (!validation.valid) {
-            showAlert(`File ${file.name}: ${validation.error}`, 'danger');
-            return;
-        }
-
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const imgContainer = document.createElement('div');
-                imgContainer.className = 'd-inline-block me-2 mb-2';
-                imgContainer.innerHTML = `
-                    <div class="position-relative">
-                        <img src="${e.target.result}" class="rounded" style="width: 100px; height: 100px; object-fit: cover;">
-                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" 
-                                onclick="removeImagePreview(this)" style="transform: translate(50%, -50%);">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        <span class="badge bg-primary position-absolute bottom-0 start-0" style="transform: translate(-50%, 50%);">
-                            ${preview.children.length + 1}
-                        </span>
-                        <div class="position-absolute top-0 start-0" style="transform: translate(-50%, -50%);">
-                            <span class="badge bg-success">${(file.size / 1024 / 1024).toFixed(1)}MB</span>
-                        </div>
-                    </div>
-                `;
-                preview.appendChild(imgContainer);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            showAlert(`File ${file.name} is not a valid image`, 'warning');
-        }
-    });
-}
-
-function removeImagePreview(button) {
-    button.closest('.d-inline-block').remove();
-}
-
-function removeExistingImage(button, imageUrl) {
-    // Remove from preview
-    button.closest('.d-inline-block').remove();
-    
-    // You could also add logic here to remove from the database
-    // For now, it just removes from the preview
 }
 
 function toggleFeatured(productId, isFeatured) {
@@ -1136,44 +1128,50 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Multiple image URL functions
-function addImageUrl() {
+function addImageUrl(url = '') {
     const container = document.getElementById('imageUrlContainer');
-    const currentInputs = container.querySelectorAll('input[type="url"]');
-    const newIndex = currentInputs.length;
-    
-    const newInputGroup = document.createElement('div');
-    newInputGroup.className = 'input-group mb-2';
-    newInputGroup.innerHTML = `
-        <input type="url" class="form-control" placeholder="https://example.com/image${newIndex + 1}.jpg" data-image-index="${newIndex}">
+    if (!container) return;
+
+    const inputGroup = document.createElement('div');
+    inputGroup.className = 'input-group mb-2';
+    inputGroup.innerHTML = `
+        <input type="url" class="form-control" placeholder="https://example.com/image.jpg" value="${url}">
         <button type="button" class="btn btn-outline-danger" onclick="removeImageUrl(this)">
             <i class="fas fa-trash"></i>
         </button>
     `;
-    
-    container.appendChild(newInputGroup);
-    
-    // Show remove buttons for all inputs if more than 1
+
+    container.appendChild(inputGroup);
     updateRemoveButtons();
-    
-    // Add event listener for real-time preview
-    const newInput = newInputGroup.querySelector('input');
-    newInput.addEventListener('input', updateImagePreview);
+
+    inputGroup.querySelector('input').addEventListener('input', updateImagePreview);
+    updateImagePreview();
 }
 
 function removeImageUrl(button) {
-    const inputGroup = button.parentElement;
-    inputGroup.remove();
+    const container = document.getElementById('imageUrlContainer');
+    if (!container) return;
+
+    if (container.children.length <= 1) {
+        container.querySelector('input').value = '';
+        button.style.display = 'none';
+        updateImagePreview();
+        return;
+    }
+
+    button.parentElement.remove();
     updateRemoveButtons();
     updateImagePreview();
 }
 
 function updateRemoveButtons() {
     const container = document.getElementById('imageUrlContainer');
+    if (!container) return;
+
     const inputs = container.querySelectorAll('input[type="url"]');
-    const removeButtons = container.querySelectorAll('.btn-outline-danger');
-    
-    // Show remove buttons only if more than 1 input
-    removeButtons.forEach(button => {
+    const buttons = container.querySelectorAll('.btn-outline-danger');
+
+    buttons.forEach((button) => {
         button.style.display = inputs.length > 1 ? 'block' : 'none';
     });
 }
@@ -1181,37 +1179,105 @@ function updateRemoveButtons() {
 function updateImagePreview() {
     const preview = document.getElementById('imagePreview');
     if (!preview) return;
-    
-    const imageInputs = document.querySelectorAll('#imageUrlContainer input[type="url"]');
-    const imageUrls = Array.from(imageInputs)
-        .map(input => input.value.trim())
-        .filter(url => url !== '');
-    
-    preview.innerHTML = '';
-    
-    if (imageUrls.length === 0) {
-        preview.innerHTML = '<p class="text-muted">No images provided</p>';
+
+    const inputs = document.querySelectorAll('#imageUrlContainer input[type="url"]');
+    const urls = Array.from(inputs)
+        .map((input) => input.value.trim())
+        .filter(Boolean);
+
+    if (urls.length === 0) {
+        preview.innerHTML = '<p class="text-muted">No images selected.</p>';
         return;
     }
-    
-    imageUrls.forEach((url, index) => {
-        const imgContainer = document.createElement('div');
-        imgContainer.className = 'position-relative d-inline-block me-2 mb-2';
-        imgContainer.innerHTML = `
-            <img src="${url}" alt="Product Image ${index + 1}" 
-                 style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #ddd;"
-                 onerror="this.src='https://via.placeholder.com/100x100?text=Invalid+URL'">
-            ${index === 0 ? '<span class="badge bg-success position-absolute top-0 start-0">Primary</span>' : ''}
-        `;
-        preview.appendChild(imgContainer);
-    });
+
+    preview.innerHTML = urls
+        .map((url, index) => `
+            <div class="d-inline-block me-2 mb-2 position-relative">
+                <img src="${url}" class="rounded border" width="80" height="80" style="object-fit: cover;"
+                     onerror="this.src='/images/default.jpg'">
+                <span class="badge bg-${index === 0 ? 'primary' : 'secondary'} position-absolute top-0 start-0 mt-1 ms-1">
+                    ${index === 0 ? 'Primary' : index + 1}
+                </span>
+            </div>
+        `)
+        .join('');
 }
 
-// Add event listeners when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    // Add event listeners to existing image inputs
-    const existingInputs = document.querySelectorAll('#imageUrlContainer input[type="url"]');
-    existingInputs.forEach(input => {
+// Initial preview wiring
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('#imageUrlContainer input[type="url"]').forEach((input) => {
         input.addEventListener('input', updateImagePreview);
     });
+    updateRemoveButtons();
 });
+
+// File upload helpers
+async function handleImageFileUpload(event) {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    const progressBar = document.getElementById('uploadProgressBar');
+    const progressContainer = document.getElementById('uploadProgressContainer');
+
+    const maxSize = 5 * 1024 * 1024;
+    const maxFiles = 10;
+
+    if (files.some((file) => file.size > maxSize)) {
+        showAlert('Each file must be 5MB or less.', 'warning');
+        return;
+    }
+    if (files.length > maxFiles) {
+        showAlert(`Please upload up to ${maxFiles} files at a time.`, 'warning');
+        return;
+    }
+
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+
+    try {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const validation = validateImageFile(file);
+            if (!validation.valid) {
+                showAlert(`${file.name}: ${validation.error}`, 'warning');
+                continue;
+            }
+
+            progressBar.style.width = `${Math.round((i / files.length) * 100)}%`;
+            await uploadSingleImage(file);
+        }
+        progressBar.style.width = '100%';
+        showAlert('Images uploaded successfully.', 'success');
+    } catch (error) {
+        console.error('Upload error:', error);
+        showAlert(error.message || 'Image upload failed.', 'danger');
+    } finally {
+        event.target.value = '';
+        setTimeout(() => {
+            progressContainer.style.display = 'none';
+            progressBar.style.width = '0%';
+        }, 500);
+    }
+}
+
+async function uploadSingleImage(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+    });
+
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+        throw new Error(data?.message || `Failed to upload ${file.name}`);
+    }
+
+    const url = data?.data?.url;
+    if (!url) {
+        throw new Error(`Upload succeeded but no URL returned for ${file.name}`);
+    }
+
+    addImageUrl(url);
+}

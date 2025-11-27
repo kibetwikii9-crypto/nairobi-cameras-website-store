@@ -178,7 +178,7 @@ class CartManager {
         // Update totals
         const productValue = this.getCartTotal();
         const deliveryCost = productValue > 50000 ? 0 : 500; // Free delivery over KSh 50,000
-        const taxValue = Math.round(productValue * 0.16); // 16% VAT
+        const taxValue = 0.00; // Tax set to 0.00
         const totalValue = productValue + taxValue + deliveryCost;
 
         if (productAmount) productAmount.textContent = `KSh ${productValue.toLocaleString()}`;
@@ -257,7 +257,7 @@ class CartManager {
 
         const productValue = this.getCartTotal();
         const deliveryCost = productValue > 50000 ? 0 : 500;
-        const taxValue = Math.round(productValue * 0.16);
+        const taxValue = 0.00; // Tax set to 0.00
         const totalValue = productValue + taxValue + deliveryCost;
 
         // Create order summary
@@ -300,8 +300,8 @@ class CartManager {
                             <span>Delivery:</span>
                             <span>${orderData.deliveryFee === 0 ? 'FREE' : 'KSh ' + orderData.deliveryFee.toLocaleString()}</span>
                         </div>
-                        <div class="summary-item">
-                            <span>Tax (16% VAT):</span>
+                        <div class="summary-item" style="display: none;">
+                            <span>Tax:</span>
                             <span>KSh ${orderData.tax.toLocaleString()}</span>
                         </div>
                         <div class="summary-item total">

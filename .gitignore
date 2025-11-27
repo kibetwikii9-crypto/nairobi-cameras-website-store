@@ -23,3 +23,9 @@ node_modules/
 !backend/
 !run-website.bat
 !README.md
+
+# Runtime/generated artifacts
+backend/cache/
+backend/logs/
+backend/images/
+backend/database/backup.json

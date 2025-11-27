@@ -4,10 +4,8 @@ const dotenv = require('dotenv');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const multer = require('multer');
 const fs = require('fs');
-const imageService = require('./services/imageService');
-const imageSecurity = require('./middleware/imageSecurity');
+const { upload, buildImageResponse } = require('./services/fileStorage');
 const { syncDatabase, User, Product, Order } = require('./config/database');
 
 // Load environment variables
@@ -15,9 +13,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-// Use the unified image service
-const upload = imageService.getMulterConfig();
 
 // Security middleware
 app.use(helmet({
@@ -335,76 +330,52 @@ app.post('/api/auth/login', async (req, res) => {
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));
 
-// Image management routes
-app.use('/api/images', require('./routes/images'));
+// Simple upload endpoint for local development
+app.post('/api/upload', upload.single('image'), async (req, res) => {
+  try {
+    if (req.file) {
+      return res.json({
+        success: true,
+        message: 'Image uploaded successfully',
+        data: buildImageResponse(req.file)
+      });
+    }
 
-// Image upload endpoint with enhanced processing and security
-app.post('/api/upload', 
-  imageSecurity.createUploadRateLimit(),
-  imageSecurity.setImageCSP,
-  upload.single('image'), 
-  async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'No image file provided' 
+    const { imageUrl } = req.body;
+    if (imageUrl && typeof imageUrl === 'string') {
+      const trimmed = imageUrl.trim();
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Image URL must start with http:// or https://'
         });
       }
 
-      // Log upload attempt
-      imageSecurity.logImageOperation('upload_attempt', {
-        ip: req.ip,
-        userAgent: req.get('User-Agent'),
-        filename: req.file.originalname,
-        size: req.file.size
-      });
-
-      // Process image with compression and optimization
-      const processedImage = await imageService.processImage(req.file, {
-        width: 800,
-        height: 600,
-        quality: 85
-      });
-
-      // Save processed image
-      const result = await imageService.saveImage(processedImage, req.file.filename);
-      
-      // Generate metadata
-      const metadata = imageService.generateImageMetadata(req.file);
-
-      // Log successful upload
-      imageSecurity.logImageOperation('upload_success', {
-        ip: req.ip,
-        filename: req.file.originalname,
-        url: result.url
-      });
-
-      res.json({
+      return res.json({
         success: true,
-        message: 'Image uploaded and processed successfully',
+        message: 'Image URL saved successfully',
         data: {
-          ...result,
-          metadata
+          filename: 'external-image',
+          url: trimmed,
+          size: 0,
+          mimetype: 'external/url',
+          uploadedAt: new Date().toISOString()
         }
       });
-    } catch (error) {
-      console.error('Upload error:', error);
-      
-      // Log failed upload
-      imageSecurity.logImageOperation('upload_failed', {
-        ip: req.ip,
-        error: error.message,
-        filename: req.file?.originalname
-      });
-      
-      res.status(500).json({ 
-        success: false, 
-        message: `Upload failed: ${error.message}` 
-      });
     }
+
+    return res.status(400).json({
+      success: false,
+      message: 'No image file or URL provided'
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: `Upload failed: ${error.message}`
+    });
   }
-);
+});
 
 // Serve uploaded images
 app.use('/images/uploads', express.static(path.join(__dirname, '../images/uploads')));

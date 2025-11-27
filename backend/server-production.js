@@ -4,8 +4,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const multer = require('multer');
-const imageService = require('./services/imageService');
+const { upload, buildImageResponse } = require('./services/fileStorage');
 const fs = require('fs');
 const { syncDatabase, User, Product, Order } = require('./config/database');
 const { backupData, restoreData, startAutoBackup } = require('./database/backup-data');
@@ -97,8 +96,6 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 // Use the unified image service
-const upload = imageService.getMulterConfig();
-
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
@@ -513,18 +510,84 @@ app.post('/api/orders', async (req, res) => {
 });
 
 // Authentication routes
+// Register endpoint
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+        
+        if (!name || !email || !password) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Name, email, and password are required' 
+            });
+        }
+
+        // Normalize email (trim and lowercase)
+        const normalizedEmail = email.trim().toLowerCase();
+        
+        // Check if user already exists
+        const existingUser = await User.findOne({ where: { email: normalizedEmail } });
+        if (existingUser) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'User with this email already exists' 
+            });
+        }
+
+        // Create new user (simple password storage - in production, use bcrypt)
+        const user = await User.create({
+            name: name.trim(),
+            email: normalizedEmail,
+            password, // In production, hash this with bcrypt
+            role: 'admin' // Default to admin for admin panel
+        });
+
+        // Generate token
+        const token = 'admin-token-' + Date.now();
+        
+        res.status(201).json({
+            success: true,
+            message: 'Account created successfully',
+            token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error: ' + error.message 
+        });
+    }
+});
+
+// Login endpoint
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
         
-        const user = await User.findOne({ where: { email } });
+        if (!email || !password) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Email and password are required' 
+            });
+        }
+        
+        // Trim and lowercase email for consistency
+        const normalizedEmail = email.trim().toLowerCase();
+        
+        const user = await User.findOne({ where: { email: normalizedEmail } });
         if (!user) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+            return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
 
         // Simple password check (in production, use bcrypt)
         if (user.password !== password) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+            return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
 
         // Generate JWT token (simplified for demo)
@@ -543,93 +606,51 @@ app.post('/api/auth/login', async (req, res) => {
         });
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 });
 
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));
 
-// Image management routes
-app.use('/api/images', require('./routes/images'));
-
-// Enhanced image upload endpoint for production
+// Simple image upload endpoint
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
-    // Handle file uploads
     if (req.file) {
-      // Process image with compression and optimization
-      const processedImage = await imageService.processImage(req.file, {
-        width: 800,
-        height: 600,
-        quality: 85
+      return res.json({
+        success: true,
+        message: 'Image uploaded successfully',
+        data: buildImageResponse(req.file)
       });
+    }
 
-      // Save processed image
-      const result = await imageService.saveImage(processedImage, req.file.filename);
-      
-      // Generate metadata
-      const metadata = imageService.generateImageMetadata(req.file);
+    const { imageUrl } = req.body;
+    if (imageUrl && typeof imageUrl === 'string') {
+      const trimmed = imageUrl.trim();
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Image URL must start with http:// or https://'
+        });
+      }
 
       return res.json({
         success: true,
-        message: 'Image uploaded and processed successfully',
+        message: 'Image URL saved successfully',
         data: {
-          ...result,
-          metadata
-        }
-      });
-    }
-
-    // Handle external URLs
-    const { imageUrl } = req.body;
-    
-    if (!imageUrl) {
-      return res.status(400).json({
-        success: false,
-        message: 'Either image file or image URL is required.',
-        data: {
-          filename: 'placeholder.jpg',
-          url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&h=600&fit=crop&crop=center',
-          size: 0
-        }
-      });
-    }
-    
-    // Validate external URL
-    try {
-      await imageService.validateExternalUrl(imageUrl);
-      
-      const metadata = {
-        id: require('crypto').randomUUID(),
-        uploadedAt: new Date().toISOString(),
-        size: 0,
-        type: 'image/jpeg',
-        isExternal: true,
-        status: 'active'
-      };
-
-      res.json({
-        success: true,
-        message: 'External image URL validated successfully',
-        data: {
-          filename: 'external-image.jpg',
-          url: imageUrl,
+          filename: 'external-image',
+          url: trimmed,
           size: 0,
-          metadata
-        }
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: `Invalid image URL: ${error.message}`,
-        data: {
-          filename: 'placeholder.jpg',
-          url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&h=600&fit=crop&crop=center',
-          size: 0
+          mimetype: 'external/url',
+          uploadedAt: new Date().toISOString()
         }
       });
     }
+
+    return res.status(400).json({
+      success: false,
+      message: 'No image file or URL provided'
+    });
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({
@@ -639,15 +660,20 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
   }
 });
 
+// Handle favicon requests (prevent 404)
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end();
+});
+
 // Serve uploaded images
 app.use('/images/uploads', express.static(path.join(__dirname, '../images/uploads')));
 
 // Serve static files (CSS, JS, images) from root directory
 app.use(express.static(path.join(__dirname, '..'), {
-    setHeaders: (res, path) => {
-        if (path.endsWith('.js')) {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js')) {
             res.setHeader('Content-Type', 'application/javascript');
-        } else if (path.endsWith('.css')) {
+        } else if (filePath.endsWith('.css')) {
             res.setHeader('Content-Type', 'text/css');
         }
     }

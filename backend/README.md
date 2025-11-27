@@ -41,10 +41,7 @@ JWT_SECRET=your-super-secret-jwt-key-here
 PORT=5000
 NODE_ENV=development
 
-# Cloudinary (for image uploads)
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
+# File uploads are stored locally in /images/uploads
 ```
 
 ### 3. Database Setup
@@ -199,8 +196,8 @@ For issues or questions:
 
 ## 🎯 Next Steps
 
-1. Configure Cloudinary for image uploads
-2. Deploy to Vercel
+1. Add optional CDN/distributed storage if needed
+2. Deploy to Render/production environment
 3. Set up automated backups for SQLite database
 4. Set up domain and SSL
 5. Configure email notifications

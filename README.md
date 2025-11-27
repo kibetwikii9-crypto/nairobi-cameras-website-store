@@ -1,193 +1,124 @@
-# Golden Source Technologies - Static E-Commerce Website
+# Golden Source Technologies – Full‑Stack E‑Commerce Platform
 
-A clean, modern static e-commerce website built with HTML, CSS, and JavaScript. Features product browsing, shopping cart functionality, and responsive design - all without requiring a backend server or user accounts.
-
-## 🚀 Features
-
-### Core E-Commerce Features
-- **Product Browsing** - Browse products by category with search and filters
-- **Shopping Cart** - Add/remove items with persistent local storage
-- **Product Details** - Individual product pages with specifications
-- **Responsive Design** - Works perfectly on desktop, tablet, and mobile
-- **Static Data** - No backend required, all data stored locally
-- **Fast Loading** - Optimized for speed and performance
-
-### Technical Features
-- **Static Website** - Pure HTML, CSS, and JavaScript
-- **No Backend Required** - Runs entirely in the browser
-- **Local Storage** - Cart data persists between sessions
-- **Bootstrap UI** - Modern, responsive design framework
-- **Font Awesome Icons** - Beautiful iconography
-- **Mobile Optimized** - Touch-friendly interface
-
-## 📋 Prerequisites
-
-- **Web Browser** - Any modern browser (Chrome, Firefox, Safari, Edge)
-- **No Server Required** - Runs entirely in the browser
-
-## 🛠️ Quick Start
-
-### Option 1: Easy Start (Recommended)
-```bash
-# Double-click this file to start the website:
-run-website.bat
-```
-
-### Option 2: Manual Start
-```bash
-# Simply open the website in your browser:
-start index.html
-```
-
-### Option 3: Direct Browser
-1. Navigate to your project folder
-2. Double-click `index.html`
-3. Website opens in your default browser
-
-## 🌐 Website Structure
-
-### Pages
-- **Homepage** (`index.html`) - Featured products and categories
-- **Product Categories** - Laptops, Phones, Cameras, Audio, Accessories
-- **Product Details** (`product.html`) - Individual product pages
-- **Shopping Cart** - Coming soon
-- **Static Data** - All product data stored in JavaScript
-
-### Features
-- **Product Browsing** - Browse by category with search and filters
-- **Shopping Cart** - Coming soon
-- **Product Details** - View individual products
-- **Responsive Design** - Works on all devices
-- **No Backend** - Everything runs in the browser
-
-## 🛒 Shopping Features
-
-### For Customers
-- **Browse Products** - Search and filter by category, price, brand
-- **Product Details** - Specifications, reviews, related products
-- **Shopping Cart** - Add/remove items, quantity management
-- **Responsive Design** - Works on all devices
-
-### Product Categories
-- **Laptops** - MacBook Pro, Dell XPS, HP Pavilion
-- **Smartphones** - iPhone, Samsung Galaxy, OnePlus
-- **Cameras** - Canon, Nikon, Sony professional cameras
-- **Audio** - Headphones, speakers, microphones
-- **Accessories** - Cases, chargers, cables, adapters
-
-## 📱 Mobile Responsiveness
-
-The website is fully responsive and works on:
-- **Desktop** - Full feature access
-- **Tablet** - Optimized layout
-- **Mobile** - Touch-friendly interface
-
-## 🎨 Design Features
-
-### Visual Elements
-- **Modern UI** - Clean, professional design
-- **Bootstrap Framework** - Responsive grid system
-- **Font Awesome Icons** - Beautiful iconography
-- **Gradient Colors** - Professional blue color scheme
-- **Smooth Animations** - Subtle hover effects
-
-### User Experience
-- **Fast Loading** - Optimized for speed
-- **Easy Navigation** - Intuitive menu structure
-- **Search & Filter** - Find products quickly
-- **Shopping Cart** - Persistent cart functionality
-- **Mobile First** - Designed for mobile devices
-
-## 🔧 Configuration
-
-### No Configuration Required
-- **Static Data** - All products stored in JavaScript
-- **Local Storage** - Cart data saved in browser
-- **No Database** - No server setup needed
-- **No Authentication** - No user accounts required
-
-## 🚀 Deployment
-
-### Static Hosting
-1. **Upload Files** - Upload all files to web hosting
-2. **No Server Setup** - Works on any static hosting
-3. **CDN Ready** - Can be served from CDN
-4. **HTTPS Ready** - Works with SSL certificates
-
-### Hosting Options
-- **GitHub Pages** - Free static hosting
-- **Netlify** - Easy deployment with drag & drop
-- **Vercel** - Fast global CDN
-- **AWS S3** - Scalable cloud hosting
-
-## 📊 Performance
-
-### Optimizations
-- **Static Files** - No server processing
-- **Local Storage** - Fast cart operations
-- **Optimized Images** - Compressed product images
-- **Minimal JavaScript** - Lightweight code
-- **Bootstrap CDN** - Fast CSS framework loading
-
-### Bundle Size
-- **HTML** - ~50KB total
-- **CSS** - ~200KB (Bootstrap + custom)
-- **JavaScript** - ~50KB (API + cart functionality)
-- **Total** - ~300KB (very lightweight!)
-
-## 🧪 Testing
-
-### Manual Testing
-1. **Product Browsing** - Navigate through categories
-2. **Search Function** - Test search functionality
-3. **Shopping Cart** - Add/remove items
-4. **Mobile Testing** - Test on different devices
-5. **Browser Testing** - Test in different browsers
-
-### Features to Test
-- **Navigation** - Menu and category links
-- **Product Display** - Product cards and details
-- **Cart Functionality** - Add, remove, update quantities
-- **Responsive Design** - Different screen sizes
-- **Local Storage** - Cart persistence
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For support and questions:
-- **Email:** support@goldensource.co.ke
-- **Phone:** +254 724 369 971
-
-## 🔄 Changelog
-
-### v2.0.0 - Static Website
-- ✅ Removed all authentication system
-- ✅ Removed backend dependencies
-- ✅ Simplified to static website
-- ✅ Local storage cart functionality
-- ✅ Responsive design
-- ✅ No server required
-
-### v1.0.0 - Dynamic System
-- ✅ Full backend API with Node.js + Express
-- ✅ MongoDB database with Mongoose ODM
-- ✅ JWT authentication system
-- ✅ Complete admin panel
-- ✅ User account management
-- ✅ Shopping cart functionality
-- ✅ Order processing system
+This is the production codebase that powers **goldensourcetech.co.ke**. It combines a modern storefront written in HTML/CSS/Vanilla JS with an Express/SQLite backend, an admin dashboard, secure media handling, and automated backups. The project is deployed on **Render** (backend + static assets) and the custom domain is managed on **TrueHost**.
 
 ---
 
-**Golden Source Technologies** - Your trusted partner for quality electronics and technology solutions.
+## ✨ Feature Overview
+
+### Storefront
+- Dynamic product listings by category with live API data
+- Rich product detail page with specifications, gallery, wishlist & cart hooks
+- Global search with filters, sticky navigation, responsive design, and hero video
+- Persistent cart & wishlist (localStorage) plus graceful fallbacks for offline/empty states
+
+### Backend & Admin
+- Node 18 + Express 5 API exposing `/api/products`, `/api/orders`, `/api/auth`, `/api/admin/*`
+- SQLite (via Sequelize) with automatic migrations, sample seed generation, and rolling JSON backups
+- File uploads with Sharp processing, sanitizer, malware scan hooks, and disk caching
+- Admin SPA (`/admin`) for managing products, orders, and analytics (JWT auth + token storage)
+- Rate limiting, Helmet CSP, CORS safelist, and Structured logging hooks
+
+### Deployment & Ops
+- Single Render service driven by `render.yaml` and `Procfile`
+- Custom domain (`goldensourcetech.co.ke`) via TrueHost DNS (CNAME + A records)
+- Automatic SSL + HTTPS enforcement from Render
+- Backup scheduler + health endpoints (`/api/health`, `/api/images/*`) for monitoring
+
+---
+
+## 🗂️ Repository Layout
+
+```
+.
+├── admin/                 # Admin dashboard UI (HTML/CSS/JS)
+├── backend/               # Express application & services
+│   ├── config/            # Sequelize + persistent storage helpers
+│   ├── database/          # Backup scripts (runtime JSON backups ignored)
+│   ├── middleware/        # Auth & image security
+│   ├── models/            # Sequelize models (Product, User, Order)
+│   ├── routes/            # REST endpoints (auth, products, orders, images, admin)
+│   ├── services/          # Image processing, caching, monitoring
+│   └── server-production.js
+├── images/                # Public images & uploaded assets (served via Express)
+├── js/, css/, *.html      # Storefront assets & pages
+├── Procfile               # Render process definition
+├── render.yaml            # Render IaC configuration
+└── package.json           # Root scripts proxying to backend
+```
+
+---
+
+## ⚙️ Local Development
+
+### Requirements
+- Node.js ≥ 18
+- npm ≥ 8
+
+### Setup & Run
+```bash
+# Install dependencies (installs backend deps via postinstall)
+npm install
+
+# Start the Express API + static frontend
+npm start
+
+# Dev mode with nodemon + SQLite playground
+cd backend && npm run dev
+```
+Access the site at `http://localhost:5000` and the admin panel at `http://localhost:5000/admin`.
+
+---
+
+## 🚢 Deployment Workflow
+
+1. **Code changes**
+   ```bash
+   git add .
+   git commit -m "Describe change"
+   git push origin main
+   ```
+2. **Render auto-deploy**
+   - `render.yaml` installs deps (`npm run install-deps`)
+   - `Procfile` runs `cd backend && npm start`
+3. **Custom domain**
+   - `www` CNAME → `nairobi-cameras-website-store.onrender.com`
+   - `@` A record  → `216.24.57.1`
+   - Both managed in TrueHost DNS Manager
+
+---
+
+## 🧹 Runtime Artifacts & Backups
+
+- Uploaded/seed images live in `/images/uploads`
+- Runtime caches/logs/backups are ignored (`backend/cache`, `backend/logs`, `backend/database/backup.json`)
+- Automatic backups run every 5 minutes (see `backend/database/backup-data.js`)
+- To restore data, drop the SQLite file and restart—`restoreData` seeds from the latest JSON backup if present
+
+---
+
+## 🧪 Manual QA Checklist
+
+- Storefront
+  - Landing hero, featured products, category pages, search, wishlist/cart
+- Product detail
+  - Image gallery, specs, related items, add-to-cart
+- Admin dashboard
+  - Login/logout, CRUD products, order statuses, analytics widgets
+- API health
+  - `GET /api/health`, `GET /api/products`, `GET /api/images/metrics`
+- Image upload
+  - `/api/upload` handles local files + external URLs with validation
+
+---
+
+## 🤝 Support
+
+- **Email:** support@goldensource.co.ke  
+- **Phone:** +254 724 369 971
+
+For DNS/hosting assistance, open a TrueHost ticket. For deployment/runtime issues, inspect Render logs and the health endpoints above.
+
+---
+
+**Golden Source Technologies** – Professional electronics and technology solutions, delivered end‑to‑end.
