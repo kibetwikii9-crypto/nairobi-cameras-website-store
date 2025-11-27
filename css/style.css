@@ -2467,3 +2467,241 @@ body {
         font-size: 0.8rem;
     }
 }
+
+/* ----- Small-screen layout polish (mobile-first overrides) ----- */
+@media (max-width: 768px) {
+    body {
+        font-size: 15px;
+    }
+
+    .top-header .row {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .logo {
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .logo-image {
+        max-width: 52px;
+    }
+
+    .logo h2 {
+        font-size: 1rem;
+        line-height: 1.3;
+    }
+
+    .search-bar {
+        width: 100%;
+    }
+
+    .search-container {
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 18px;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    .search-category,
+    .search-input,
+    .search-btn {
+        width: 100%;
+    }
+
+    .search-btn {
+        border-radius: 999px;
+        justify-content: center;
+        font-weight: 600;
+    }
+
+    .header-actions {
+        width: 100%;
+        gap: 12px;
+    }
+
+    .header-actions .action-item {
+        flex: 1;
+        justify-content: center;
+        padding: 0.6rem 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        background: #fff;
+        font-size: 0.85rem;
+    }
+
+    .header-actions .action-item i {
+        font-size: 1rem;
+    }
+
+    .main-nav {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .nav-content {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .nav-categories {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding-bottom: 0.4rem;
+    }
+
+    .nav-link {
+        flex: 0 0 auto;
+        padding: 6px 16px;
+        font-size: 0.85rem;
+        border-radius: 999px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        white-space: nowrap;
+    }
+
+    .nav-deals {
+        align-self: flex-start;
+    }
+
+    .hero {
+        min-height: auto;
+        padding: 2.5rem 0;
+    }
+
+    .hero-content {
+        flex-direction: column;
+        padding: 0 1.5rem;
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .hero-text h1 {
+        font-size: 2rem;
+    }
+
+    .hero-text h2 {
+        font-size: 1.2rem;
+    }
+
+    .hero-text p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .hero-features {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .hero-buttons .cta-button {
+        width: 100%;
+        text-align: center;
+        padding: 0.9rem 1rem;
+        font-size: 1rem;
+    }
+
+    .hero-stats {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .section-tabs {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .section-tabs .tab-btn {
+        flex: 1 1 45%;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .products-grid,
+    .offers-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .product-item,
+    .product-card,
+    .offer-card {
+        padding: 1rem;
+        border-radius: 18px;
+    }
+
+    .product-img {
+        height: 230px;
+        object-fit: cover;
+    }
+
+    .product-actions {
+        flex-direction: column;
+    }
+
+    .home-add-cart-btn {
+        font-size: 0.95rem;
+        padding: 0.85rem;
+    }
+
+    .footer .row {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .footer ul {
+        padding-left: 0;
+        list-style: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo h2 {
+        font-size: 0.85rem;
+    }
+
+    .header-actions {
+        flex-direction: column;
+    }
+
+    .hero-text h1 {
+        font-size: 1.65rem;
+    }
+
+    .hero-text h2 {
+        font-size: 1rem;
+    }
+
+    .hero-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .section-tabs .tab-btn {
+        flex: 1 1 100%;
+    }
+
+    .home-add-cart-btn {
+        font-size: 1rem;
+    }
+}
