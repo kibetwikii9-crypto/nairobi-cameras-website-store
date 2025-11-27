@@ -733,13 +733,6 @@ htmlPages.forEach(page => {
     });
 });
 
-// Also support .html URLs for backward compatibility
-htmlPages.forEach(page => {
-    app.get(`/${page}.html`, (req, res) => {
-        res.sendFile(path.join(__dirname, `../${page}.html`));
-    });
-});
-
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({

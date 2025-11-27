@@ -593,3 +593,4 @@ window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;
 window.updateQuantity = updateQuantity;
 window.proceedToCheckout = proceedToCheckout;
+

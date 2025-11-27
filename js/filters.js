@@ -423,9 +423,9 @@ class ProductFilter {
         if (path.includes('laptops') || path.includes('/laptops')) return 'laptops';
         if (path.includes('phones') || path.includes('/phones')) return 'phones';
         if (path.includes('cameras') || path.includes('/cameras')) return 'cameras';
-        if (path.includes('audio.html')) return 'audio';
-        if (path.includes('accessories.html')) return 'accessories';
-        if (path.includes('smart-home.html')) return 'smart-home';
+        if (path.includes('/audio')) return 'audio';
+        if (path.includes('/accessories')) return 'accessories';
+        if (path.includes('/smart-home')) return 'smart-home';
         return null;
     }
 
@@ -545,7 +545,7 @@ class ProductFilter {
 document.addEventListener('DOMContentLoaded', function() {
     // Only initialize on category pages
     const currentPage = window.location.pathname;
-    const categoryPages = ['laptops.html', 'phones.html', 'cameras.html', 'audio.html', 'accessories.html', 'smart-home.html'];
+    const categoryPages = ['/laptops', '/phones', '/cameras', '/audio', '/accessories', '/smart-home'];
     
     if (!categoryPages.some(page => currentPage.includes(page))) {
         console.log('🔍 Not a category page, skipping filter system');
@@ -559,3 +559,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Export for global access
 window.ProductFilter = ProductFilter;
+

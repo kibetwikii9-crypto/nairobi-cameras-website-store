@@ -211,7 +211,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="index.html">
+            <a class="navbar-brand" href="/">
                 <img src="images/logo.png" alt="Golden Source Technologies" height="40">
                 <div class="brand-text">
                     <div>GOLDEN SOURCE</div>
@@ -224,31 +224,31 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                <a class="nav-link" href="index.html">Home</a>
+                <a class="nav-link" href="/">Home</a>
                     </li>
                     <li class="nav-item">
-                <a class="nav-link" href="laptops.html">Laptops</a>
+                <a class="nav-link" href="/laptops">Laptops</a>
                     </li>
                     <li class="nav-item">
-                <a class="nav-link active" href="phones.html">Phones</a>
+                <a class="nav-link active" href="/phones">Phones</a>
                     </li>
                     <li class="nav-item">
-                <a class="nav-link" href="cameras.html">Cameras</a>
+                <a class="nav-link" href="/cameras">Cameras</a>
                     </li>
                     <li class="nav-item">
-                <a class="nav-link" href="audio.html">Audio</a>
+                <a class="nav-link" href="/audio">Audio</a>
                     </li>
                     <li class="nav-item">
-                <a class="nav-link" href="accessories.html">Accessories</a>
+                <a class="nav-link" href="/accessories">Accessories</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="smart-home.html">Smart Home</a>
+                        <a class="nav-link" href="/smart-home">Smart Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="deals.html">Deals</a>
+                        <a class="nav-link" href="/deals">Deals</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="cart.html">
+                        <a class="nav-link" href="/cart">
                             <i class="fas fa-shopping-cart"></i> Cart
                             <span class="badge bg-danger ms-1" id="cartBadge" style="display: none;">0</span>
                         </a>
@@ -263,7 +263,7 @@
         <div class="container">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
                     <li class="breadcrumb-item active">Phones</li>
                 </ol>
             </nav>
@@ -281,10 +281,10 @@
                         </div>
                 <div class="col-md-4">
                     <div class="quick-links">
-                        <a href="laptops.html" class="btn btn-outline-secondary btn-sm me-2">💻 Laptops</a>
-                        <a href="phones.html" class="btn btn-outline-secondary btn-sm me-2">📱 Phones</a>
-                        <a href="cameras.html" class="btn btn-outline-secondary btn-sm me-2">📷 Cameras</a>
-                        <a href="deals.html" class="btn btn-outline-secondary btn-sm">🏷️ Deals</a>
+                        <a href="/laptops" class="btn btn-outline-secondary btn-sm me-2">💻 Laptops</a>
+                        <a href="/phones" class="btn btn-outline-secondary btn-sm me-2">📱 Phones</a>
+                        <a href="/cameras" class="btn btn-outline-secondary btn-sm me-2">📷 Cameras</a>
+                        <a href="/deals" class="btn btn-outline-secondary btn-sm">🏷️ Deals</a>
                     </div>
                 </div>
             </div>
@@ -346,10 +346,10 @@
                 <div class="col-md-4">
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
-                        <li><a href="index.html" class="text-light">Home</a></li>
-                        <li><a href="laptops.html" class="text-light">Laptops</a></li>
-                        <li><a href="phones.html" class="text-light">Phones</a></li>
-                        <li><a href="cameras.html" class="text-light">Cameras</a></li>
+                        <li><a href="/" class="text-light">Home</a></li>
+                        <li><a href="/laptops" class="text-light">Laptops</a></li>
+                        <li><a href="/phones" class="text-light">Phones</a></li>
+                        <li><a href="/cameras" class="text-light">Cameras</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">
@@ -370,35 +370,35 @@
 
         // Global search functionality
         const searchDatabase = {
-            'iphone': 'phones.html',
-            'samsung': 'phones.html',
-            'phone': 'phones.html',
-            'smartphone': 'phones.html',
-            'galaxy': 'phones.html',
-            'huawei': 'phones.html',
-            'xiaomi': 'phones.html',
-            'oneplus': 'phones.html',
-            'pixel': 'phones.html',
-            'laptop': 'laptops.html',
-            'macbook': 'laptops.html',
-            'dell': 'laptops.html',
-            'hp': 'laptops.html',
-            'lenovo': 'laptops.html',
-            'asus': 'laptops.html',
-            'msi': 'laptops.html',
-            'camera': 'cameras.html',
-            'dslr': 'cameras.html',
-            'mirrorless': 'cameras.html',
-            'canon': 'cameras.html',
-            'nikon': 'cameras.html',
-            'sony': 'cameras.html',
-            'audio': 'audio.html',
-            'headphones': 'audio.html',
-            'speakers': 'audio.html',
-            'earbuds': 'audio.html',
-            'accessories': 'accessories.html',
-            'smart home': 'smart-home.html',
-            'smart': 'smart-home.html'
+            'iphone': '/phones',
+            'samsung': '/phones',
+            'phone': '/phones',
+            'smartphone': '/phones',
+            'galaxy': '/phones',
+            'huawei': '/phones',
+            'xiaomi': '/phones',
+            'oneplus': '/phones',
+            'pixel': '/phones',
+            'laptop': '/laptops',
+            'macbook': '/laptops',
+            'dell': '/laptops',
+            'hp': '/laptops',
+            'lenovo': '/laptops',
+            'asus': '/laptops',
+            'msi': '/laptops',
+            'camera': '/cameras',
+            'dslr': '/cameras',
+            'mirrorless': '/cameras',
+            'canon': '/cameras',
+            'nikon': '/cameras',
+            'sony': '/cameras',
+            'audio': '/audio',
+            'headphones': '/audio',
+            'speakers': '/audio',
+            'earbuds': '/audio',
+            'accessories': '/accessories',
+            'smart home': '/smart-home',
+            'smart': '/smart-home'
         };
 
         function performGlobalSearch() {

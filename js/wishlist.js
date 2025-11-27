@@ -222,3 +222,4 @@ window.addToWishlist = addToWishlist;
 window.removeFromWishlist = removeFromWishlist;
 window.toggleWishlist = toggleWishlist;
 window.isInWishlist = isInWishlist;
+

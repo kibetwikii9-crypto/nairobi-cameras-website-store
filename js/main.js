@@ -508,3 +508,4 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🏠 Initializing home page tabs');
     window.homePageTabs = new HomePageTabs();
 });
+

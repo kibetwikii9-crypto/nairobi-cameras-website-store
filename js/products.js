@@ -302,3 +302,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Export ProductLoader to global scope for filter system
 window.ProductLoader = ProductLoader;
+

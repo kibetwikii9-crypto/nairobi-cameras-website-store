@@ -132,3 +132,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Make StickyNavigation globally accessible
 window.StickyNavigation = StickyNavigation;
+
