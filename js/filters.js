@@ -1,4 +1,19 @@
 // Advanced Filtering and Sorting System for Golden Source Technologies
+function parseFilterImages(images) {
+    if (!images) return [];
+    if (Array.isArray(images)) return images;
+    if (typeof images === 'string') {
+        try {
+            const parsed = JSON.parse(images);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.warn('⚠️ Failed to parse product images string for filters:', error);
+            return [];
+        }
+    }
+    return [];
+}
+
 class ProductFilter {
     constructor() {
         this.allProducts = [];
@@ -447,7 +462,8 @@ class ProductFilter {
 
     // Create product card (fallback)
     createProductCard(product) {
-        const imageUrl = product.images?.[0]?.url || '/images/default.jpg';
+        const parsedImages = parseFilterImages(product.images);
+        const imageUrl = parsedImages[0]?.url || '/images/default.jpg';
         const price = Number(product.price) || 0;
         const originalPrice = Number(product.originalPrice) || 0;
         

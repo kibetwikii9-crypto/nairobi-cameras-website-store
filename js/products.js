@@ -1,6 +1,21 @@
 // Product page functionality
 // Loads and displays products on category pages
 
+function parseProductImages(images) {
+    if (!images) return [];
+    if (Array.isArray(images)) return images;
+    if (typeof images === 'string') {
+        try {
+            const parsed = JSON.parse(images);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.warn('⚠️ Failed to parse product images string:', error);
+            return [];
+        }
+    }
+    return [];
+}
+
 class ProductLoader {
     constructor() {
         this.apiClient = new APIClient();
@@ -66,8 +81,9 @@ class ProductLoader {
     createProductCard(product) {
         // Handle image URL safely with better fallback logic
         let imageUrl = '/images/default.jpg';
-        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-            const primaryImage = product.images.find(img => img.isPrimary) || product.images[0];
+        const images = parseProductImages(product.images);
+        if (images.length > 0) {
+            const primaryImage = images.find(img => img.isPrimary) || images[0];
             if (primaryImage && primaryImage.url) {
                 imageUrl = primaryImage.url;
             }

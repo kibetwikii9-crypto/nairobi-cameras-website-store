@@ -797,12 +797,17 @@ const startServer = async () => {
                 const productCount = await Product.count();
                 console.log(`📦 Database initialized with ${productCount} existing products`);
                 
-                // If no products exist, create some sample products
+                // If no products exist, optionally create sample products
                 if (productCount === 0) {
-                    console.log('📦 No products found, creating sample products...');
-                    await createSampleProducts(Product);
-                    const newProductCount = await Product.count();
-                    console.log(`✅ Created ${newProductCount} sample products`);
+                    const shouldSeedSamples = process.env.SEED_SAMPLE_PRODUCTS === 'true';
+                    if (shouldSeedSamples) {
+                        console.log('📦 No products found, creating sample products (SEED_SAMPLE_PRODUCTS=true)...');
+                        await createSampleProducts(Product);
+                        const newProductCount = await Product.count();
+                        console.log(`✅ Created ${newProductCount} sample products`);
+                    } else {
+                        console.log('🧹 Database is empty and SEED_SAMPLE_PRODUCTS is not enabled. Skipping demo data.');
+                    }
                 }
                 
                 // Create backup of current data

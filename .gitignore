@@ -29,3 +29,7 @@ backend/cache/
 backend/logs/
 backend/images/
 backend/database/backup.json
+images/uploads/*
+!images/uploads/.gitkeep
+backend/quarantine/*
+!backend/quarantine/.gitkeep

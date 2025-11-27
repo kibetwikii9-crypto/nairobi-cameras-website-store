@@ -14,6 +14,29 @@ async function testAPIConnection() {
     }
 }
 
+function normalizeProductImages(product) {
+    if (!product) return product;
+    
+    if (!product.images) {
+        product.images = [];
+        return product;
+    }
+    
+    if (typeof product.images === 'string') {
+        try {
+            const parsed = JSON.parse(product.images);
+            product.images = Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.warn('⚠️ Could not parse product images string for', product.name, error);
+            product.images = [];
+        }
+    } else if (!Array.isArray(product.images)) {
+        product.images = [];
+    }
+    
+    return product;
+}
+
 // Render helper for home sections
 function renderInto(containerId, products) {
     const container = document.getElementById(containerId);
@@ -98,7 +121,7 @@ let homeProductsLoaded = false;
         console.log('📊 API Response:', data);
         
         if (data.success && data.data.products && data.data.products.length > 0) {
-            const allProducts = data.data.products;
+            const allProducts = data.data.products.map(normalizeProductImages);
             console.log('✅ Found', allProducts.length, 'products in database');
             
             // Split products into sections
@@ -231,7 +254,7 @@ class HomePageTabs {
             const data = await apiClient.getProducts();
             
             if (data.success && data.data.products) {
-                this.allProducts = data.data.products;
+                this.allProducts = data.data.products.map(normalizeProductImages);
                 console.log(`📦 Loaded ${this.allProducts.length} products for home tabs`);
             } else {
                 console.warn('⚠️ No products loaded for home tabs');
