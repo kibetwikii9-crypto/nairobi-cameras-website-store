@@ -11,12 +11,13 @@ class ProductLoader {
 
     getCategoryFromURL() {
         const path = window.location.pathname;
-        if (path.includes('phones.html')) return 'phones';
-        if (path.includes('laptops.html')) return 'laptops';
-        if (path.includes('cameras.html')) return 'cameras';
-        if (path.includes('audio.html')) return 'audio';
-        if (path.includes('accessories.html')) return 'accessories';
-        if (path.includes('smart-home.html')) return 'smart-home';
+        // Support both clean URLs and .html URLs
+        if (path.includes('phones') || path.includes('/phones')) return 'phones';
+        if (path.includes('laptops') || path.includes('/laptops')) return 'laptops';
+        if (path.includes('cameras') || path.includes('/cameras')) return 'cameras';
+        if (path.includes('audio') || path.includes('/audio')) return 'audio';
+        if (path.includes('accessories') || path.includes('/accessories')) return 'accessories';
+        if (path.includes('smart-home') || path.includes('/smart-home')) return 'smart-home';
         return null;
     }
 
@@ -220,8 +221,8 @@ function viewProduct(productId) {
     }
     
     try {
-        // Navigate to product detail page
-        const productUrl = `product.html?id=${encodeURIComponent(cleanProductId)}`;
+        // Navigate to product detail page (clean URL without .html)
+        const productUrl = `/product?id=${encodeURIComponent(cleanProductId)}`;
         console.log('🔗 Navigating to:', productUrl);
         window.location.href = productUrl;
     } catch (error) {

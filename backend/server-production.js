@@ -157,6 +157,8 @@ const corsOptions = {
       renderUrl,
       'https://nairobi-cameras.onrender.com',
       'https://nairobi-cameras-website-store.onrender.com',
+      'https://goldensourcetech.co.ke',
+      'https://www.goldensourcetech.co.ke',
       'http://localhost:3000',
       'http://localhost:5000',
       'http://127.0.0.1:3000',
@@ -210,8 +212,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve static files from frontend
-app.use(express.static(path.join(__dirname, '../')));
+// Note: Static files are served later after image routes to ensure proper priority
 
 // Root route fallback
 app.get('/', (req, res) => {
@@ -665,10 +666,40 @@ app.get('/favicon.ico', (req, res) => {
     res.status(204).end();
 });
 
-// Serve uploaded images
-app.use('/images/uploads', express.static(path.join(__dirname, '../images/uploads')));
+// Serve uploaded images with proper headers
+app.use('/images/uploads', express.static(path.join(__dirname, '../images/uploads'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+            res.setHeader('Content-Type', 'image/jpeg');
+        } else if (filePath.endsWith('.png')) {
+            res.setHeader('Content-Type', 'image/png');
+        } else if (filePath.endsWith('.gif')) {
+            res.setHeader('Content-Type', 'image/gif');
+        } else if (filePath.endsWith('.webp')) {
+            res.setHeader('Content-Type', 'image/webp');
+        }
+        // Cache images for 1 year
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+}));
 
-// Serve static files (CSS, JS, images) from root directory
+// Serve static images from root images directory
+app.use('/images', express.static(path.join(__dirname, '../images'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+            res.setHeader('Content-Type', 'image/jpeg');
+        } else if (filePath.endsWith('.png')) {
+            res.setHeader('Content-Type', 'image/png');
+        } else if (filePath.endsWith('.gif')) {
+            res.setHeader('Content-Type', 'image/gif');
+        } else if (filePath.endsWith('.svg')) {
+            res.setHeader('Content-Type', 'image/svg+xml');
+        }
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+}));
+
+// Serve static files (CSS, JS) from root directory
 app.use(express.static(path.join(__dirname, '..'), {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.js')) {
@@ -679,13 +710,34 @@ app.use(express.static(path.join(__dirname, '..'), {
     }
 }));
 
-// Serve frontend files
+// Serve frontend files - Root
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../index.html'));
 });
 
+// Serve frontend files - Admin
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, '../admin/index.html'));
+});
+
+// Clean URLs (without .html extension)
+const htmlPages = [
+    'cart', 'search', 'wishlist', 'product',
+    'phones', 'laptops', 'cameras', 'audio', 
+    'accessories', 'smart-home', 'deals'
+];
+
+htmlPages.forEach(page => {
+    app.get(`/${page}`, (req, res) => {
+        res.sendFile(path.join(__dirname, `../${page}.html`));
+    });
+});
+
+// Also support .html URLs for backward compatibility
+htmlPages.forEach(page => {
+    app.get(`/${page}.html`, (req, res) => {
+        res.sendFile(path.join(__dirname, `../${page}.html`));
+    });
 });
 
 // 404 handler

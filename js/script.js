@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const searchTerm = searchInput.value.trim();
             if (searchTerm) {
                 // Redirect to search results page or implement search
-                window.location.href = `index.html?search=${encodeURIComponent(searchTerm)}`;
+                window.location.href = `/?search=${encodeURIComponent(searchTerm)}`;
             }
         });
         

@@ -149,8 +149,8 @@ function viewProduct(productId) {
     }
     
     try {
-        // Navigate to product detail page
-        const productUrl = `product.html?id=${encodeURIComponent(cleanProductId)}`;
+        // Navigate to product detail page (clean URL without .html)
+        const productUrl = `/product?id=${encodeURIComponent(cleanProductId)}`;
         console.log('🔗 Navigating to:', productUrl);
         window.location.href = productUrl;
     } catch (error) {
@@ -173,7 +173,7 @@ function performGlobalSearch() {
     
     if (searchTerm) {
         console.log('🔍 Performing global search for:', searchTerm);
-        window.location.href = `search.html?q=${encodeURIComponent(searchTerm)}`;
+        window.location.href = `/search?q=${encodeURIComponent(searchTerm)}`;
     } else {
         console.log('⚠️ No search term provided');
         alert('Please enter a search term');

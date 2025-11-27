@@ -404,9 +404,10 @@ class ProductFilter {
     // Get current category from URL
     getCurrentCategory() {
         const path = window.location.pathname;
-        if (path.includes('laptops.html')) return 'laptops';
-        if (path.includes('phones.html')) return 'phones';
-        if (path.includes('cameras.html')) return 'cameras';
+        // Support both clean URLs and .html URLs
+        if (path.includes('laptops') || path.includes('/laptops')) return 'laptops';
+        if (path.includes('phones') || path.includes('/phones')) return 'phones';
+        if (path.includes('cameras') || path.includes('/cameras')) return 'cameras';
         if (path.includes('audio.html')) return 'audio';
         if (path.includes('accessories.html')) return 'accessories';
         if (path.includes('smart-home.html')) return 'smart-home';

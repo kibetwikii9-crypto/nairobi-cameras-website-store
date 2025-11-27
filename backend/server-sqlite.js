@@ -377,29 +377,77 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
   }
 });
 
-// Serve uploaded images
-app.use('/images/uploads', express.static(path.join(__dirname, '../images/uploads')));
+// Serve uploaded images with proper headers
+app.use('/images/uploads', express.static(path.join(__dirname, '../images/uploads'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+            res.setHeader('Content-Type', 'image/jpeg');
+        } else if (filePath.endsWith('.png')) {
+            res.setHeader('Content-Type', 'image/png');
+        } else if (filePath.endsWith('.gif')) {
+            res.setHeader('Content-Type', 'image/gif');
+        } else if (filePath.endsWith('.webp')) {
+            res.setHeader('Content-Type', 'image/webp');
+        }
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+}));
 
-// Serve static files (CSS, JS, images) from root directory
+// Serve static images from root images directory
+app.use('/images', express.static(path.join(__dirname, '../images'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+            res.setHeader('Content-Type', 'image/jpeg');
+        } else if (filePath.endsWith('.png')) {
+            res.setHeader('Content-Type', 'image/png');
+        } else if (filePath.endsWith('.gif')) {
+            res.setHeader('Content-Type', 'image/gif');
+        } else if (filePath.endsWith('.svg')) {
+            res.setHeader('Content-Type', 'image/svg+xml');
+        }
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+}));
+
+// Serve static files (CSS, JS) from root directory
 app.use(express.static(path.join(__dirname, '..'), {
-    setHeaders: (res, path) => {
-        if (path.endsWith('.js')) {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js')) {
             res.setHeader('Content-Type', 'application/javascript');
-        } else if (path.endsWith('.css')) {
+        } else if (filePath.endsWith('.css')) {
             res.setHeader('Content-Type', 'text/css');
         }
     }
 }));
 
-// Note: Product CRUD operations are already defined above
-
-// Serve frontend files
+// Serve frontend files - Root
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../index.html'));
 });
 
+// Serve frontend files - Admin
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, '../admin/index.html'));
+});
+
+// Clean URLs (without .html extension)
+const htmlPages = [
+    'cart', 'search', 'wishlist', 'product',
+    'phones', 'laptops', 'cameras', 'audio', 
+    'accessories', 'smart-home', 'deals'
+];
+
+htmlPages.forEach(page => {
+    app.get(`/${page}`, (req, res) => {
+        res.sendFile(path.join(__dirname, `../${page}.html`));
+    });
+});
+
+// Also support .html URLs for backward compatibility
+htmlPages.forEach(page => {
+    app.get(`/${page}.html`, (req, res) => {
+        res.sendFile(path.join(__dirname, `../${page}.html`));
+    });
 });
 
 // 404 handler
