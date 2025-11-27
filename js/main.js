@@ -23,7 +23,23 @@ function renderInto(containerId, products) {
         return;
     }
     container.innerHTML = products.map(function(p){
-        const img = (p.images && p.images[0] && p.images[0].url) ? p.images[0].url : '/images/default.jpg';
+        // Extract image URL with better handling
+        let img = '/images/default.jpg';
+        if (p.images && Array.isArray(p.images) && p.images.length > 0) {
+            const primaryImage = p.images.find(img => img.isPrimary) || p.images[0];
+            if (primaryImage && primaryImage.url) {
+                img = primaryImage.url;
+                // Ensure relative URLs start with /
+                if (img && !img.startsWith('http') && !img.startsWith('/')) {
+                    img = '/' + img;
+                }
+                console.log('🖼️ Product image URL:', img, 'for product:', p.name);
+            } else {
+                console.warn('⚠️ Product has images array but no valid URL:', p.name, p.images);
+            }
+        } else {
+            console.warn('⚠️ Product has no images, using default:', p.name);
+        }
         const original = p.originalPrice ? '<span class="original-price">KSh ' + Number(p.originalPrice).toLocaleString() + '</span>' : '';
         const pid = p._id || p.id;
         const isWishlisted = window.wishlistManager ? window.wishlistManager.isInWishlist(pid) : false;
@@ -414,7 +430,18 @@ class HomePageTabs {
         }
         
         container.innerHTML = products.map(p => {
-            const img = (p.images && p.images[0] && p.images[0].url) ? p.images[0].url : '/images/default.jpg';
+            // Extract image URL with better handling
+            let img = '/images/default.jpg';
+            if (p.images && Array.isArray(p.images) && p.images.length > 0) {
+                const primaryImage = p.images.find(img => img.isPrimary) || p.images[0];
+                if (primaryImage && primaryImage.url) {
+                    img = primaryImage.url;
+                    // Ensure relative URLs start with /
+                    if (img && !img.startsWith('http') && !img.startsWith('/')) {
+                        img = '/' + img;
+                    }
+                }
+            }
             const original = p.originalPrice ? '<span class="original-price">KSh ' + Number(p.originalPrice).toLocaleString() + '</span>' : '';
             const pid = p._id || p.id;
             const isWishlisted = window.wishlistManager ? window.wishlistManager.isInWishlist(pid) : false;
@@ -434,7 +461,7 @@ class HomePageTabs {
             return (
                 '<div class="product-item clickable-card" data-product-id="'+pid+'" onclick="console.log(\'HomePageTabs card clicked, product ID:\', \''+pid+'\'); viewProduct(\''+pid+'\');">'
                 +  '<div class="product-image">'
-                +    '<img src="'+img+'" alt="'+p.name+'" class="product-img" onerror="window.imageHandler.handleImageError(this)">'
+                +    '<img src="'+img+'" alt="'+(p.name || 'Product')+'" class="product-img" onerror="if(window.imageHandler){window.imageHandler.handleImageError(this);}else{this.src=\'/images/default.jpg\';}">'
                 +    discountBadge
                 +  '</div>'
                 +  '<div class="product-info">'

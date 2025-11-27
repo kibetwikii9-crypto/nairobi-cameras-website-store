@@ -3,6 +3,8 @@ class ImageHandler {
     constructor() {
         this.defaultImage = '/images/default.jpg';
         this.placeholderImage = '/images/placeholder.jpg';
+        // Ensure images are accessible
+        console.log('🖼️ ImageHandler initialized with default:', this.defaultImage);
         this.fallbackImages = [
             '/images/default.jpg',
             '/images/placeholder.jpg',
