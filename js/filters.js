@@ -1,18 +1,12 @@
 // Advanced Filtering and Sorting System for Golden Source Technologies
-function parseFilterImages(images) {
-    if (!images) return [];
-    if (Array.isArray(images)) return images;
-    if (typeof images === 'string') {
-        try {
-            const parsed = JSON.parse(images);
-            return Array.isArray(parsed) ? parsed : [];
-        } catch (error) {
-            console.warn('⚠️ Failed to parse product images string for filters:', error);
-            return [];
-        }
+const getFilterContainers = () => {
+    if (window.getProductContainers) {
+        return window.getProductContainers();
     }
-    return [];
-}
+
+    const fallback = document.getElementById('productsContainer');
+    return fallback ? [fallback] : [];
+};
 
 class ProductFilter {
     constructor() {
@@ -42,25 +36,39 @@ class ProductFilter {
     // Load all products for filtering
     async loadAllProducts() {
         try {
+            const currentCategory = this.getCurrentCategory();
+            console.log(`🔍 Filter system: Loading products for category: ${currentCategory || 'all'}`);
+            
             // Use the existing API client if available
-            if (window.api) {
-                const data = await window.api.getProducts();
+            if (window.api || window.APIClient) {
+                const apiClient = window.api || new window.APIClient();
+                // Load products with category filter if available
+                const data = currentCategory 
+                    ? await apiClient.getProducts(currentCategory, 1000)
+                    : await apiClient.getProducts(null, 1000);
+                    
                 if (data.success && data.data.products) {
                     this.allProducts = data.data.products;
                     this.filteredProducts = [...this.allProducts];
-                    console.log(`📦 Loaded ${this.allProducts.length} products for filtering`);
+                    console.log(`📦 Loaded ${this.allProducts.length} products for filtering (category: ${currentCategory || 'all'})`);
                     return;
                 }
             }
             
-            // Fallback to direct API call
-            const response = await fetch('/api/products?limit=1000');
+            // Fallback to direct API call with category filter
+            let apiUrl = '/api/products?limit=1000';
+            if (currentCategory) {
+                apiUrl += `&category=${currentCategory}`;
+                console.log(`🔍 Filter system: Using category filter in API call: ${currentCategory}`);
+            }
+            
+            const response = await fetch(apiUrl);
             const data = await response.json();
             
             if (data.success && data.data.products) {
                 this.allProducts = data.data.products;
                 this.filteredProducts = [...this.allProducts];
-                console.log(`📦 Loaded ${this.allProducts.length} products for filtering`);
+                console.log(`📦 Loaded ${this.allProducts.length} products for filtering (category: ${currentCategory || 'all'})`);
             } else {
                 console.warn('⚠️ No products loaded, using fallback data');
                 this.allProducts = this.getFallbackProducts();
@@ -237,6 +245,7 @@ class ProductFilter {
                 break;
             case 'mice':
             case 'lenses':
+            case 'pocket-cameras':
             case 'keyboards':
             case 'headphones':
             case 'speakers':
@@ -383,9 +392,9 @@ class ProductFilter {
 
     // Show loading state
     showLoading() {
-        const container = document.getElementById('productsContainer');
-        if (container) {
-            container.innerHTML = `
+        const containers = getFilterContainers();
+        if (containers.length > 0) {
+            const markup = `
                 <div class="loading-message">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -393,6 +402,9 @@ class ProductFilter {
                     <p>Filtering products...</p>
                 </div>
             `;
+            containers.forEach(container => {
+                container.innerHTML = markup;
+            });
         }
     }
 
@@ -418,24 +430,43 @@ class ProductFilter {
 
     // Get current category from URL
     getCurrentCategory() {
-        const path = window.location.pathname;
-        // Support both clean URLs and .html URLs
-        if (path.includes('laptops') || path.includes('/laptops')) return 'laptops';
-        if (path.includes('phones') || path.includes('/phones')) return 'phones';
-        if (path.includes('cameras') || path.includes('/cameras')) return 'cameras';
-        if (path.includes('/audio')) return 'audio';
-        if (path.includes('/accessories')) return 'accessories';
-        if (path.includes('/smart-home')) return 'smart-home';
+        const path = window.location.pathname.toLowerCase();
+        const filename = path.split('/').pop() || '';
+        
+        // Check for exact matches first (more specific)
+        if (path.includes('/smart-home') || filename === 'smart-home.html' || filename.startsWith('smart-home')) {
+            return 'smart-home';
+        }
+        if (path.includes('/laptops') || filename === 'laptops.html' || filename.startsWith('laptops')) {
+            return 'laptops';
+        }
+        if (path.includes('/phones') || filename === 'phones.html' || filename.startsWith('phones')) {
+            return 'phones';
+        }
+        if (path.includes('/cameras') || filename === 'cameras.html' || filename.startsWith('cameras')) {
+            return 'cameras';
+        }
+        if (path.includes('/audio') || filename === 'audio.html' || filename.startsWith('audio')) {
+            return 'audio';
+        }
+        if (path.includes('/accessories') || filename === 'accessories.html' || filename.startsWith('accessories')) {
+            return 'accessories';
+        }
+        if (path.includes('/deals') || filename === 'deals.html' || filename.startsWith('deals')) {
+            return 'deals';
+        }
+        
+        console.log('⚠️ Filter system: No category detected from URL:', path);
         return null;
     }
 
     // Display filtered products
     displayFilteredProducts() {
-        const container = document.getElementById('productsContainer');
-        if (!container) return;
+        const containers = getFilterContainers();
+        if (containers.length === 0) return;
 
         if (this.filteredProducts.length === 0) {
-            container.innerHTML = `
+            const emptyState = `
                 <div class="no-products">
                     <i class="fas fa-search"></i>
                     <h3>No products found</h3>
@@ -443,27 +474,35 @@ class ProductFilter {
                     <button class="btn btn-primary" onclick="window.productFilter.clearFilters()">Clear Filters</button>
                 </div>
             `;
+            containers.forEach(container => {
+                container.innerHTML = emptyState;
+            });
             return;
         }
 
         // Use the existing product card creation from products.js
         if (window.ProductLoader) {
             const productLoader = new window.ProductLoader();
-            container.innerHTML = this.filteredProducts.map(product => 
+            const markup = this.filteredProducts.map(product => 
                 productLoader.createProductCard(product)
             ).join('');
+            containers.forEach(container => {
+                container.innerHTML = markup;
+            });
         } else {
             // Fallback product card creation
-            container.innerHTML = this.filteredProducts.map(product => 
+            const markup = this.filteredProducts.map(product => 
                 this.createProductCard(product)
             ).join('');
+            containers.forEach(container => {
+                container.innerHTML = markup;
+            });
         }
     }
 
     // Create product card (fallback)
     createProductCard(product) {
-        const parsedImages = parseFilterImages(product.images);
-        const imageUrl = parsedImages[0]?.url || '/images/default.jpg';
+        const imageUrl = product.images?.[0]?.url || '/images/default.jpg';
         const price = Number(product.price) || 0;
         const originalPrice = Number(product.originalPrice) || 0;
         
@@ -488,11 +527,6 @@ class ProductFilter {
                         <span class="current-price">KSh ${price.toLocaleString()}</span>
                         ${originalPriceHtml}
                     </div>
-                    <div class="product-actions">
-                        <button class="btn btn-primary add-to-cart" onclick="event.stopPropagation(); addToCart('${product.id}', '${product.name}', ${price}, '${imageUrl}')">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
-                    </div>
                 </div>
             </div>
         `;
@@ -500,11 +534,13 @@ class ProductFilter {
 
     // Update results count
     updateResultsCount() {
-        const countElement = document.querySelector('.sort-section span');
-        if (countElement) {
+        const countElements = document.querySelectorAll('.sort-section span, .sort-count');
+        if (countElements.length > 0) {
             const total = this.allProducts.length;
             const filtered = this.filteredProducts.length;
-            countElement.textContent = `Showing ${filtered} of ${total} results`;
+            countElements.forEach(el => {
+                el.textContent = `Showing ${filtered} of ${total} results`;
+            });
         }
     }
 
@@ -545,7 +581,7 @@ class ProductFilter {
 document.addEventListener('DOMContentLoaded', function() {
     // Only initialize on category pages
     const currentPage = window.location.pathname;
-    const categoryPages = ['/laptops', '/phones', '/cameras', '/audio', '/accessories', '/smart-home'];
+    const categoryPages = ['laptops.html', 'phones.html', 'cameras.html', 'audio.html', 'accessories.html', 'smart-home.html'];
     
     if (!categoryPages.some(page => currentPage.includes(page))) {
         console.log('🔍 Not a category page, skipping filter system');
@@ -559,4 +595,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Export for global access
 window.ProductFilter = ProductFilter;
-

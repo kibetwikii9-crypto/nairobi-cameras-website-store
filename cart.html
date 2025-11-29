@@ -2,15 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart - Golden Source Technologies</title>
-    <link rel="icon" type="image/png" href="/images/favicon.png">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- SEO Meta Tags -->
+    <title>Shopping Cart - Golden Source Technologies | Nairobi, Kenya</title>
+    <meta name="description" content="Review your shopping cart items. Complete your purchase with secure checkout. Fast delivery in Nairobi, Kenya.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="https://goldensourcetech.co.ke/cart">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/mobile-home.css?v=1" media="(max-width: 991px)">
     <style>
-        :root {
-            --primary-color: #e21b1f;
+        /* Desktop visible by default */
+        .desktop-shell {
+            display: block;
+        }
+        .mobile-shell {
+            display: none;
+        }
+        @media (max-width: 991px) {
+            .desktop-shell {
+                display: none !important;
+            }
+            .mobile-shell {
+                display: block !important;
+            }
+        }
+    </style>
+    <style>
+        /* Desktop-only styles - scoped to desktop-shell */
+        .desktop-shell {
+            --primary-color: #3b82f6;
             --secondary-color: #1e40af;
             --success-color: #10b981;
             --warning-color: #f59e0b;
@@ -22,33 +45,51 @@
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        body {
+        /* Body background only when desktop shell is visible */
+        body:has(.desktop-shell:not([style*="display: none"])) {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 0;
             margin: 0;
         }
+        
+        /* Override for mobile - ensure white background */
+        @media (max-width: 991px) {
+            html, body {
+                background: #ffffff !important;
+                background-image: none !important;
+                background-color: #ffffff !important;
+            }
+            
+            .desktop-shell {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                overflow: hidden !important;
+            }
+        }
 
-        .navbar {
+        .desktop-shell .navbar {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             box-shadow: var(--shadow);
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .navbar-brand {
+        .desktop-shell .navbar-brand {
             font-weight: 700;
             color: var(--primary-color) !important;
         }
 
-        .cart-container {
+        .desktop-shell .cart-container {
             max-width: 1200px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
 
-        .cart-header {
+        .desktop-shell .cart-header {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 16px;
             padding: 2rem;
@@ -58,7 +99,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .cart-title {
+        .desktop-shell .cart-title {
             font-size: 2.5rem;
             font-weight: 700;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -68,19 +109,19 @@
             margin-bottom: 0.5rem;
         }
 
-        .cart-subtitle {
+        .desktop-shell .cart-subtitle {
             color: #6b7280;
             font-size: 1.1rem;
         }
 
-        .cart-content {
+        .desktop-shell .cart-content {
             display: grid;
             grid-template-columns: 1fr 400px;
             gap: 2rem;
             align-items: start;
         }
 
-        .cart-items {
+        .desktop-shell .cart-items {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 16px;
             padding: 2rem;
@@ -89,7 +130,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .cart-summary {
+        .desktop-shell .cart-summary {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 16px;
             padding: 2rem;
@@ -100,14 +141,14 @@
             top: 2rem;
         }
 
-        .summary-title {
+        .desktop-shell .summary-title {
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--dark-color);
             margin-bottom: 1.5rem;
         }
 
-        .summary-row {
+        .desktop-shell .summary-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -115,17 +156,17 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        .summary-section {
+        .desktop-shell .summary-section {
             margin-bottom: 1.5rem;
         }
 
-        .summary-divider {
+        .desktop-shell .summary-divider {
             border: none;
             border-top: 2px solid var(--border-color);
             margin: 1rem 0;
         }
 
-        .total-row {
+        .desktop-shell .total-row {
             font-weight: 700;
             font-size: 1.25rem;
             color: var(--primary-color);
@@ -135,7 +176,7 @@
             margin-top: 0.5rem;
         }
 
-        .checkout-btn {
+        .desktop-shell .checkout-btn {
             width: 100%;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
@@ -150,19 +191,19 @@
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
-        .checkout-btn:hover {
+        .desktop-shell .checkout-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
         }
 
-        .checkout-btn:disabled {
+        .desktop-shell .checkout-btn:disabled {
             background: #9ca3af;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
 
-        .empty-cart {
+        .desktop-shell .empty-cart {
             text-align: center;
             padding: 4rem 2rem;
             background: rgba(255, 255, 255, 0.95);
@@ -172,25 +213,25 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .empty-cart-icon {
+        .desktop-shell .empty-cart-icon {
             font-size: 4rem;
             color: var(--border-color);
             margin-bottom: 1rem;
         }
 
-        .empty-cart-title {
+        .desktop-shell .empty-cart-title {
             font-size: 1.5rem;
             font-weight: 600;
             color: var(--dark-color);
             margin-bottom: 0.5rem;
         }
 
-        .empty-cart-text {
+        .desktop-shell .empty-cart-text {
             color: #6b7280;
             margin-bottom: 2rem;
         }
 
-        .continue-shopping-btn {
+        .desktop-shell .continue-shopping-btn {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border: none;
@@ -202,13 +243,13 @@
             font-weight: 500;
         }
 
-        .continue-shopping-btn:hover {
+        .desktop-shell .continue-shopping-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
             color: white;
         }
 
-        .cart-badge {
+        .desktop-shell .cart-badge {
             background: var(--danger-color);
             color: white;
             border-radius: 50%;
@@ -224,7 +265,7 @@
             right: -8px;
         }
 
-        .feature-highlight {
+        .desktop-shell .feature-highlight {
             background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
             border: 1px solid #0ea5e9;
             border-radius: 12px;
@@ -232,108 +273,27 @@
             margin: 1rem 0;
         }
 
-        .feature-highlight h6 {
+        .desktop-shell .feature-highlight h6 {
             color: #0369a1;
             margin-bottom: 0.5rem;
         }
 
-        .feature-highlight p {
+        .desktop-shell .feature-highlight p {
             color: #0c4a6e;
             margin: 0;
             font-size: 0.9rem;
         }
 
-        .delivery-progress {
-            margin: 1.5rem 0;
-            background: rgba(247, 250, 252, 0.8);
-            border-radius: 14px;
-            padding: 1rem 1.25rem;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .progress-track {
-            height: 10px;
-            background: rgba(226, 232, 240, 0.8);
-            border-radius: 999px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: inherit;
-            transition: width 0.4s ease;
-        }
-
-        .timeline-card,
-        .support-card {
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 14px;
-            padding: 1rem 1.25rem;
-            background: rgba(255, 255, 255, 0.85);
-            margin-top: 1rem;
-        }
-
-        .timeline-card h6,
-        .support-card h6 {
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-bottom: 0.35rem;
-            color: #1f2937;
-        }
-
-        .timeline-card p,
-        .support-card p {
-            margin: 0;
-            font-size: 0.85rem;
-            color: #4b5563;
-        }
-
-        .payment-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .payment-pill {
-            flex: 1 0 30%;
-            min-width: 120px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(226, 232, 240, 0.9);
-            border-radius: 12px;
-            padding: 0.65rem 0.75rem;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #1f2937;
-        }
-
-        .payment-pill i {
-            color: var(--primary-color);
-        }
-
         @media (max-width: 768px) {
-            .cart-content {
+            .desktop-shell .cart-content {
                 grid-template-columns: 1fr;
             }
             
-            .cart-header {
+            .desktop-shell .cart-header {
                 padding: 1.5rem;
             }
             
-            .cart-title {
+            .desktop-shell .cart-title {
                 font-size: 2rem;
             }
         }
@@ -358,6 +318,8 @@
     </style>
 </head>
 <body>
+    <!-- Desktop Layout -->
+<div class="desktop-shell">
     <!-- Top Header Bar -->
     <div class="top-header">
         <div class="container-fluid">
@@ -373,13 +335,13 @@
                         <div class="search-container">
                             <select class="search-category" onchange="window.location.href=this.value">
                                 <option value="">All Categories</option>
-                                <option value="/laptops">Laptops</option>
-                                <option value="/phones">Phones</option>
-                                <option value="/cameras">Cameras</option>
-                                <option value="/audio">Audio & Headphones</option>
-                                <option value="/accessories">Accessories</option>
-                                <option value="/smart-home">Smart Home Devices</option>
-                                <option value="/deals">Deals & Promotions</option>
+                                <option value="laptops.html">Laptops</option>
+                                <option value="phones.html">Phones</option>
+                                <option value="cameras.html">Cameras</option>
+                                <option value="audio.html">Audio & Headphones</option>
+                                <option value="accessories.html">Accessories</option>
+                                <option value="smart-home.html">Smart Home Devices</option>
+                                <option value="deals.html">Deals & Promotions</option>
                             </select>
                             <input type="text" id="globalSearch" placeholder="Search for products..." class="search-input">
                             <button class="search-btn" onclick="performGlobalSearch()">
@@ -394,12 +356,7 @@
                             <i class="fas fa-phone"></i>
                             <span id="contactPhone">+254 724 369 971</span>
                         </div>
-                        <a href="/wishlist" class="action-item position-relative">
-                            <i class="fas fa-heart"></i>
-                            <span>Wishlist</span>
-                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="wishlistBadge" style="display: none;">0</span>
-                        </a>
-                        <a href="/cart" class="action-item position-relative">
+                        <a href="cart.html" class="action-item position-relative">
                             <i class="fas fa-shopping-cart"></i>
                             <span>Cart</span>
                             <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartBadge" style="display: none;">0</span>
@@ -415,13 +372,13 @@
         <div class="container-fluid">
             <div class="nav-content">
                 <div class="nav-categories">
-                    <a href="/laptops" class="nav-link">Laptops</a>
-                    <a href="/phones" class="nav-link">Phones</a>
-                    <a href="/cameras" class="nav-link">Cameras</a>
-                    <a href="/audio" class="nav-link">Audio & Headphones</a>
-                    <a href="/accessories" class="nav-link">Accessories</a>
-                    <a href="/smart-home" class="nav-link">Smart Home Devices</a>
-                    <a href="/deals" class="nav-link">Deals & Promotions</a>
+                    <a href="laptops.html" class="nav-link">Laptops</a>
+                    <a href="phones.html" class="nav-link">Phones</a>
+                    <a href="cameras.html" class="nav-link">Cameras</a>
+                    <a href="audio.html" class="nav-link">Audio & Headphones</a>
+                    <a href="accessories.html" class="nav-link">Accessories</a>
+                    <a href="smart-home.html" class="nav-link">Smart Home Devices</a>
+                    <a href="deals.html" class="nav-link">Deals & Promotions</a>
                 </div>
                 <div class="nav-deals">
                     <span class="deal-badge">GOLDEN SOURCE SALE</span>
@@ -449,7 +406,7 @@
                     </div>
                     <h3 class="empty-cart-title">Your cart is empty</h3>
                     <p class="empty-cart-text">Looks like you haven't added any items to your cart yet.</p>
-                    <a href="/" class="continue-shopping-btn">
+                    <a href="index.html" class="continue-shopping-btn">
                         <i class="fas fa-arrow-left me-2"></i>
                         Continue Shopping
                     </a>
@@ -467,16 +424,6 @@
                     <h6><i class="fas fa-shipping-fast me-2"></i>Free Delivery</h6>
                     <p>Enjoy free delivery on orders over KSh 50,000</p>
                 </div>
-
-                <div class="delivery-progress" id="deliveryProgress">
-                    <div class="progress-label">
-                        <span id="freeDeliveryMessage">Spend KSh 50,000 more to unlock free delivery</span>
-                        <span id="freeDeliveryPercent">0%</span>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" id="freeDeliveryProgress"></div>
-                    </div>
-                </div>
                 
                 <div class="summary-section">
                     <div class="summary-row">
@@ -487,41 +434,14 @@
                         <span>Delivery Fee</span>
                         <span id="deliveryFee">KSh 500</span>
                     </div>
-                    <div class="summary-row" style="display: none;">
-                        <span>Tax</span>
-                        <span id="taxAmount">KSh 0.00</span>
+                    <div class="summary-row">
+                        <span>Tax (16% VAT)</span>
+                        <span id="taxAmount">KSh 0</span>
                     </div>
                     <hr class="summary-divider">
                     <div class="summary-row total-row">
                         <span><strong>Total Amount</strong></span>
                         <span id="totalAmount"><strong>KSh 500</strong></span>
-                    </div>
-                </div>
-
-                <div class="timeline-card">
-                    <h6><i class="fas fa-clock me-2 text-danger"></i>Estimated delivery</h6>
-                    <p id="deliveryEta">Checkout before 3:00 PM for same-day dispatch within Nairobi.</p>
-                </div>
-
-                <div class="timeline-card">
-                    <h6><i class="fas fa-store me-2 text-danger"></i>Pickup option</h6>
-                    <p id="pickupMessage">Prefer to collect? Reserve online and pick up at our CBD experience center within 2 hours.</p>
-                </div>
-
-                <div class="support-card">
-                    <h6><i class="fas fa-headset me-2 text-danger"></i>Need help completing payment?</h6>
-                    <p>Talk to a checkout specialist: <strong>+254 724 369 971</strong> or <strong>orders@goldensource.com</strong></p>
-                </div>
-
-                <div class="payment-pills">
-                    <div class="payment-pill">
-                        <i class="fas fa-mobile-alt"></i> M-Pesa & Paybill
-                    </div>
-                    <div class="payment-pill">
-                        <i class="fas fa-credit-card"></i> Cards & Tap-to-pay
-                    </div>
-                    <div class="payment-pill">
-                        <i class="fas fa-university"></i> Secure bank transfer
                     </div>
                 </div>
                 
@@ -544,22 +464,283 @@
     <script src="js/script.js"></script>
     <script src="js/api.js"></script>
     <script src="js/cart.js"></script>
-    <script src="js/wishlist.js"></script>
     <script src="js/main.js"></script>
     <script src="js/sticky-nav.js"></script>
     <script>
         // Force cart display update when cart page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🛒 Cart page loaded, updating display...');
+        function updateCartPage() {
+            console.log('🛒 Cart page update function called');
+            console.log('🛒 window.cartManager exists:', !!window.cartManager);
+            console.log('🛒 Cart items container exists:', !!document.getElementById('cartItemsMobile'));
+            
             if (window.cartManager) {
-                console.log('🛒 Cart manager found, updating display...');
+                console.log('🛒 Cart manager found, cart data:', window.cartManager.cart);
+                console.log('🛒 Cart length:', window.cartManager.cart.length);
                 window.cartManager.updateCartDisplay();
                 console.log('🛒 Cart display updated');
             } else {
                 console.error('❌ Cart manager not found on cart page');
+                // Try again after a short delay
+                setTimeout(function() {
+                    if (window.cartManager) {
+                        console.log('🛒 Cart manager found on retry');
+                        window.cartManager.updateCartDisplay();
+                    } else {
+                        console.error('❌ Cart manager still not found after retry');
+                    }
+                }, 500);
             }
-        });
+        }
+        
+        // Try multiple times to ensure it works
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateCartPage);
+        } else {
+            updateCartPage();
+        }
+        
+        // Also try after a delay to catch any timing issues
+        setTimeout(updateCartPage, 1000);
     </script>
+</div> <!-- End desktop-shell -->
+
+<!-- Mobile Layout -->
+<div class="mobile-shell">
+    <!-- Scrolling Logo Header -->
+    <div class="mobile-logo-header" id="mobileLogoHeader">
+        <div class="mobile-logo-brand">
+            <img src="images/logo.png" alt="Golden Source Technologies" class="mobile-logo-img">
+            <span class="mobile-brand-name">Golden Source Technologies</span>
+        </div>
+    </div>
+    
+    <!-- Fixed Icon Header -->
+    <header class="mobile-icon-header">
+        <div class="icon-group">
+            <button class="mobile-icon-btn" id="mobileMenuToggle" aria-label="Open menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+        <div class="icon-group">
+            <button class="mobile-icon-btn" id="mobileSearchToggle" aria-label="Search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+            <a href="/cart" class="mobile-icon-btn" aria-label="Cart">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="badge" id="mobileCartBadge" style="display:none;">0</span>
+            </a>
+        </div>
+    </header>
+    
+    <!-- Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    
+    <!-- Menu Drawer -->
+    <nav class="mobile-menu-drawer" id="mobileMenuDrawer">
+        <div class="mobile-menu-header">
+            <h3>Menu</h3>
+            <button class="mobile-icon-btn" id="mobileMenuClose" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mobile-menu-links">
+            <a href="/">Home</a>
+            <a href="/laptops">Laptops</a>
+            <a href="/phones">Phones</a>
+            <a href="/cameras">Cameras</a>
+            <a href="/audio">Audio &amp; Headphones</a>
+            <a href="/accessories">Accessories</a>
+            <a href="/smart-home">Smart Home</a>
+            <a href="/deals">Deals</a>
+        </div>
+    </nav>
+    
+    <!-- Search Overlay -->
+    <div class="mobile-search-overlay" id="mobileSearchOverlay"></div>
+    
+    <!-- Search Panel -->
+    <div class="mobile-search-panel" id="mobileSearchPanel">
+        <form class="mobile-search-form" id="mobileSearchForm">
+            <input 
+                type="search" 
+                class="mobile-search-input" 
+                id="mobileSearchInput"
+                placeholder="Search products..."
+                autocomplete="off"
+            >
+            <button type="button" class="mobile-icon-btn" id="mobileSearchClose" aria-label="Close search">
+                <i class="fas fa-times"></i>
+            </button>
+        </form>
+    </div>
+    
+    <!-- Mobile Cart Content -->
+    <main class="mobile-category mobile-cart-page">
+        <!-- Cart Header -->
+        <div class="mobile-cart-header">
+            <h1 class="cart-page-title">
+                <i class="fas fa-shopping-cart"></i>
+                Shopping Cart
+            </h1>
+        </div>
+
+        <!-- Cart Items Section -->
+        <div class="mobile-cart-items-container" id="cartItemsMobile">
+            <!-- Empty Cart State -->
+            <div class="mobile-empty-cart" id="emptyCartMobile" style="display: none;">
+                <div class="empty-cart-icon-wrapper">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h2 class="empty-cart-title">Your cart is empty</h2>
+                <p class="empty-cart-message">Start adding items to your cart to see them here</p>
+                <a href="index.html" class="mobile-continue-shopping-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+
+        <!-- Cart Summary - Sticky at Bottom with Footer -->
+        <div class="mobile-cart-summary-wrapper" id="mobileCartSummary">
+            <div class="mobile-cart-summary">
+                <div class="summary-header">
+                    <h3 class="summary-title">Order Summary</h3>
+                </div>
+                <div class="summary-details">
+                    <div class="summary-row">
+                        <span class="summary-label">Subtotal</span>
+                        <span class="summary-value" id="productAmountMobile">KSh 0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Delivery</span>
+                        <span class="summary-value" id="deliveryFeeMobile">KSh 500</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Tax (16% VAT)</span>
+                        <span class="summary-value" id="taxAmountMobile">KSh 0</span>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-row summary-total">
+                        <span class="summary-label">Total</span>
+                        <span class="summary-value total-amount" id="totalAmountMobile">KSh 500</span>
+                    </div>
+                </div>
+                <button class="mobile-checkout-btn" id="checkoutBtnMobile" onclick="proceedToCheckout()">
+                    <i class="fas fa-lock"></i>
+                    Proceed to Checkout
+                </button>
+                <p class="secure-payment-note">
+                    <i class="fas fa-shield-alt"></i>
+                    Secure payment processing
+                </p>
+            </div>
+            
+            <!-- Footer inside fixed wrapper -->
+            <footer class="mobile-footer mobile-cart-footer">
+        <div class="footer-container">
+            <!-- Brand Section -->
+            <div class="footer-section footer-brand">
+                <p class="footer-tagline">Your trusted partner for cameras, computers, and smart living essentials.</p>
+                <div class="footer-social">
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Support Links -->
+            <div class="footer-section">
+                <h4 class="footer-heading">Support</h4>
+                <ul class="footer-links">
+                    <li><a href="/contact">Contact Us</a></li>
+                    <li><a href="/shipping">Shipping Info</a></li>
+                    <li><a href="/returns">Returns & Exchanges</a></li>
+                    <li><a href="/faq">FAQ</a></li>
+                    <li><a href="/warranty">Warranty</a></li>
+                    <li><a href="/track-order">Track Order</a></li>
+                </ul>
+            </div>
+
+            <!-- Company Links -->
+            <div class="footer-section">
+                <h4 class="footer-heading">Company</h4>
+                <ul class="footer-links">
+                    <li><a href="/about">About Us</a></li>
+                    <li><a href="/careers">Careers</a></li>
+                    <li><a href="/blog">Blog</a></li>
+                    <li><a href="/press">Press</a></li>
+                    <li><a href="/partners">Partners</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="footer-section footer-contact">
+                <h4 class="footer-heading">Get in Touch</h4>
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <a href="tel:+254724369971">+254 724 369 971</a>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <a href="mailto:support@goldensource.com">support@goldensource.com</a>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Nairobi, Kenya</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Mon - Sat: 9AM - 6PM</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="footer-payments">
+            <p class="payment-label">We Accept</p>
+            <div class="payment-icons">
+                <div class="payment-icon" title="Visa">
+                    <i class="fab fa-cc-visa"></i>
+                </div>
+                <div class="payment-icon" title="Mastercard">
+                    <i class="fab fa-cc-mastercard"></i>
+                </div>
+                <div class="payment-icon" title="M-Pesa">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <div class="payment-icon" title="PayPal">
+                    <i class="fab fa-cc-paypal"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-content">
+                <p class="copyright">&copy; 2024 Golden Source Technologies. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="/privacy">Privacy Policy</a>
+                    <span class="separator">|</span>
+                    <a href="/terms">Terms of Service</a>
+                    <span class="separator">|</span>
+                    <a href="/cookies">Cookie Policy</a>
+                </div>
+            </div>
+            </footer>
+        </div>
+    </main>
+
+</div>
+
+<script src="js/mobile-home.js"></script>
 </body>
 </html>
-

@@ -1,10 +1,3 @@
-.mobile-shell {
-    display: none;
-}
-
-.desktop-shell {
-    display: block;
-}
 
 :root {
     --brand-red: #e90100;
@@ -21,11 +14,6 @@
     --text-muted: #7e4f4f;
 }
 
-@media (max-width: 991px) {
-    .desktop-shell {
-        display: none;
-    }
-}
 /* Reset and Base Styles */
 * {
     margin: 0;
@@ -156,44 +144,7 @@
     color: var(--brand-red);
 }
 
-/* Cart and Wishlist Styles */
-.wishlist-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 10;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.wishlist-btn:hover {
-    background: var(--brand-red);
-    color: white;
-    transform: scale(1.1);
-}
-
-.wishlist-btn i {
-    font-size: 1.2rem;
-    transition: all 0.3s ease;
-}
-
-.wishlist-btn.wishlisted {
-    background: var(--brand-red);
-    color: white;
-}
-
-.wishlist-btn.wishlisted:hover {
-    background: var(--brand-red-dark);
-}
+/* Cart Styles (Wishlist removed) */
 
 /* Discount Badge Styles */
 .discount-badge {
@@ -298,38 +249,7 @@ body.sticky-nav-active {
     animation: slideDown 0.3s ease;
 }
 
-/* Floating Wishlist Heart Styles */
-.floating-wishlist {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 10;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 0;
-    width: auto;
-    height: auto;
-    box-shadow: none;
-}
-
-.floating-wishlist:hover {
-    color: var(--brand-red);
-    transform: scale(1.1);
-}
-
-.floating-wishlist.active {
-    color: var(--brand-red);
-}
-
-.floating-wishlist i {
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Ensure product cards have relative positioning for absolute wishlist */
+/* Ensure product cards have relative positioning */
 .product-item, .product-card {
     position: relative;
 }
@@ -2432,11 +2352,12 @@ body {
         font-size: 0.9rem;
     }
     
-    /* Cart page mobile styles */
-    .cart-container {
-        margin: 1rem auto;
-        padding: 0 0.5rem;
-    }
+    /* DESKTOP CART STYLES ONLY - Mobile uses mobile-home.css */
+    @media (min-width: 992px) {
+        .cart-container {
+            margin: 1rem auto;
+            padding: 0 0.5rem;
+        }
     
     .cart-header {
         padding: 1.5rem;
@@ -2507,6 +2428,24 @@ body {
         padding: 0.6rem 1.5rem;
         font-size: 0.9rem;
     }
+    
+    /* MOBILE CART: All styles handled by mobile-home.css - old styles neutralized */
+    @media (max-width: 991px) {
+        .mobile-shell .cart-container:not(.mobile-cart-items-container),
+        .mobile-shell .cart-header:not(.mobile-cart-header),
+        .mobile-shell .cart-title:not(.cart-page-title),
+        .mobile-shell .cart-items:not(.mobile-cart-items-container),
+        .mobile-shell .cart-summary:not(.mobile-cart-summary),
+        .mobile-shell .empty-cart:not(.mobile-empty-cart),
+        .mobile-shell .cart-content {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            pointer-events: none !important;
+        }
+    }
 }
 
 @media (max-width: 576px) {
@@ -2567,36 +2506,40 @@ body {
         height: 100px;
     }
     
-    /* Cart page small mobile styles */
-    .cart-container {
-        margin: 0.5rem auto;
-        padding: 0 0.25rem;
-    }
+    /* MOBILE CART: All styles handled by mobile-home.css - duplicate neutralization removed */
     
-    .cart-header {
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .cart-title {
-        font-size: 1.5rem;
-    }
-    
-    .cart-subtitle {
-        font-size: 0.9rem;
-    }
-    
-    .cart-items,
-    .cart-summary {
-        padding: 1rem;
-    }
-    
-    .summary-title {
-        font-size: 1.1rem;
-    }
-    
-    .summary-row {
-        font-size: 0.8rem;
+    /* Desktop-only cart styles (kept for backward compatibility) */
+    @media (min-width: 992px) {
+        .cart-container {
+            margin: 0.5rem auto;
+            padding: 0 0.25rem;
+        }
+        
+        .cart-header {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .cart-title {
+            font-size: 1.5rem;
+        }
+        
+        .cart-subtitle {
+            font-size: 0.9rem;
+        }
+        
+        .cart-items,
+        .cart-summary {
+            padding: 1rem;
+        }
+        
+        .summary-title {
+            font-size: 1.1rem;
+        }
+        
+        .summary-row {
+            font-size: 0.8rem;
+        }
     }
     
     .total-row {

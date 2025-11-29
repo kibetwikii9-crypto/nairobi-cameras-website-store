@@ -1,20 +1,18 @@
 // Product page functionality
 // Loads and displays products on category pages
 
-function parseProductImages(images) {
-    if (!images) return [];
-    if (Array.isArray(images)) return images;
-    if (typeof images === 'string') {
-        try {
-            const parsed = JSON.parse(images);
-            return Array.isArray(parsed) ? parsed : [];
-        } catch (error) {
-            console.warn('⚠️ Failed to parse product images string:', error);
-            return [];
-        }
+const getProductContainers = () => {
+    const containers = document.querySelectorAll('[data-products-container]');
+    if (containers.length > 0) {
+        return Array.from(containers);
     }
-    return [];
-}
+
+    const fallback = document.getElementById('productsContainer');
+    return fallback ? [fallback] : [];
+};
+
+// Expose helper so filters.js can reuse it
+window.getProductContainers = getProductContainers;
 
 class ProductLoader {
     constructor() {
@@ -25,14 +23,33 @@ class ProductLoader {
     }
 
     getCategoryFromURL() {
-        const path = window.location.pathname;
-        // Support both clean URLs and .html URLs
-        if (path.includes('phones') || path.includes('/phones')) return 'phones';
-        if (path.includes('laptops') || path.includes('/laptops')) return 'laptops';
-        if (path.includes('cameras') || path.includes('/cameras')) return 'cameras';
-        if (path.includes('audio') || path.includes('/audio')) return 'audio';
-        if (path.includes('accessories') || path.includes('/accessories')) return 'accessories';
-        if (path.includes('smart-home') || path.includes('/smart-home')) return 'smart-home';
+        const path = window.location.pathname.toLowerCase();
+        const filename = path.split('/').pop() || '';
+        
+        // Check for exact matches first (more specific)
+        if (path.includes('/smart-home') || filename === 'smart-home.html' || filename.startsWith('smart-home')) {
+            return 'smart-home';
+        }
+        if (path.includes('/laptops') || filename === 'laptops.html' || filename.startsWith('laptops')) {
+            return 'laptops';
+        }
+        if (path.includes('/phones') || filename === 'phones.html' || filename.startsWith('phones')) {
+            return 'phones';
+        }
+        if (path.includes('/cameras') || filename === 'cameras.html' || filename.startsWith('cameras')) {
+            return 'cameras';
+        }
+        if (path.includes('/audio') || filename === 'audio.html' || filename.startsWith('audio')) {
+            return 'audio';
+        }
+        if (path.includes('/accessories') || filename === 'accessories.html' || filename.startsWith('accessories')) {
+            return 'accessories';
+        }
+        if (path.includes('/deals') || filename === 'deals.html' || filename.startsWith('deals')) {
+            return 'deals';
+        }
+        
+        console.log('⚠️ No category detected from URL:', path);
         return null;
     }
 
@@ -47,6 +64,13 @@ class ProductLoader {
         
         try {
             console.log(`🔄 Loading products for category: ${this.currentCategory || 'all'}`);
+            console.log(`📍 Current URL: ${window.location.pathname}`);
+            console.log(`📍 Detected category: ${this.currentCategory}`);
+            
+            if (!this.currentCategory) {
+                console.warn('⚠️ WARNING: No category detected! Products from all categories will be shown.');
+            }
+            
             this.showLoading();
             
             const data = await this.apiClient.getProducts(this.currentCategory);
@@ -69,21 +93,23 @@ class ProductLoader {
     }
 
     displayProducts(products) {
-        const container = document.getElementById('productsContainer');
-        if (!container) {
+        const containers = getProductContainers();
+        if (containers.length === 0) {
             console.error('❌ productsContainer element not found');
             return;
         }
 
-        container.innerHTML = products.map(product => this.createProductCard(product)).join('');
+        const markup = products.map(product => this.createProductCard(product)).join('');
+        containers.forEach(container => {
+            container.innerHTML = markup;
+        });
     }
 
     createProductCard(product) {
         // Handle image URL safely with better fallback logic
         let imageUrl = '/images/default.jpg';
-        const images = parseProductImages(product.images);
-        if (images.length > 0) {
-            const primaryImage = images.find(img => img.isPrimary) || images[0];
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+            const primaryImage = product.images.find(img => img.isPrimary) || product.images[0];
             if (primaryImage && primaryImage.url) {
                 imageUrl = primaryImage.url;
             }
@@ -126,9 +152,6 @@ class ProductLoader {
                          class="product-img loading">
                     ${discount}
                     ${featuredBadge}
-                    <button class="floating-wishlist" onclick="event.stopPropagation(); event.preventDefault(); toggleWishlist('${product.id}', '${safeName}', ${price}, '${imageUrl}', '${safeDescription}')" title="Add to Wishlist">
-                        <i class="fas fa-heart-o"></i>
-                    </button>
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">${safeName}</h3>
@@ -138,14 +161,6 @@ class ProductLoader {
                         ${originalPriceHtml}
                     </div>
                     ${stockStatus}
-                    <div class="product-actions">
-                        <button class="btn btn-primary add-to-cart" 
-                                onclick="event.stopPropagation(); addToCart('${product.id}', '${safeName}', ${price}, '${imageUrl}')"
-                                ${stock === 0 ? 'disabled' : ''}>
-                            <i class="fas fa-shopping-cart"></i> 
-                            ${stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                        </button>
-                    </div>
                 </div>
             </div>
         `;
@@ -171,9 +186,9 @@ class ProductLoader {
     }
 
     showNoProducts() {
-        const container = document.getElementById('productsContainer');
-        if (container) {
-            container.innerHTML = `
+        const containers = getProductContainers();
+        if (containers.length > 0) {
+            const markup = `
                 <div class="no-products">
                     <i class="fas fa-box-open"></i>
                     <h3>No products found</h3>
@@ -181,13 +196,16 @@ class ProductLoader {
                     <p>Check back soon for our latest products!</p>
                 </div>
             `;
+            containers.forEach(container => {
+                container.innerHTML = markup;
+            });
         }
     }
 
     showLoading() {
-        const container = document.getElementById('productsContainer');
-        if (container) {
-            container.innerHTML = `
+        const containers = getProductContainers();
+        if (containers.length > 0) {
+            const markup = `
                 <div class="loading-message">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -195,13 +213,16 @@ class ProductLoader {
                     <p>Loading products...</p>
                 </div>
             `;
+            containers.forEach(container => {
+                container.innerHTML = markup;
+            });
         }
     }
 
     showError() {
-        const container = document.getElementById('productsContainer');
-        if (container) {
-            container.innerHTML = `
+        const containers = getProductContainers();
+        if (containers.length > 0) {
+            const markup = `
                 <div class="error-message">
                     <i class="fas fa-exclamation-triangle"></i>
                     <h3>Error loading products</h3>
@@ -209,6 +230,9 @@ class ProductLoader {
                     <button class="btn btn-primary" onclick="location.reload()">Retry</button>
                 </div>
             `;
+            containers.forEach(container => {
+                container.innerHTML = markup;
+            });
         }
     }
 }
@@ -237,8 +261,8 @@ function viewProduct(productId) {
     }
     
     try {
-        // Navigate to product detail page (clean URL without .html)
-        const productUrl = `/product?id=${encodeURIComponent(cleanProductId)}`;
+        // Navigate to product detail page
+        const productUrl = `product.html?id=${encodeURIComponent(cleanProductId)}`;
         console.log('🔗 Navigating to:', productUrl);
         window.location.href = productUrl;
     } catch (error) {
@@ -250,14 +274,6 @@ function viewProduct(productId) {
 // Make viewProduct globally accessible
 window.viewProduct = viewProduct;
 
-// Wishlist functionality
-function toggleWishlist(productId, productName, price, image) {
-    if (window.wishlistManager) {
-        window.wishlistManager.toggleWishlist(productId, productName, price, image);
-    } else {
-        console.warn('Wishlist manager not available');
-    }
-}
 
 
 // Add CSS animations for feedback
@@ -302,4 +318,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Export ProductLoader to global scope for filter system
 window.ProductLoader = ProductLoader;
-

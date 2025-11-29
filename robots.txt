@@ -1,0 +1,28 @@
+# robots.txt for Golden Source Technologies
+# https://goldensourcetech.co.ke
+
+User-agent: *
+Allow: /
+
+# Disallow admin panel
+Disallow: /admin/
+Disallow: /api/
+
+# Allow important pages
+Allow: /
+Allow: /laptops
+Allow: /phones
+Allow: /cameras
+Allow: /audio
+Allow: /accessories
+Allow: /smart-home
+Allow: /deals
+Allow: /cart
+Allow: /search
+
+# Sitemap location
+Sitemap: https://goldensourcetech.co.ke/sitemap.xml
+
+# Crawl delay (optional - helps prevent server overload)
+Crawl-delay: 1
+

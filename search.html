@@ -2,13 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https: http: blob:; font-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src 'self' http://localhost:5000 https: http:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
-    <title>Search Results - Golden Source Technologies</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>Search Results - Golden Source Technologies | Nairobi, Kenya</title>
+    <meta name="description" content="Search for electronics products. Find laptops, phones, cameras, audio equipment, and more. Best prices, genuine products, fast delivery in Nairobi, Kenya.">
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="https://goldensourcetech.co.ke/search">
     <link rel="icon" type="image/png" href="/images/favicon.png">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous">
     <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/mobile-home.css?v=1" media="(max-width: 991px)">
+    <style>
+        /* Desktop visible by default */
+        .desktop-shell {
+            display: block;
+        }
+        .mobile-shell {
+            display: none;
+        }
+        @media (max-width: 991px) {
+            .desktop-shell {
+                display: none !important;
+            }
+            .mobile-shell {
+                display: block !important;
+            }
+        }
+    </style>
     <style>
         .search-container {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -110,6 +133,8 @@
     </style>
 </head>
 <body>
+<!-- Desktop Layout -->
+<div class="desktop-shell">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
@@ -140,9 +165,6 @@
                 <div class="d-flex">
                     <a href="/cart" class="btn btn-outline-primary me-2">
                         <i class="fas fa-shopping-cart"></i> Cart
-                    </a>
-                    <a href="/wishlist" class="btn btn-outline-secondary">
-                        <i class="fas fa-heart"></i> Wishlist
                     </a>
                 </div>
             </div>
@@ -259,6 +281,116 @@
             <!-- Results will be populated here -->
         </div>
     </div>
+</div> <!-- End desktop-shell -->
+
+<!-- Mobile Layout -->
+<div class="mobile-shell">
+    <!-- Scrolling Logo Header -->
+    <div class="mobile-logo-header" id="mobileLogoHeader">
+        <div class="mobile-logo-brand">
+            <img src="images/logo.png" alt="Golden Source Technologies" class="mobile-logo-img">
+            <span class="mobile-brand-name">Golden Source Technologies</span>
+        </div>
+    </div>
+
+    <header class="mobile-icon-header">
+        <div class="icon-group">
+            <button class="mobile-icon-btn" id="mobileMenuToggle" aria-label="Open menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+        <div class="icon-group">
+            <button class="mobile-icon-btn" id="mobileSearchToggle" aria-label="Search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+            <a href="/cart" class="mobile-icon-btn" aria-label="Cart">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="badge" id="mobileCartBadge" style="display:none;">0</span>
+            </a>
+        </div>
+    </header>
+    
+    <!-- Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    
+    <!-- Menu Drawer -->
+    <nav class="mobile-menu-drawer" id="mobileMenuDrawer">
+        <div class="mobile-menu-header">
+            <h3>Menu</h3>
+            <button class="mobile-icon-btn" id="mobileMenuClose" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mobile-menu-links">
+            <a href="/">Home</a>
+            <a href="/laptops">Laptops</a>
+            <a href="/phones">Phones</a>
+            <a href="/cameras">Cameras</a>
+            <a href="/audio">Audio &amp; Headphones</a>
+            <a href="/accessories">Accessories</a>
+            <a href="/smart-home">Smart Home</a>
+            <a href="/deals">Deals</a>
+        </div>
+    </nav>
+    
+    <!-- Search Overlay -->
+    <div class="mobile-search-overlay" id="mobileSearchOverlay"></div>
+    
+    <!-- Search Panel -->
+    <div class="mobile-search-panel" id="mobileSearchPanel">
+        <form class="mobile-search-form" id="mobileSearchForm">
+            <input 
+                type="search" 
+                class="mobile-search-input" 
+                id="mobileSearchInput"
+                placeholder="Search products..."
+                autocomplete="off"
+            >
+            <button type="button" class="mobile-icon-btn" id="mobileSearchClose" aria-label="Close search">
+                <i class="fas fa-times"></i>
+            </button>
+        </form>
+    </div>
+
+    <main class="mobile-category">
+        <section class="category-hero">
+            <p class="eyebrow">Search results</p>
+            <h1 id="mobileSearchTitle">Find what you need</h1>
+            <p class="hero-copy" id="mobileSearchSubtitle">
+                Search for products, brands, or categories.
+            </p>
+        </section>
+
+        <section class="mobile-products">
+            <div class="card-grid" id="mobileSearchResults" data-products-container>
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Searching...</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mobile-footer">
+        <div class="footer-brand">
+            <img src="images/logo.png" alt="Golden Source logo">
+            <p>Your trusted partner for cameras, computers, and smart living essentials.</p>
+        </div>
+        <div class="footer-links">
+            <h4>Shop</h4>
+            <a href="/laptops">Laptops</a>
+            <a href="/phones">Phones</a>
+            <a href="/cameras">Cameras</a>
+            <a href="/deals">Deals</a>
+        </div>
+        <div class="footer-links">
+            <h4>Support</h4>
+            <a href="mailto:support@goldensource.com">support@goldensource.com</a>
+            <a href="tel:+254724369971">+254 724 369 971</a>
+            <span>Nairobi, Kenya</span>
+        </div>
+    </footer>
+</div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -564,6 +696,7 @@
         window.viewProduct = viewProduct;
         window.searchFor = searchFor;
     </script>
+    <script src="js/mobile-home.js"></script>
 </body>
 </html>
 

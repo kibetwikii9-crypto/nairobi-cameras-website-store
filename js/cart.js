@@ -64,11 +64,19 @@ class CartManager {
     loadCart() {
         try {
             const savedCart = localStorage.getItem('goldenSourceCart');
+            console.log('🛒 Loading cart from localStorage. Raw data:', savedCart);
             if (savedCart) {
                 const parsed = JSON.parse(savedCart);
-                console.log('🛒 Cart loaded:', parsed);
-                return parsed;
+                console.log('🛒 Cart loaded successfully:', parsed);
+                console.log('🛒 Cart items count:', parsed.length);
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                } else {
+                    console.warn('⚠️ Cart data is not an array, returning empty array');
+                    return [];
+                }
             }
+            console.log('🛒 No cart data in localStorage, returning empty array');
             return [];
         } catch (error) {
             console.error('🛒 Error loading cart:', error);
@@ -168,66 +176,246 @@ class CartManager {
 
     // Update cart display
     updateCartDisplay() {
-        const cartItems = document.getElementById('cartItems');
-        const emptyCart = document.getElementById('emptyCart');
-        const productAmount = document.getElementById('productAmount');
-        const deliveryFee = document.getElementById('deliveryFee');
-        const taxAmount = document.getElementById('taxAmount');
-        const totalAmount = document.getElementById('totalAmount');
-        const checkoutBtn = document.getElementById('checkoutBtn');
+        console.log('🛒 updateCartDisplay called');
+        console.log('🛒 Cart data:', this.cart);
+        console.log('🛒 Cart length:', this.cart.length);
+        
+        // Check if we're on mobile viewport (max-width: 991px)
+        const isMobileView = window.innerWidth <= 991;
+        console.log('🛒 Is mobile view:', isMobileView, 'Window width:', window.innerWidth);
+        
+        // Prioritize mobile elements on mobile viewport, desktop on desktop
+        let cartItems, emptyCart;
+        if (isMobileView) {
+            // On mobile, prioritize mobile elements
+            cartItems = document.getElementById('cartItemsMobile');
+            emptyCart = document.getElementById('emptyCartMobile');
+            console.log('🛒 Mobile view: Looking for mobile elements first');
+            console.log('🛒 Found cartItemsMobile:', !!cartItems);
+            // If mobile element not found, fallback to desktop (shouldn't happen)
+            if (!cartItems) {
+                console.warn('⚠️ cartItemsMobile not found, falling back to cartItems');
+                cartItems = document.getElementById('cartItems');
+            }
+            if (!emptyCart) {
+                emptyCart = document.getElementById('emptyCart');
+            }
+        } else {
+            // On desktop, prioritize desktop elements
+            cartItems = document.getElementById('cartItems');
+            emptyCart = document.getElementById('emptyCart');
+            console.log('🛒 Desktop view: Looking for desktop elements first');
+            console.log('🛒 Found cartItems:', !!cartItems);
+            // If desktop element not found, fallback to mobile (shouldn't happen)
+            if (!cartItems) {
+                console.warn('⚠️ cartItems not found, falling back to cartItemsMobile');
+                cartItems = document.getElementById('cartItemsMobile');
+            }
+            if (!emptyCart) {
+                emptyCart = document.getElementById('emptyCartMobile');
+            }
+        }
+        const productAmount = document.getElementById('productAmount') || document.getElementById('productAmountMobile');
+        const deliveryFee = document.getElementById('deliveryFee') || document.getElementById('deliveryFeeMobile');
+        const taxAmount = document.getElementById('taxAmount') || document.getElementById('taxAmountMobile');
+        const totalAmount = document.getElementById('totalAmount') || document.getElementById('totalAmountMobile');
+        const checkoutBtn = document.getElementById('checkoutBtn') || document.getElementById('checkoutBtnMobile');
         const freeDeliveryMessage = document.getElementById('freeDeliveryMessage');
         const freeDeliveryPercent = document.getElementById('freeDeliveryPercent');
         const freeDeliveryProgress = document.getElementById('freeDeliveryProgress');
         const deliveryEta = document.getElementById('deliveryEta');
         const pickupMessage = document.getElementById('pickupMessage');
 
+        console.log('🛒 cartItems element:', cartItems);
+        console.log('🛒 emptyCart element:', emptyCart);
+
         if (!cartItems) {
+            console.warn('⚠️ Cart items container not found! Looking for cartItems or cartItemsMobile');
             this.updateCartBadge();
             return;
         }
 
         if (this.cart.length === 0) {
-            if (cartItems) cartItems.innerHTML = '';
-            if (emptyCart) emptyCart.style.display = 'block';
+            console.log('🛒 Cart is empty, showing empty state');
+            if (cartItems) {
+                cartItems.innerHTML = '';
+                console.log('🛒 Cleared cartItems innerHTML');
+            }
+            if (emptyCart) {
+                emptyCart.style.display = 'block';
+                console.log('🛒 Showing empty cart message');
+            }
             if (checkoutBtn) {
                 checkoutBtn.disabled = true;
-                checkoutBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Cart is Empty';
+                const isMobile = checkoutBtn.id === 'checkoutBtnMobile';
+                checkoutBtn.innerHTML = isMobile 
+                    ? '<i class="fas fa-lock"></i>Cart is Empty'
+                    : '<i class="fas fa-lock me-2"></i>Cart is Empty';
+            }
+            // Hide summary wrapper when cart is empty
+            const cartSummary = document.getElementById('mobileCartSummary');
+            const cartSummaryWrapper = document.querySelector('.mobile-cart-summary-wrapper');
+            if (cartSummary) {
+                cartSummary.style.display = 'none';
+            }
+            if (cartSummaryWrapper) {
+                cartSummaryWrapper.style.display = 'none';
             }
             return;
         }
 
         if (emptyCart) emptyCart.style.display = 'none';
+        
+        // Show summary wrapper when cart has items
+        const cartSummary = document.getElementById('mobileCartSummary');
+        const cartSummaryWrapper = document.querySelector('.mobile-cart-summary-wrapper');
+        if (cartSummary) {
+            cartSummary.style.display = 'flex';
+        }
+        if (cartSummaryWrapper) {
+            cartSummaryWrapper.style.display = 'flex';
+        }
         if (checkoutBtn) {
             checkoutBtn.disabled = false;
-            checkoutBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Proceed to Checkout';
+            const isMobile = checkoutBtn.id === 'checkoutBtnMobile';
+            checkoutBtn.innerHTML = isMobile 
+                ? '<i class="fas fa-lock"></i>Proceed to Checkout'
+                : '<i class="fas fa-credit-card me-2"></i>Proceed to Checkout';
         }
 
-        // Render cart items with enhanced design
-        cartItems.innerHTML = this.cart.map(item => `
-            <div class="cart-item-enhanced" data-product-id="${item.id}">
-                <div class="item-image-enhanced">
-                    <img src="${item.image}" alt="${item.name}" 
-                         onerror="this.onerror=null;this.src='images/placeholder.jpg';">
-                </div>
-                <div class="item-info-enhanced">
-                    <h6 class="item-name-enhanced">${item.name}</h6>
-                    <div class="item-price-enhanced">KSh ${item.price.toLocaleString()}</div>
-                </div>
-                <div class="quantity-enhanced">
-                    <button class="qty-btn-enhanced" onclick="cartManager.updateQuantity('${item.id}', ${item.quantity - 1})">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <span class="qty-value-enhanced">${item.quantity}</span>
-                    <button class="qty-btn-enhanced" onclick="cartManager.updateQuantity('${item.id}', ${item.quantity + 1})">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-                <div class="item-total-enhanced">KSh ${(item.price * item.quantity).toLocaleString()}</div>
-                <button class="remove-btn-enhanced" onclick="cartManager.removeFromCart('${item.id}')" title="Remove Item">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `).join('');
+        // Render cart items with enhanced design - optimized for mobile
+        // Determine if mobile based on the actual element ID found
+        const isMobile = cartItems && cartItems.id === 'cartItemsMobile';
+        console.log('🛒 Rendering cart items. isMobile:', isMobile, 'cartItems.id:', cartItems ? cartItems.id : 'null', 'isMobileView:', isMobileView, 'Items count:', this.cart.length);
+        
+        if (!cartItems) {
+            console.error('❌ cartItems element not found!');
+            return;
+        }
+        
+        const cartItemsHTML = this.cart.map((item, index) => {
+            console.log(`🛒 Rendering item ${index + 1}:`, item);
+            if (isMobile) {
+                // Mobile-optimized layout
+                return `
+                    <div class="cart-item-enhanced" data-product-id="${item.id}">
+                        <div class="item-image-enhanced">
+                            <img src="${item.image}" alt="${item.name}" 
+                                 onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        </div>
+                        <div class="item-info-enhanced">
+                            <h6 class="item-name-enhanced">${item.name}</h6>
+                            <div class="item-price-row">
+                                <span class="item-price-enhanced">KSh ${item.price.toLocaleString()}</span>
+                                <span class="item-total-enhanced">KSh ${(item.price * item.quantity).toLocaleString()}</span>
+                            </div>
+                            <div class="item-actions-row">
+                                <div class="quantity-enhanced">
+                                    <button class="qty-btn-enhanced" onclick="cartManager.updateQuantity('${item.id}', ${item.quantity - 1})">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <span class="qty-value-enhanced">${item.quantity}</span>
+                                    <button class="qty-btn-enhanced" onclick="cartManager.updateQuantity('${item.id}', ${item.quantity + 1})">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <button class="remove-btn-enhanced" onclick="cartManager.removeFromCart('${item.id}')" title="Remove Item">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Desktop layout (original)
+                return `
+                    <div class="cart-item-enhanced" data-product-id="${item.id}">
+                        <div class="item-image-enhanced">
+                            <img src="${item.image}" alt="${item.name}" 
+                                 onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        </div>
+                        <div class="item-info-enhanced">
+                            <h6 class="item-name-enhanced">${item.name}</h6>
+                            <div class="item-price-enhanced">KSh ${item.price.toLocaleString()}</div>
+                        </div>
+                        <div class="quantity-enhanced">
+                            <button class="qty-btn-enhanced" onclick="cartManager.updateQuantity('${item.id}', ${item.quantity - 1})">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="qty-value-enhanced">${item.quantity}</span>
+                            <button class="qty-btn-enhanced" onclick="cartManager.updateQuantity('${item.id}', ${item.quantity + 1})">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div class="item-total-enhanced">KSh ${(item.price * item.quantity).toLocaleString()}</div>
+                        <button class="remove-btn-enhanced" onclick="cartManager.removeFromCart('${item.id}')" title="Remove Item">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            }
+        }).join('');
+        
+        console.log('🛒 Generated HTML length:', cartItemsHTML.length);
+        console.log('🛒 Setting innerHTML to cartItems container');
+        cartItems.innerHTML = cartItemsHTML;
+        
+        // Force visibility and padding via inline styles as fallback
+        if (isMobile) {
+            cartItems.style.paddingLeft = '1rem';
+            cartItems.style.paddingRight = '1rem';
+            cartItems.style.display = 'block';
+            cartItems.style.visibility = 'visible';
+            cartItems.style.opacity = '1';
+            console.log('🛒 Applied inline styles to mobile cart container');
+        }
+        
+        console.log('🛒 Cart items HTML set. Container now has', cartItems.children.length, 'children');
+        
+        // Verify items are visible
+        const firstItem = cartItems.querySelector('.cart-item-enhanced');
+        if (firstItem) {
+            const computed = window.getComputedStyle(firstItem);
+            console.log('🛒 First cart item found:', firstItem);
+            console.log('🛒 First item computed display:', computed.display);
+            console.log('🛒 First item computed visibility:', computed.visibility);
+            console.log('🛒 First item computed opacity:', computed.opacity);
+            console.log('🛒 First item position:', computed.position);
+            console.log('🛒 First item top:', computed.top);
+            console.log('🛒 First item left:', computed.left);
+            console.log('🛒 First item width:', computed.width);
+            console.log('🛒 First item height:', computed.height);
+            console.log('🛒 First item background:', computed.backgroundColor);
+            console.log('🛒 First item z-index:', computed.zIndex);
+            console.log('🛒 First item margin:', computed.margin);
+            console.log('🛒 First item transform:', computed.transform);
+            
+            // Check parent container
+            const parent = firstItem.parentElement;
+            if (parent) {
+                const parentComputed = window.getComputedStyle(parent);
+                console.log('🛒 Parent container:', parent);
+                console.log('🛒 Parent overflow:', parentComputed.overflow);
+                console.log('🛒 Parent overflow-x:', parentComputed.overflowX);
+                console.log('🛒 Parent overflow-y:', parentComputed.overflowY);
+                console.log('🛒 Parent height:', parentComputed.height);
+                console.log('🛒 Parent max-height:', parentComputed.maxHeight);
+            }
+            
+            // Check if item is in viewport
+            const rect = firstItem.getBoundingClientRect();
+            console.log('🛒 First item bounding rect:', {
+                top: rect.top,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height,
+                bottom: rect.bottom,
+                right: rect.right
+            });
+            console.log('🛒 First item is in viewport:', rect.top >= 0 && rect.left >= 0 && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);
+        } else {
+            console.warn('⚠️ No cart items found in container after rendering!');
+        }
 
         // Update totals
         const productValue = this.getCartTotal();
@@ -238,7 +426,14 @@ class CartManager {
         if (productAmount) productAmount.textContent = `KSh ${productValue.toLocaleString()}`;
         if (deliveryFee) deliveryFee.textContent = deliveryCost === 0 ? 'FREE' : `KSh ${deliveryCost.toLocaleString()}`;
         if (taxAmount) taxAmount.textContent = `KSh ${taxValue.toLocaleString()}`;
-        if (totalAmount) totalAmount.innerHTML = `<strong>KSh ${totalValue.toLocaleString()}</strong>`;
+        if (totalAmount) {
+            // Check if it's mobile (has class total-amount) or desktop
+            if (totalAmount.classList && totalAmount.classList.contains('total-amount')) {
+                totalAmount.textContent = `KSh ${totalValue.toLocaleString()}`;
+            } else {
+                totalAmount.innerHTML = `<strong>KSh ${totalValue.toLocaleString()}</strong>`;
+            }
+        }
 
         const milestone = 50000;
         const progress = Math.min(productValue / milestone, 1);
@@ -805,6 +1000,8 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🛒 Cart system initialized');
     if (window.cartManager) {
         window.cartManager.updateCartBadge();
+        // Also update cart display if on cart page
+        window.cartManager.updateCartDisplay();
     }
 });
 

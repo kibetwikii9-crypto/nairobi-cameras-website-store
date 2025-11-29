@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 const { upload, buildImageResponse } = require('./services/fileStorage');
 const fs = require('fs');
 const { syncDatabase, User, Product, Order } = require('./config/database');
@@ -94,6 +95,19 @@ if (process.env.NODE_ENV === 'production') {
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+
+// PERFORMANCE: Enable compression for all responses (gzip)
+app.use(compression({
+  filter: (req, res) => {
+    // Compress all responses except if explicitly disabled
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  level: 6, // Compression level (1-9, 6 is good balance)
+  threshold: 1024 // Only compress responses larger than 1KB
+}));
 
 // Use the unified image service
 // Security middleware
@@ -298,8 +312,15 @@ app.get('/api/products', async (req, res) => {
         
         const { page = 1, limit = 12, category, search, minPrice, maxPrice } = req.query;
         
+        console.log('🔍 Products API - Query params:', { page, limit, category, search, minPrice, maxPrice });
+        
         const where = { isActive: true };
-        if (category) where.category = category;
+        if (category) {
+            where.category = category;
+            console.log('✅ Category filter applied:', category);
+        } else {
+            console.log('⚠️ No category filter - returning all active products');
+        }
         if (search) {
             where.name = { [require('sequelize').Op.like]: `%${search}%` };
         }
@@ -426,15 +447,74 @@ app.get('/api/search', async (req, res) => {
 // Create product (Admin only)
 app.post('/api/products', async (req, res) => {
     try {
+        console.log('📦 Creating new product...');
+        console.log('📦 Product data:', JSON.stringify(req.body, null, 2));
+        
+        // Validate required fields
+        if (!req.body.name || !req.body.category || !req.body.price) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Missing required fields: name, category, and price are required' 
+            });
+        }
+        
+        // Ensure category is lowercase and valid
+        const validCategories = ['laptops', 'phones', 'cameras', 'audio', 'accessories', 'smart-home'];
+        const category = req.body.category.toLowerCase().trim();
+        if (!validCategories.includes(category)) {
+            return res.status(400).json({ 
+                success: false,
+                message: `Invalid category. Must be one of: ${validCategories.join(', ')}` 
+            });
+        }
+        req.body.category = category;
+        
+        // Ensure isActive is set (default to true)
+        if (req.body.isActive === undefined) {
+            req.body.isActive = true;
+        }
+        
+        // Ensure at least one image
+        if (!req.body.images || !Array.isArray(req.body.images) || req.body.images.length === 0) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'At least one image is required' 
+            });
+        }
+        
+        // Set first image as primary
+        if (req.body.images && req.body.images.length > 0) {
+            req.body.images[0].isPrimary = true;
+        }
+        
         const product = await Product.create(req.body);
+        
+        // Immediately backup after creating product
+        try {
+            await backupData(Product, User, Order);
+            console.log('✅ Backup created after product creation');
+        } catch (backupError) {
+            console.error('⚠️ Backup failed after product creation:', backupError);
+            // Don't fail the request if backup fails
+        }
+        
+        console.log(`✅ Product created successfully with ID: ${product.id}`);
+        console.log(`📦 Total products in database: ${await Product.count()}`);
+        
         res.status(201).json({
             success: true,
             message: 'Product created successfully',
             data: { product }
         });
     } catch (error) {
-        console.error('Create product error:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('❌ Create product error:', error);
+        console.error('❌ Error details:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error',
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        });
     }
 });
 
@@ -678,9 +758,11 @@ app.use('/images/uploads', express.static(path.join(__dirname, '../images/upload
         } else if (filePath.endsWith('.webp')) {
             res.setHeader('Content-Type', 'image/webp');
         }
-        // Cache images for 1 year
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-    }
+        // PERFORMANCE: Cache images for 1 year with ETag
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        res.setHeader('ETag', `"${filePath}-${fs.statSync(filePath).mtime.getTime()}"`);
+    },
+    maxAge: 31536000 // 1 year in milliseconds
 }));
 
 // Serve static images from root images directory
@@ -695,8 +777,13 @@ app.use('/images', express.static(path.join(__dirname, '../images'), {
         } else if (filePath.endsWith('.svg')) {
             res.setHeader('Content-Type', 'image/svg+xml');
         }
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-    }
+        // PERFORMANCE: Cache images for 1 year with ETag
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        if (fs.existsSync(filePath)) {
+            res.setHeader('ETag', `"${filePath}-${fs.statSync(filePath).mtime.getTime()}"`);
+        }
+    },
+    maxAge: 31536000 // 1 year in milliseconds
 }));
 
 // Serve static files (CSS, JS) from root directory

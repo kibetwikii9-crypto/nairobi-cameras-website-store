@@ -14,174 +14,51 @@ async function testAPIConnection() {
     }
 }
 
-function normalizeProductImages(product) {
-    if (!product) return product;
-    
-    if (!product.images) {
-        product.images = [];
-        return product;
-    }
-    
-    if (typeof product.images === 'string') {
-        try {
-            const parsed = JSON.parse(product.images);
-            product.images = Array.isArray(parsed) ? parsed : [];
-        } catch (error) {
-            console.warn('⚠️ Could not parse product images string for', product.name, error);
-            product.images = [];
-        }
-    } else if (!Array.isArray(product.images)) {
-        product.images = [];
-    }
-    
-    return product;
-}
-
-// Shared slot helpers for rendering content in multiple layouts
-function getSlotContainers(slotName) {
-    if (!slotName) return [];
-    const containers = Array.from(document.querySelectorAll(`[data-slot=\"${slotName}\"]`));
-    const elementById = document.getElementById(slotName);
-    if (elementById && !containers.includes(elementById)) {
-        containers.push(elementById);
-    }
-    return containers;
-}
-
-function setSlotMessage(slotName, html) {
-    const containers = getSlotContainers(slotName);
-    if (!containers.length) return;
-    containers.forEach(container => {
-        container.innerHTML = html;
-    });
-}
-
-function renderSlot(slotName, products) {
-    const containers = getSlotContainers(slotName);
-    if (!containers.length) {
+// Render helper for home sections
+function renderInto(containerId, products) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!products || products.length === 0) {
+        container.innerHTML = '<div style="padding:16px;color:#666;">No products found.</div>';
         return;
     }
-
-    if (!Array.isArray(products) || products.length === 0) {
-        containers.forEach(container => {
-            container.innerHTML = '<div style="padding:16px;color:#666;">No products found.</div>';
-        });
-        return;
-    }
-
-    const markup = products.map(buildProductCardMarkup).join('');
-    containers.forEach(container => {
-        container.innerHTML = markup;
-    });
-}
-
-function buildProductCardMarkup(product) {
-    const safeProduct = normalizeProductImages({ ...product });
-    const pid = safeProduct._id || safeProduct.id;
-
-    if (!pid) {
-        console.warn('⚠️ Product missing ID:', safeProduct.name);
-        return '';
-    }
-
-    const price = Number(safeProduct.price) || 0;
-    const originalPrice = Number(safeProduct.originalPrice) || 0;
-    const discountPercent = originalPrice > price
-        ? Math.round(((originalPrice - price) / originalPrice) * 100)
-        : 0;
-
-    const discountBadge = discountPercent > 0
-        ? `<span class="discount-badge">-${discountPercent}%</span>`
-        : '';
-
-    const originalPriceHtml = originalPrice > price
-        ? `<span class="original-price">KSh ${originalPrice.toLocaleString()}</span>`
-        : '';
-
-    let imageUrl = '/images/default.jpg';
-    if (Array.isArray(safeProduct.images) && safeProduct.images.length > 0) {
-        const primaryImage = safeProduct.images.find(img => img && img.isPrimary) || safeProduct.images[0];
-        if (primaryImage && primaryImage.url) {
-            imageUrl = primaryImage.url.startsWith('http')
-                ? primaryImage.url
-                : primaryImage.url.startsWith('/')
-                    ? primaryImage.url
-                    : `/${primaryImage.url}`;
+    container.innerHTML = products.map(function(p){
+        const img = (p.images && p.images[0] && p.images[0].url) ? p.images[0].url : '/images/default.jpg';
+        const original = p.originalPrice ? '<span class="original-price">KSh ' + Number(p.originalPrice).toLocaleString() + '</span>' : '';
+        const pid = p._id || p.id;
+        // Wishlist functionality removed
+        
+        // Ensure product ID is valid
+        if (!pid) {
+            console.warn('⚠️ Product missing ID:', p.name);
+            return ''; // Skip products without IDs
         }
-    }
-
-    const rawName = safeProduct.name || 'Untitled Product';
-    const rawDescription = safeProduct.description || '';
-    const safeName = escapeHtmlSafe(rawName);
-    const safeDescription = escapeHtmlSafe(rawDescription);
-    const safeBrand = escapeHtmlSafe(safeProduct.brand || '');
-    const safePidAttr = escapeHtmlSafe(String(pid));
-    const wishlistManager = window.wishlistManager;
-    const isWishlisted = wishlistManager ? wishlistManager.isInWishlist(pid) : false;
-    const wishlistIcon = isWishlisted ? 'fas fa-heart' : 'far fa-heart';
-    const wishlistTitle = isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist';
-    const pidLiteral = encodeForInlineScript(pid);
-    const nameLiteral = encodeForInlineScript(rawName);
-    const imageLiteral = encodeForInlineScript(imageUrl);
-    const descriptionLiteral = encodeForInlineScript(rawDescription);
-    const stock = Number(safeProduct.stock ?? safeProduct.quantity ?? 0);
-    const stockMarkup = stock <= 0
-        ? '<span class="out-of-stock">Out of Stock</span>'
-        : (stock < 5 ? `<span class="stock-warning">Only ${stock} left!</span>` : '');
-    const addToCartDisabled = stock <= 0 ? 'disabled' : '';
-    const addToCartLabel = stock <= 0 ? 'Out of Stock' : 'Add to Cart';
-    const addToCartHandler = `event.stopPropagation(); addToCart && addToCart(decodeURIComponent("${pidLiteral}"), decodeURIComponent("${nameLiteral}"), ${price}, decodeURIComponent("${imageLiteral}"))`;
-
-    return `
-        <div class="product-card clickable-card" data-product-id="${safePidAttr}"
-            onclick='viewProduct(decodeURIComponent("${pidLiteral}"))'>
-            <div class="product-image">
-                <img src="${imageUrl}" alt="${safeName}" class="product-img loading" loading="lazy"
-                    onload="this.classList.remove('loading')"
-                    onerror="this.onerror=null;this.src='/images/default.jpg';this.classList.remove('loading');">
-                ${discountBadge}
-                <button class="floating-wishlist ${isWishlisted ? 'active' : ''}" title="${wishlistTitle}"
-                    onclick='event.stopPropagation(); window.toggleWishlist && window.toggleWishlist(
-                        decodeURIComponent("${pidLiteral}"),
-                        decodeURIComponent("${nameLiteral}"),
-                        ${price},
-                        decodeURIComponent("${imageLiteral}"),
-                        decodeURIComponent("${descriptionLiteral}")
-                    )'>
-                    <i class="${wishlistIcon}"></i>
-                </button>
-            </div>
-            <div class="product-info">
-                <h3 class="product-name">${safeName}</h3>
-                ${safeBrand ? `<p class="product-brand">${safeBrand}</p>` : ''}
-                <div class="product-price">
-                    <span class="current-price">KSh ${price.toLocaleString()}</span>
-                    ${originalPriceHtml}
-                </div>
-                ${stockMarkup}
-                <div class="product-actions">
-                    <button class="btn btn-primary add-to-cart" ${addToCartDisabled}
-                        onclick='${addToCartHandler}'>
-                        <i class="fas fa-shopping-cart"></i> ${addToCartLabel}
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function escapeHtmlSafe(value) {
-    const div = document.createElement('div');
-    div.textContent = value;
-    return div.innerHTML;
-}
-
-function encodeForInlineScript(value) {
-    return encodeURIComponent(value == null ? '' : String(value));
-}
-
-function renderInto(slotName, products) {
-    renderSlot(slotName, products);
+        // Calculate discount percentage
+        let discountBadge = '';
+        if (p.originalPrice && p.originalPrice > p.price) {
+            const discount = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+            discountBadge = '<div class="discount-badge">-' + discount + '%</div>';
+        }
+        
+        return (
+            '<div class="product-item clickable-card" data-product-id="'+pid+'" onclick="console.log(\'Card clicked, product ID:\', \''+pid+'\'); viewProduct(\''+pid+'\');">'
+            +  '<div class="product-image">'
+            +    '<img src="'+img+'" alt="'+p.name+'" class="product-img" onerror="window.imageHandler.handleImageError(this)">'
+            +    discountBadge
+            +  '</div>'
+            +  '<div class="product-info">'
+            +    '<h3>'+p.name+'</h3>'
+            +    '<div class="product-price">'
+            +      '<span class="current-price">KSh ' + Number(p.price).toLocaleString() + '</span>'
+            +      original
+            +    '</div>'
+            +    '<div class="product-actions">'
+            +      '<button class="btn btn-primary home-add-cart-btn" onclick="event.stopPropagation(); event.preventDefault(); addToCart(\''+pid+'\', \''+p.name.replace(/'/g, '\\\'').replace(/"/g, '\\"')+'\', '+p.price+', \''+img.replace(/'/g, '\\\'').replace(/"/g, '\\"')+'\')">Add to Cart</button>'
+            +    '</div>'
+            +  '</div>'
+            +'</div>'
+        );
+    }).join('');
 }
 
 // Load products for home sections (only once)
@@ -205,7 +82,7 @@ let homeProductsLoaded = false;
         console.log('📊 API Response:', data);
         
         if (data.success && data.data.products && data.data.products.length > 0) {
-            const allProducts = data.data.products.map(normalizeProductImages);
+            const allProducts = data.data.products;
             console.log('✅ Found', allProducts.length, 'products in database');
             
             // Split products into sections
@@ -272,8 +149,8 @@ function viewProduct(productId) {
     }
     
     try {
-        // Navigate to product detail page (clean URL without .html)
-        const productUrl = `/product?id=${encodeURIComponent(cleanProductId)}`;
+        // Navigate to product detail page
+        const productUrl = `product.html?id=${encodeURIComponent(cleanProductId)}`;
         console.log('🔗 Navigating to:', productUrl);
         window.location.href = productUrl;
     } catch (error) {
@@ -290,29 +167,15 @@ console.log('🔧 viewProduct function available:', typeof window.viewProduct);
 console.log('🔧 viewProduct function:', window.viewProduct);
 
 // Global search functionality
-function performGlobalSearch(inputId = 'globalSearch') {
-    const candidateIds = [inputId, 'globalSearch', 'globalSearchMobile'];
-    let searchInput = null;
-
-    for (const id of candidateIds) {
-        if (!id) continue;
-        const element = document.getElementById(id);
-        if (element) {
-            searchInput = element;
-            break;
-        }
-    }
-
-    const searchTerm = searchInput ? searchInput.value.trim() : '';
-
-    if (searchInput && searchTerm) {
+function performGlobalSearch() {
+    const searchInput = document.getElementById('globalSearch');
+    const searchTerm = searchInput.value.trim();
+    
+    if (searchTerm) {
         console.log('🔍 Performing global search for:', searchTerm);
-        if (window.searchEnhancements && typeof window.searchEnhancements.recordSearchTerm === 'function') {
-            window.searchEnhancements.recordSearchTerm(searchTerm);
-        }
-        window.location.href = `/search?q=${encodeURIComponent(searchTerm)}`;
+        window.location.href = `search.html?q=${encodeURIComponent(searchTerm)}`;
     } else {
-        console.log('⚠️ No search term provided or search input not found');
+        console.log('⚠️ No search term provided');
         alert('Please enter a search term');
     }
 }
@@ -320,18 +183,16 @@ function performGlobalSearch(inputId = 'globalSearch') {
 // Make search function globally accessible
 window.performGlobalSearch = performGlobalSearch;
 
-// Add Enter key support for search (desktop + mobile)
+// Add Enter key support for search
 document.addEventListener('DOMContentLoaded', function() {
-    ['globalSearch', 'globalSearchMobile'].forEach((id) => {
-        const input = document.getElementById(id);
-        if (input) {
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    performGlobalSearch(id);
-                }
-            });
-        }
-    });
+    const searchInput = document.getElementById('globalSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performGlobalSearch();
+            }
+        });
+    }
 });
 
 // Home page tab functionality
@@ -354,7 +215,7 @@ class HomePageTabs {
             const data = await apiClient.getProducts();
             
             if (data.success && data.data.products) {
-                this.allProducts = data.data.products.map(normalizeProductImages);
+                this.allProducts = data.data.products;
                 console.log(`📦 Loaded ${this.allProducts.length} products for home tabs`);
             } else {
                 console.warn('⚠️ No products loaded for home tabs');
@@ -422,7 +283,7 @@ class HomePageTabs {
                 filteredProducts = this.allProducts.slice(0, 6);
         }
         
-        renderInto('homePopular', filteredProducts);
+        this.renderInto('homePopular', filteredProducts);
     }
 
     handleFeaturedTab(clickedTab) {
@@ -452,7 +313,7 @@ class HomePageTabs {
                 filteredProducts = this.allProducts.slice(0, 6);
         }
         
-        renderInto('homeFeatured', filteredProducts);
+        this.renderInto('homeFeatured', filteredProducts);
     }
 
     handleOffersTab(clickedTab) {
@@ -482,7 +343,7 @@ class HomePageTabs {
                 filteredProducts = this.allProducts.slice(0, 6);
         }
         
-        renderInto('homeOffers', filteredProducts);
+        this.renderInto('homeOffers', filteredProducts);
     }
 
     // Filter methods
@@ -543,6 +404,53 @@ class HomePageTabs {
             .slice(0, 6);
     }
 
+    renderInto(containerId, products) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        if (!products || products.length === 0) {
+            container.innerHTML = '<div style="padding:16px;color:#666;">No products found.</div>';
+            return;
+        }
+        
+        container.innerHTML = products.map(p => {
+            const img = (p.images && p.images[0] && p.images[0].url) ? p.images[0].url : '/images/default.jpg';
+            const original = p.originalPrice ? '<span class="original-price">KSh ' + Number(p.originalPrice).toLocaleString() + '</span>' : '';
+            const pid = p._id || p.id;
+            // Wishlist functionality removed
+            
+            // Ensure product ID is valid
+            if (!pid) {
+                console.warn('⚠️ Product missing ID:', p.name);
+                return ''; // Skip products without IDs
+            }
+            // Calculate discount percentage
+            let discountBadge = '';
+            if (p.originalPrice && p.originalPrice > p.price) {
+                const discount = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+                discountBadge = '<div class="discount-badge">-' + discount + '%</div>';
+            }
+            
+            return (
+                '<div class="product-item clickable-card" data-product-id="'+pid+'" onclick="console.log(\'HomePageTabs card clicked, product ID:\', \''+pid+'\'); viewProduct(\''+pid+'\');">'
+                +  '<div class="product-image">'
+                +    '<img src="'+img+'" alt="'+p.name+'" class="product-img" onerror="window.imageHandler.handleImageError(this)">'
+                +    discountBadge
+                +  '</div>'
+                +  '<div class="product-info">'
+                +    '<h3>'+p.name+'</h3>'
+                +    '<div class="product-price">'
+                +      '<span class="current-price">KSh ' + Number(p.price).toLocaleString() + '</span>'
+                +      original
+                +    '</div>'
+                +    '<div class="product-actions">'
+                +      '<button class="btn btn-primary home-add-cart-btn" onclick="event.stopPropagation(); addToCart(\''+pid+'\', \''+p.name.replace(/'/g, '\\\'').replace(/"/g, '\\"')+'\', '+p.price+', \''+img.replace(/'/g, '\\\'').replace(/"/g, '\\"')+'\')">Add to Cart</button>'
+                +    '</div>'
+                +  '</div>'
+                +'</div>'
+            );
+        }).join('');
+    }
 }
 
 // Initialize home page tabs when DOM is loaded
@@ -550,4 +458,3 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🏠 Initializing home page tabs');
     window.homePageTabs = new HomePageTabs();
 });
-

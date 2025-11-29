@@ -1,217 +1,89 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https: http: blob:; font-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src 'self' https: http:; object-src 'none'; base-uri 'self';">
-    <title>Golden Source Technologies - Electronics Store</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>Golden Source Technologies - Premium Electronics Store in Nairobi, Kenya</title>
+    <meta name="description" content="Shop the latest laptops, smartphones, cameras, audio equipment, and smart home devices at Golden Source Technologies. Best prices, genuine products, fast delivery in Nairobi, Kenya.">
+    <meta name="keywords" content="electronics store, laptops, smartphones, cameras, audio equipment, smart home, Nairobi, Kenya, electronics shop, computer store">
+    <meta name="author" content="Golden Source Technologies">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://goldensourcetech.co.ke/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://goldensourcetech.co.ke/">
+    <meta property="og:title" content="Golden Source Technologies - Premium Electronics Store">
+    <meta property="og:description" content="Shop the latest laptops, smartphones, cameras, audio equipment, and smart home devices. Best prices, genuine products, fast delivery in Nairobi, Kenya.">
+    <meta property="og:image" content="https://goldensourcetech.co.ke/images/logo.png">
+    <meta property="og:site_name" content="Golden Source Technologies">
+    <meta property="og:locale" content="en_KE">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://goldensourcetech.co.ke/">
+    <meta name="twitter:title" content="Golden Source Technologies - Premium Electronics Store">
+    <meta name="twitter:description" content="Shop the latest laptops, smartphones, cameras, audio equipment, and smart home devices. Best prices, genuine products, fast delivery in Nairobi, Kenya.">
+    <meta name="twitter:image" content="https://goldensourcetech.co.ke/images/logo.png">
+    
+    <!-- Structured Data (Schema.org) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Store",
+        "name": "Golden Source Technologies",
+        "description": "Premium electronics store in Nairobi, Kenya offering laptops, smartphones, cameras, audio equipment, and smart home devices",
+        "url": "https://goldensourcetech.co.ke",
+        "logo": "https://goldensourcetech.co.ke/images/logo.png",
+        "image": "https://goldensourcetech.co.ke/images/logo.png",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Nairobi",
+            "addressCountry": "KE"
+        },
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+254-724-369-971",
+            "contactType": "Customer Service"
+        },
+        "sameAs": [
+            "https://www.facebook.com/goldensourcetech",
+            "https://www.instagram.com/goldensourcetech",
+            "https://twitter.com/goldensourcetech"
+        ],
+        "priceRange": "$$",
+        "currenciesAccepted": "KES"
+    }
+    </script>
     <link rel="icon" type="image/png" href="/images/favicon.png">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/mobile-home.css" media="(max-width: 991px)">
+    <link rel="stylesheet" href="css/style.css?v=5">
+    <link rel="stylesheet" href="css/mobile-home.css?v=1" media="(max-width: 991px)">
+    <style>
+        /* Desktop visible by default */
+        .desktop-shell {
+            display: block;
+        }
+        .mobile-shell {
+            display: none;
+        }
+        @media (max-width: 991px) {
+            .desktop-shell {
+                display: none !important;
+            }
+            .mobile-shell {
+                display: block !important;
+            }
+        }
+    </style>
 </head>
-<body><div class="mobile-shell">
-    <div class="menu-overlay" id="menuOverlay" aria-hidden="true"></div>
-
-    <header class="mobile-header top-header">
-        <button class="icon-btn menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileMenu">
-            <span class="sr-only">Open navigation</span>
-            <i class="fas fa-bars"></i>
-        </button>
-
-        <a href="/" class="brand">
-            <img src="images/logo.png" alt="Golden Source Technologies" class="brand-logo">
-            <span>Golden Source</span>
-        </a>
-
-        <div class="header-icons">
-            <button class="icon-btn" aria-label="Search products" onclick="performGlobalSearch('globalSearchMobile')">
-                <i class="fas fa-search"></i>
-            </button>
-            <a href="/wishlist" class="icon-btn" aria-label="View wishlist">
-                <i class="fas fa-heart"></i>
-                <span class="badge wishlist-badge" style="display:none;">0</span>
-            </a>
-            <a href="/cart" class="icon-btn" aria-label="View cart">
-                <i class="fas fa-shopping-cart"></i>
-                <span class="badge cart-badge" style="display:none;">0</span>
-            </a>
-        </div>
-    </header>
-
-    <nav class="mobile-menu" id="mobileMenu" aria-hidden="true">
-        <div class="menu-header">
-            <p>Browse categories</p>
-            <button class="icon-btn close-menu" id="closeMenu" aria-label="Close navigation">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="menu-links">
-            <a href="/">Home</a>
-            <a href="/laptops">Laptops</a>
-            <a href="/phones">Phones</a>
-            <a href="/cameras">Cameras</a>
-            <a href="/audio">Audio & Headphones</a>
-            <a href="/accessories">Accessories</a>
-            <a href="/smart-home">Smart Home</a>
-            <a href="/deals">Deals & Promotions</a>
-        </div>
-        <div class="menu-contact">
-            <p class="menu-label">Need help?</p>
-            <a href="tel:+254724369971" id="contactPhoneMobile"><i class="fas fa-phone"></i> +254 724 369 971</a>
-            <a href="mailto:info@goldensource.com" id="contactEmailMobile"><i class="fas fa-envelope"></i> info@goldensource.com</a>
-        </div>
-    </nav>
-
-    <main>
-        <section class="hero">
-            <div class="hero-content">
-                <p class="eyebrow">Premium electronics & smart solutions</p>
-                <h1>Tech that fits your life.</h1>
-                <p class="hero-copy">
-                    Shop laptops, phones, cameras, audio gear, and smart-home devices curated for creators and businesses across Kenya.
-                </p>
-
-                <div class="hero-search">
-                    <label for="globalSearchMobile" class="sr-only">Search products</label>
-                    <input type="search" id="globalSearchMobile" placeholder="Search products, brands, or categories">
-                    <button type="button" class="icon-btn" onclick="performGlobalSearch('globalSearchMobile')" aria-label="Search">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-
-                <div class="hero-actions">
-                    <a href="/deals" class="btn primary">See hot deals</a>
-                    <a href="/laptops" class="btn ghost">Browse laptops</a>
-                </div>
-
-                <div class="hero-stats">
-                    <article>
-                        <p class="stat">10K+</p>
-                        <p class="label">Happy customers</p>
-                    </article>
-                    <article>
-                        <p class="stat">500+</p>
-                        <p class="label">Products in stock</p>
-                    </article>
-                    <article>
-                        <p class="stat">5?</p>
-                        <p class="label">Customer rating</p>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section class="section featured-products">
-            <div class="section-header">
-                <div>
-                    <p class="eyebrow">Today?s spotlight</p>
-                    <h2>Fantastic Deals</h2>
-                </div>
-                <div class="section-tabs">
-                    <button class="tab-btn active">Under KSh 30,000</button>
-                    <button class="tab-btn">Under KSh 75,000</button>
-                    <button class="tab-btn">Shop All</button>
-                </div>
-            </div>
-            <div class="card-grid" id="homeFeaturedMobile" data-slot="homeFeatured">
-                <div class="loading-state">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <span>Loading products...</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="section popular-products">
-            <div class="section-header">
-                <div>
-                    <p class="eyebrow">Trending now</p>
-                    <h2>Popular Picks</h2>
-                </div>
-                <div class="section-tabs">
-                    <button class="tab-btn active">Best Sellers</button>
-                    <button class="tab-btn">Top Rated</button>
-                    <button class="tab-btn">New Arrivals</button>
-                </div>
-            </div>
-            <div class="card-grid" id="homePopularMobile" data-slot="homePopular">
-                <div class="loading-state">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <span>Loading products...</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="section hot-offers">
-            <div class="section-header">
-                <div>
-                    <p class="eyebrow">Limited-time</p>
-                    <h2>Hot Offers</h2>
-                </div>
-                <div class="section-tabs">
-                    <button class="tab-btn active">Flash Deals</button>
-                    <button class="tab-btn">Limited Time</button>
-                    <button class="tab-btn">Clearance</button>
-                </div>
-            </div>
-            <div class="card-grid" id="homeOffersMobile" data-slot="homeOffers">
-                <div class="loading-state">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <span>Loading products...</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="section guarantees">
-            <div class="section-header">
-                <div>
-                    <p class="eyebrow">Why shop with us?</p>
-                    <h2>Peace-of-mind perks</h2>
-                </div>
-            </div>
-            <div class="guarantee-grid">
-                <article>
-                    <i class="fas fa-truck"></i>
-                    <h3>Fast, free delivery</h3>
-                    <p>Same-day dispatch in Nairobi and next-day shipping nationwide.</p>
-                </article>
-                <article>
-                    <i class="fas fa-shield-alt"></i>
-                    <h3>Extended warranty</h3>
-                    <p>Every purchase comes with verified warranties and support.</p>
-                </article>
-                <article>
-                    <i class="fas fa-headset"></i>
-                    <h3>24/7 experts</h3>
-                    <p>Talk to real technicians via chat, phone, or WhatsApp anytime.</p>
-                </article>
-            </div>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <div class="footer-brand">
-            <img src="images/logo.png" alt="Golden Source logo">
-            <p>Your trusted electronics partner for cameras, computers, and smart living essentials.</p>
-        </div>
-        <div class="footer-links">
-            <h4>Shop</h4>
-            <a href="/laptops">Laptops</a>
-            <a href="/phones">Phones</a>
-            <a href="/cameras">Cameras</a>
-            <a href="/deals">Deals</a>
-        </div>
-        <div class="footer-links">
-            <h4>Support</h4>
-            <a href="mailto:support@goldensource.com">support@goldensource.com</a>
-            <a href="tel:+254724369971">+254 724 369 971</a>
-            <span>Nairobi, Kenya</span>
-        </div>
-    </footer>
-</div>
-<div class='desktop-shell'>
-<!-- Top Header Bar -->
+<body>
+<!-- Desktop Layout -->
+<div class="desktop-shell">
     <div class="top-header">
         <div class="container-fluid">
             <div class="row align-items-center">
@@ -224,15 +96,15 @@
                 <div class="col-md-6">
                     <div class="search-bar">
                         <div class="search-container">
-                            <select class="search-category" onchange="window.location.href=this.value">
+                            <select class="search-category" onchange="if(this.value) window.location.href=this.value">
                                 <option value="">All Categories</option>
                                 <option value="/laptops">Laptops</option>
                                 <option value="/phones">Phones</option>
                                 <option value="/cameras">Cameras</option>
-                                <option value="/audio">Audio & Headphones</option>
+                                <option value="/audio">Audio &amp; Headphones</option>
                                 <option value="/accessories">Accessories</option>
                                 <option value="/smart-home">Smart Home Devices</option>
-                                <option value="/deals">Deals & Promotions</option>
+                                <option value="/deals">Deals &amp; Promotions</option>
                             </select>
                             <input type="text" id="globalSearch" placeholder="Search for products..." class="search-input">
                             <button class="search-btn" onclick="performGlobalSearch()">
@@ -247,15 +119,10 @@
                             <i class="fas fa-phone"></i>
                             <span id="contactPhone">+254 724 369 971</span>
                         </div>
-                        <a href="/wishlist" class="action-item position-relative">
-                            <i class="fas fa-heart"></i>
-                            <span>Wishlist</span>
-                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" class="badge bg-danger position-absolute top-0 start-100 translate-middle wishlist-badge" style="display: none;">0</span>
-                        </a>
                         <a href="/cart" class="action-item position-relative">
                             <i class="fas fa-shopping-cart"></i>
                             <span>Cart</span>
-                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" class="badge bg-danger position-absolute top-0 start-100 translate-middle cart-badge" style="display: none;">0</span>
+                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartBadge" style="display: none;">0</span>
                         </a>
                     </div>
                 </div>
@@ -263,7 +130,6 @@
         </div>
     </div>
 
-    <!-- Main Navigation -->
     <nav class="main-nav">
         <div class="container-fluid">
             <div class="nav-content">
@@ -271,10 +137,10 @@
                     <a href="/laptops" class="nav-link">Laptops</a>
                     <a href="/phones" class="nav-link">Phones</a>
                     <a href="/cameras" class="nav-link">Cameras</a>
-                    <a href="/audio" class="nav-link">Audio & Headphones</a>
+                    <a href="/audio" class="nav-link">Audio &amp; Headphones</a>
                     <a href="/accessories" class="nav-link">Accessories</a>
                     <a href="/smart-home" class="nav-link">Smart Home Devices</a>
-                    <a href="/deals" class="nav-link">Deals & Promotions</a>
+                    <a href="/deals" class="nav-link">Deals &amp; Promotions</a>
                 </div>
                 <div class="nav-deals">
                     <span class="deal-badge">GOLDEN SOURCE SALE</span>
@@ -283,66 +149,63 @@
         </div>
     </nav>
 
-<!-- Hero Section with Video Background -->
-<section class="hero">
-  <video class="hero-video" autoplay muted loop playsinline>
-    <source src="video/hero-anim.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-  <div class="hero-content">
-    <div class="hero-text">
-      <h1>Welcome to Golden Source Technologies</h1>
-      <h2>Premium Electronics & Smart Solutions</h2>
-      <p>Discover cutting-edge technology with unbeatable prices on laptops, phones, cameras, and smart home devices</p>
-      <div class="hero-features">
-        <div class="feature-item">
-          <i class="fas fa-shipping-fast"></i>
-          <span>Free Delivery</span>
+    <section class="hero">
+        <video class="hero-video" autoplay muted loop playsinline>
+            <source src="video/hero-anim.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Welcome to Golden Source Technologies</h1>
+                <h2>Premium Electronics &amp; Smart Solutions</h2>
+                <p>Discover cutting-edge technology with unbeatable prices on laptops, phones, cameras, and smart home devices.</p>
+                <div class="hero-features">
+                    <div class="feature-item">
+                        <i class="fas fa-shipping-fast"></i>
+                        <span>Free Delivery</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>2-Year Warranty</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-headset"></i>
+                        <span>24/7 Support</span>
+                    </div>
+                </div>
+                <div class="hero-buttons">
+                    <a href="/laptops" class="cta-button primary">Explore Products</a>
+                    <a href="/deals" class="cta-button secondary">View Deals</a>
+                </div>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-number">10K+</div>
+                    <div class="stat-label">Happy Customers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Products</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">5★</div>
+                    <div class="stat-label">Rating</div>
+                </div>
+            </div>
         </div>
-        <div class="feature-item">
-          <i class="fas fa-shield-alt"></i>
-          <span>2-Year Warranty</span>
-        </div>
-        <div class="feature-item">
-          <i class="fas fa-headset"></i>
-          <span>24/7 Support</span>
-        </div>
-      </div>
-      <div class="hero-buttons">
-        <a href="/laptops" class="cta-button primary">Explore Products</a>
-        <a href="/deals" class="cta-button secondary">View Deals</a>
-      </div>
-    </div>
-    <div class="hero-stats">
-      <div class="stat-item">
-        <div class="stat-number">10K+</div>
-        <div class="stat-label">Happy Customers</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">500+</div>
-        <div class="stat-label">Products</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">5G??</div>
-        <div class="stat-label">Rating</div>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-    <!-- Featured Products Section -->
     <section class="featured-products">
         <div class="container-fluid">
             <div class="section-header">
-                <h2>=??? Fantastic Deals</h2>
+                <h2>Fantastic Deals</h2>
                 <div class="section-tabs">
                     <button class="tab-btn active">Under KSh 30,000</button>
                     <button class="tab-btn">Under KSh 75,000</button>
                     <button class="tab-btn">Shop All</button>
                 </div>
             </div>
-            
-            <div class="products-grid" id="homeFeatured" data-slot="homeFeatured">
+            <div class="products-grid" id="homeFeatured">
                 <div style="padding:20px;text-align:center;color:#666;">
                     <i class="fas fa-spinner fa-spin"></i> Loading products...
                 </div>
@@ -350,18 +213,17 @@
         </div>
     </section>
 
-    <!-- Popular Products Section -->
     <section class="popular-products">
         <div class="container-fluid">
             <div class="section-header">
-                <h2>G?? Popular Products</h2>
+                <h2>Popular Products</h2>
                 <div class="section-tabs">
                     <button class="tab-btn active">Best Sellers</button>
                     <button class="tab-btn">Top Rated</button>
                     <button class="tab-btn">New Arrivals</button>
                 </div>
             </div>
-            <div class="products-grid" id="homePopular" data-slot="homePopular">
+            <div class="products-grid" id="homePopular">
                 <div style="padding:20px;text-align:center;color:#666;">
                     <i class="fas fa-spinner fa-spin"></i> Loading products...
                 </div>
@@ -369,18 +231,17 @@
         </div>
     </section>
 
-    <!-- Hot Offers Section -->
     <section class="hot-offers">
         <div class="container-fluid">
             <div class="section-header">
-                <h2>=??? Hot Offers</h2>
+                <h2>Hot Offers</h2>
                 <div class="section-tabs">
                     <button class="tab-btn active">Flash Deals</button>
                     <button class="tab-btn">Limited Time</button>
                     <button class="tab-btn">Clearance</button>
                 </div>
             </div>
-            <div class="offers-grid" id="homeOffers" data-slot="homeOffers">
+            <div class="offers-grid" id="homeOffers">
                 <div style="padding:20px;text-align:center;color:#666;">
                     <i class="fas fa-spinner fa-spin"></i> Loading products...
                 </div>
@@ -388,7 +249,6 @@
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="row">
@@ -415,15 +275,235 @@
         </div>
     </footer>
 </div>
+
+<!-- Mobile Layout -->
+<div class="mobile-shell">
+    <!-- Scrolling Logo Header -->
+    <div class="mobile-logo-header" id="mobileLogoHeader">
+        <div class="mobile-logo-brand">
+            <img src="images/logo.png" alt="Golden Source Technologies" class="mobile-logo-img">
+            <span class="mobile-brand-name">Golden Source Technologies</span>
+        </div>
+    </div>
+    
+    <!-- Fixed Icon Header -->
+    <header class="mobile-icon-header">
+        <div class="icon-group">
+            <button class="mobile-icon-btn" id="mobileMenuToggle" aria-label="Open menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+        <div class="icon-group">
+            <button class="mobile-icon-btn" id="mobileSearchToggle" aria-label="Search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+            <a href="/cart" class="mobile-icon-btn" aria-label="Cart">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="badge" id="mobileCartBadge" style="display:none;">0</span>
+            </a>
+        </div>
+    </header>
+    
+    <!-- Hero Section - 50vh -->
+    <section class="mobile-hero">
+        <video class="mobile-hero-video" autoplay muted loop playsinline>
+            <source src="video/hero-anim.mp4" type="video/mp4">
+        </video>
+        <div class="mobile-hero-content">
+            <h1>Premium Electronics</h1>
+            <p>Discover cutting-edge technology with unbeatable prices</p>
+        </div>
+    </section>
+    
+    <!-- Product Carousel - 4 Cards Visible -->
+    <section class="mobile-carousel-section">
+        <div class="mobile-carousel-header">
+            <h2>Featured Products</h2>
+        </div>
+        <div class="mobile-carousel-wrapper">
+            <div class="mobile-carousel-container">
+                <div class="mobile-carousel-track" id="mobileCarouselTrack">
+                    <div class="mobile-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading products...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Additional Sections -->
+    <section class="mobile-carousel-section">
+        <div class="mobile-carousel-header">
+            <h2>Popular Products</h2>
+        </div>
+        <div class="mobile-carousel-wrapper">
+            <div class="mobile-carousel-container">
+                <div class="mobile-carousel-track" id="mobilePopularTrack">
+                    <div class="mobile-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading products...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="mobile-footer">
+        <div class="footer-container">
+            <!-- Brand Section -->
+            <div class="footer-section footer-brand">
+                <p class="footer-tagline">Your trusted partner for cameras, computers, and smart living essentials.</p>
+                <div class="footer-social">
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Support Links -->
+            <div class="footer-section">
+                <h4 class="footer-heading">Support</h4>
+                <ul class="footer-links">
+                    <li><a href="/contact">Contact Us</a></li>
+                    <li><a href="/shipping">Shipping Info</a></li>
+                    <li><a href="/returns">Returns & Exchanges</a></li>
+                    <li><a href="/faq">FAQ</a></li>
+                    <li><a href="/warranty">Warranty</a></li>
+                    <li><a href="/track-order">Track Order</a></li>
+                </ul>
+            </div>
+
+            <!-- Company Links -->
+            <div class="footer-section">
+                <h4 class="footer-heading">Company</h4>
+                <ul class="footer-links">
+                    <li><a href="/about">About Us</a></li>
+                    <li><a href="/careers">Careers</a></li>
+                    <li><a href="/blog">Blog</a></li>
+                    <li><a href="/press">Press</a></li>
+                    <li><a href="/partners">Partners</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="footer-section footer-contact">
+                <h4 class="footer-heading">Get in Touch</h4>
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <a href="tel:+254724369971">+254 724 369 971</a>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <a href="mailto:support@goldensource.com">support@goldensource.com</a>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Nairobi, Kenya</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Mon - Sat: 9AM - 6PM</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="footer-payments">
+            <p class="payment-label">We Accept</p>
+            <div class="payment-icons">
+                <div class="payment-icon" title="Visa">
+                    <i class="fab fa-cc-visa"></i>
+                </div>
+                <div class="payment-icon" title="Mastercard">
+                    <i class="fab fa-cc-mastercard"></i>
+                </div>
+                <div class="payment-icon" title="M-Pesa">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <div class="payment-icon" title="PayPal">
+                    <i class="fab fa-cc-paypal"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-content">
+                <p class="copyright">&copy; 2024 Golden Source Technologies. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="/privacy">Privacy Policy</a>
+                    <span class="separator">|</span>
+                    <a href="/terms">Terms of Service</a>
+                    <span class="separator">|</span>
+                    <a href="/cookies">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    
+    <!-- Menu Drawer -->
+    <nav class="mobile-menu-drawer" id="mobileMenuDrawer">
+        <div class="mobile-menu-header">
+            <h3>Menu</h3>
+            <button class="mobile-icon-btn" id="mobileMenuClose" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mobile-menu-links">
+            <a href="/">Home</a>
+            <a href="/laptops">Laptops</a>
+            <a href="/phones">Phones</a>
+            <a href="/cameras">Cameras</a>
+            <a href="/audio">Audio &amp; Headphones</a>
+            <a href="/accessories">Accessories</a>
+            <a href="/smart-home">Smart Home</a>
+            <a href="/deals">Deals</a>
+        </div>
+    </nav>
+    
+    <!-- Search Overlay -->
+    <div class="mobile-search-overlay" id="mobileSearchOverlay"></div>
+    
+    <!-- Search Panel -->
+    <div class="mobile-search-panel" id="mobileSearchPanel">
+        <form class="mobile-search-form" id="mobileSearchForm">
+            <input 
+                type="search" 
+                class="mobile-search-input" 
+                id="mobileSearchInput"
+                placeholder="Search products..."
+                autocomplete="off"
+            >
+            <button type="button" class="mobile-icon-btn" id="mobileSearchClose" aria-label="Close search">
+                <i class="fas fa-times"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-<script src="js/mobile-menu.js"></script>
 <script src="js/imageHandler.js"></script>
+<script src="js/script.js"></script>
 <script src="js/api.js"></script>
 <script src="js/cart.js"></script>
-<script src="js/wishlist.js"></script>
 <script src="js/main.js"></script>
+<script src="js/products.js"></script>
+<script src="js/filters.js"></script>
 <script src="js/sticky-nav.js"></script>
+<script src="js/mobile-home.js"></script>
 </body>
 </html>
-
-

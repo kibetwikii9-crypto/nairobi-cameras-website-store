@@ -2,13 +2,49 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https: http: blob:; font-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src 'self' https: http:; object-src 'none'; base-uri 'self';">
-    <title>Product Details - Golden Source Technologies</title>
+    
+    <!-- SEO Meta Tags (dynamically updated by JavaScript) -->
+    <title id="pageTitle">Product Details - Golden Source Technologies</title>
+    <meta name="description" id="pageDescription" content="View product details, specifications, and pricing. Best prices, genuine products, fast delivery in Nairobi, Kenya.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" id="canonicalUrl" href="https://goldensourcetech.co.ke/product">
+    
+    <!-- Open Graph (dynamically updated by JavaScript) -->
+    <meta property="og:type" content="product">
+    <meta property="og:url" id="ogUrl" content="https://goldensourcetech.co.ke/product">
+    <meta property="og:title" id="ogTitle" content="Product - Golden Source Technologies">
+    <meta property="og:description" id="ogDescription" content="View product details, specifications, and pricing.">
+    <meta property="og:image" id="ogImage" content="https://goldensourcetech.co.ke/images/logo.png">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="twitterTitle" content="Product - Golden Source Technologies">
+    <meta name="twitter:description" id="twitterDescription" content="View product details, specifications, and pricing.">
+    <meta name="twitter:image" id="twitterImage" content="https://goldensourcetech.co.ke/images/logo.png">
     <link rel="icon" type="image/png" href="/images/favicon.png">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous">
     <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/mobile-home.css?v=1" media="(max-width: 991px)">
+    <style>
+        /* Desktop visible by default */
+        .desktop-shell {
+            display: block;
+        }
+        .mobile-shell {
+            display: none;
+        }
+        @media (max-width: 991px) {
+            .desktop-shell {
+                display: none !important;
+            }
+            .mobile-shell {
+                display: block !important;
+            }
+        }
+    </style>
     <style>
         body {
             background-color: #f8f9fa;
@@ -71,141 +107,6 @@
         .product-info-section {
             padding: 3rem 2rem;
             background: white;
-        }
-
-        .purchase-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-add-cart {
-            flex: 1;
-            min-width: 200px;
-            background: linear-gradient(135deg, var(--brand-red, #e90100), var(--brand-red-dark, #5a0100));
-            border: none;
-            color: #fff;
-            font-weight: 700;
-            padding: 14px 24px;
-            border-radius: 14px;
-            box-shadow: 0 15px 30px rgba(233, 1, 0, 0.25);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .btn-wishlist {
-            flex: 1;
-            min-width: 180px;
-            border-radius: 14px;
-            border: 2px solid var(--brand-border, #f5cfca);
-            color: var(--brand-red, #e90100);
-            font-weight: 600;
-            background: transparent;
-            padding: 14px 24px;
-        }
-
-        .trust-badges {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .trust-badge {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            border: 1px solid var(--brand-border, #f5cfca);
-            border-radius: 16px;
-            padding: 0.9rem 1rem;
-            background: var(--surface-card, #fffaf8);
-        }
-
-        .trust-badge i {
-            font-size: 1.2rem;
-            color: var(--brand-red, #e90100);
-        }
-
-        .assurance-card {
-            border: 1px solid var(--brand-border, #f5cfca);
-            border-radius: 20px;
-            padding: 1.5rem;
-            background: var(--surface-card, #fffaf8);
-            margin-bottom: 2rem;
-        }
-
-        .assurance-list {
-            display: grid;
-            gap: 0.8rem;
-            margin: 0;
-            padding: 0;
-            list-style: none;
-        }
-
-        .assurance-list li {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #5b4c4c;
-        }
-
-        .assurance-list li i {
-            color: var(--brand-red, #e90100);
-        }
-
-        .faq-section {
-            margin-top: 3rem;
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            border: 1px solid rgba(0,0,0,0.05);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-        }
-
-        .recently-viewed-section {
-            margin-top: 3rem;
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            border: 1px solid rgba(0,0,0,0.05);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-        }
-
-        .recent-card {
-            border: 1px solid var(--brand-border, #f5cfca);
-            border-radius: 16px;
-            overflow: hidden;
-            background: #fff;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .recent-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 30px rgba(233, 1, 0, 0.1);
-        }
-
-        .recent-card img {
-            width: 100%;
-            height: 140px;
-            object-fit: cover;
-        }
-
-        .recent-info {
-            padding: 0.85rem;
-        }
-
-        .recent-info p {
-            margin: 0;
-            font-size: 0.9rem;
-            color: #1f1f1f;
-        }
-
-        .recent-info span {
-            font-weight: 700;
-            color: var(--brand-red, #e90100);
-            font-size: 0.85rem;
         }
 
         .product-title {
@@ -501,6 +402,8 @@
     </style>
 </head>
 <body>
+<!-- Desktop Layout -->
+<div class="desktop-shell">
     <!-- Top Header Bar -->
     <div class="top-header">
         <div class="container-fluid">
@@ -537,11 +440,6 @@
                             <i class="fas fa-phone"></i>
                             <span id="contactPhone">+254 724 369 971</span>
                         </div>
-                        <a href="/wishlist" class="action-item position-relative">
-                            <i class="fas fa-heart"></i>
-                            <span>Wishlist</span>
-                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="wishlistBadge" style="display: none;">0</span>
-                        </a>
                         <a href="/cart" class="action-item position-relative">
                             <i class="fas fa-shopping-cart"></i>
                             <span>Cart</span>
@@ -665,50 +563,6 @@
                                 </button>
                             </div>
 
-                            <div class="purchase-actions">
-                                <button id="addToCartBtn" class="btn btn-add-cart">
-                                    <i class="fas fa-shopping-bag me-2"></i>
-                                    Add to Cart
-                                </button>
-                                <button id="wishlistBtn" class="btn btn-wishlist">
-                                    <i class="fas fa-heart me-2"></i>
-                                    Save to Wishlist
-                                </button>
-                            </div>
-
-                            <div class="trust-badges">
-                                <div class="trust-badge">
-                                    <i class="fas fa-shield-alt"></i>
-                                    <div>
-                                        <small>Warranty</small>
-                                        <div class="fw-bold">12 Months Official</div>
-                                    </div>
-                                </div>
-                                <div class="trust-badge">
-                                    <i class="fas fa-truck"></i>
-                                    <div>
-                                        <small>Same-day dispatch</small>
-                                        <div class="fw-bold">Across Nairobi</div>
-                                    </div>
-                                </div>
-                                <div class="trust-badge">
-                                    <i class="fas fa-headset"></i>
-                                    <div>
-                                        <small>Real people</small>
-                                        <div class="fw-bold">24/7 support</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="assurance-card" id="assuranceCard">
-                                <h5 class="mb-3">Delivery & Payment Confidence</h5>
-                                <ul class="assurance-list" id="assuranceList">
-                                    <li><i class="fas fa-credit-card"></i> Secure card, M-Pesa & bank transfer options</li>
-                                    <li><i class="fas fa-store"></i> Trusted pickup at Nairobi CBD fulfilling centre</li>
-                                    <li><i class="fas fa-sync"></i> 7-day hassle-free returns on unopened units</li>
-                                </ul>
-                            </div>
-
                             <div class="features-grid">
                                 <div class="feature-item">
                                     <i class="fas fa-shipping-fast feature-icon"></i>
@@ -743,25 +597,235 @@
                     <!-- Related products will be populated here -->
                 </div>
             </div>
+        </div>
+    </div>
+</div> <!-- End desktop-shell -->
 
-            <div class="faq-section mt-5">
-                <h3 class="mb-3"><i class="fas fa-question-circle me-2 text-danger"></i>Need more info?</h3>
-                <div class="accordion" id="faqAccordion">
-                    <!-- FAQ items injected via JS -->
+<!-- Mobile Layout -->
+<div class="mobile-shell">
+    <!-- Scrolling Logo Header -->
+    <div class="mobile-logo-header" id="mobileLogoHeader">
+        <div class="mobile-logo-brand">
+            <img src="images/logo.png" alt="Golden Source Technologies" class="mobile-logo-img">
+            <span class="mobile-brand-name">Golden Source Technologies</span>
+        </div>
+    </div>
+
+    <header class="mobile-icon-header">
+        <div class="icon-group">
+            <button class="mobile-icon-btn" id="mobileMenuToggle" aria-label="Open menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+        <div class="icon-group">
+            <button class="mobile-icon-btn" id="mobileSearchToggle" aria-label="Search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+            <a href="/cart" class="mobile-icon-btn" aria-label="Cart">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="badge" id="mobileCartBadge" style="display:none;">0</span>
+            </a>
+        </div>
+    </header>
+    
+    <!-- Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    
+    <!-- Menu Drawer -->
+    <nav class="mobile-menu-drawer" id="mobileMenuDrawer">
+        <div class="mobile-menu-header">
+            <h3>Menu</h3>
+            <button class="mobile-icon-btn" id="mobileMenuClose" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mobile-menu-links">
+            <a href="/">Home</a>
+            <a href="/laptops">Laptops</a>
+            <a href="/phones">Phones</a>
+            <a href="/cameras">Cameras</a>
+            <a href="/audio">Audio &amp; Headphones</a>
+            <a href="/accessories">Accessories</a>
+            <a href="/smart-home">Smart Home</a>
+            <a href="/deals">Deals</a>
+        </div>
+    </nav>
+    
+    <!-- Search Overlay -->
+    <div class="mobile-search-overlay" id="mobileSearchOverlay"></div>
+    
+    <!-- Search Panel -->
+    <div class="mobile-search-panel" id="mobileSearchPanel">
+        <form class="mobile-search-form" id="mobileSearchForm">
+            <input 
+                type="search" 
+                class="mobile-search-input" 
+                id="mobileSearchInput"
+                placeholder="Search products..."
+                autocomplete="off"
+            >
+            <button type="button" class="mobile-icon-btn" id="mobileSearchClose" aria-label="Close search">
+                <i class="fas fa-times"></i>
+            </button>
+        </form>
+    </div>
+
+    <main class="mobile-category">
+        <div id="mobileProductContent" style="display: none;">
+            <!-- Product Hero Section -->
+            <section class="category-hero">
+                <h1 id="mobileProductTitle">Product Name</h1>
+                <p class="hero-copy" id="mobileProductDescription">Product description</p>
+            </section>
+
+            <!-- Product Image Section -->
+            <section class="mobile-products">
+                <div class="card-grid" id="mobileProductImage">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading product...</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Product Details Section -->
+            <section class="mobile-product-details">
+                <div class="mobile-product-price-section">
+                    <div class="mobile-price-container">
+                        <span id="mobileProductPrice" class="mobile-product-price-main">KSh 0</span>
+                        <span id="mobileOriginalPrice" class="mobile-product-price-original" style="display: none;">KSh 0</span>
+                    </div>
+                    <div id="mobileAvailabilityBadge" class="mobile-availability-badge">
+                        <i class="fas fa-check-circle"></i>
+                        <span>In Stock</span>
+                    </div>
+                </div>
+
+                <div class="mobile-product-actions">
+                    <button id="mobileBuyNowBtn" class="mobile-buy-now-btn">
+                        <i class="fas fa-bolt"></i>
+                        Buy Now
+                    </button>
+                    <button id="mobileAddToCartBtn" class="mobile-add-to-cart-btn">
+                        <i class="fas fa-cart-plus"></i>
+                        Add to Cart
+                    </button>
+                </div>
+
+                <!-- Product Specifications -->
+                <div class="mobile-product-specs" id="mobileProductSpecs" style="display: none;">
+                    <h3 class="mobile-specs-title">
+                        <i class="fas fa-cogs"></i>
+                        Specifications
+                    </h3>
+                    <div class="mobile-specs-content" id="mobileSpecsContent">
+                        <!-- Specifications will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Product Description -->
+                <div class="mobile-product-description-full">
+                    <h3 class="mobile-description-title">
+                        <i class="fas fa-info-circle"></i>
+                        Description
+                    </h3>
+                    <div class="mobile-description-content" id="mobileProductDescriptionFull">
+                        <!-- Full description will be populated here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Related Products Carousel (Mobile) -->
+            <section class="mobile-carousel-section" id="mobileRelatedProductsSection" style="display: none;">
+                <div class="mobile-carousel-header">
+                    <h2>Related Products</h2>
+                </div>
+                <div class="mobile-carousel-wrapper">
+                    <div class="mobile-carousel-container">
+                        <div class="mobile-carousel-track" id="mobileRelatedProductsTrack">
+                            <div class="mobile-loading">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading products...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="mobile-footer">
+        <div class="footer-container">
+            <!-- Brand Section -->
+            <div class="footer-section footer-brand">
+                <p class="footer-tagline">Your trusted partner for cameras, computers, and smart living essentials.</p>
+                <div class="footer-social">
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
                 </div>
             </div>
 
-            <div class="recently-viewed-section mt-4" id="recentlyViewedSection">
-                <h3 class="mb-3">
-                    <i class="fas fa-history me-2 text-danger"></i>
-                    Recently viewed
-                </h3>
-                <div class="row" id="recentlyViewedProducts">
-                    <!-- Recently viewed products -->
+            <!-- Support Links -->
+            <div class="footer-section">
+                <h4 class="footer-heading">Support</h4>
+                <ul class="footer-links">
+                    <li><a href="/contact">Contact Us</a></li>
+                    <li><a href="/shipping">Shipping Info</a></li>
+                    <li><a href="/returns">Returns & Exchanges</a></li>
+                    <li><a href="/faq">FAQ</a></li>
+                    <li><a href="/warranty">Warranty</a></li>
+                    <li><a href="/track-order">Track Order</a></li>
+                </ul>
+            </div>
+
+            <!-- Company Links -->
+            <div class="footer-section">
+                <h4 class="footer-heading">Company</h4>
+                <ul class="footer-links">
+                    <li><a href="/about">About Us</a></li>
+                    <li><a href="/careers">Careers</a></li>
+                    <li><a href="/blog">Blog</a></li>
+                    <li><a href="/press">Press</a></li>
+                    <li><a href="/partners">Partners</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="footer-section footer-contact">
+                <h4 class="footer-heading">Get in Touch</h4>
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <a href="tel:+254724369971">+254 724 369 971</a>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <a href="mailto:support@goldensource.com">support@goldensource.com</a>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Nairobi, Kenya</span>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-content">
+                <p class="copyright">&copy; 2024 Golden Source Technologies. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -769,13 +833,11 @@
     <script src="js/script.js"></script>
     <script src="js/api.js"></script>
     <script src="js/cart.js"></script>
-    <script src="js/wishlist.js"></script>
     <script src="js/main.js"></script>
     <script src="js/sticky-nav.js"></script>
     <script>
         // Global variables
         let currentProduct = null;
-        const RECENTLY_VIEWED_KEY = 'gst-recently-viewed';
 
         // Get product ID from URL
         function getProductId() {
@@ -819,6 +881,104 @@
             }
         }
 
+        // Update SEO meta tags for product page
+        function updateSEOMetaTags(product) {
+            const baseUrl = 'https://goldensourcetech.co.ke';
+            const productUrl = `${baseUrl}/product?id=${product.id}`;
+            const productImage = product.images && product.images.length > 0 
+                ? (product.images[0].url || product.images[0])
+                : `${baseUrl}/images/logo.png`;
+            const productDescription = product.description 
+                ? product.description.substring(0, 160)
+                : `Buy ${product.name} at Golden Source Technologies. Best price: KSh ${product.price.toLocaleString()}. Fast delivery in Nairobi, Kenya.`;
+            
+            // Update meta description
+            const metaDescription = document.getElementById('pageDescription');
+            if (metaDescription) {
+                metaDescription.setAttribute('content', productDescription);
+            }
+            
+            // Update canonical URL
+            const canonicalUrl = document.getElementById('canonicalUrl');
+            if (canonicalUrl) {
+                canonicalUrl.setAttribute('href', productUrl);
+            }
+            
+            // Update Open Graph tags
+            const ogUrl = document.getElementById('ogUrl');
+            const ogTitle = document.getElementById('ogTitle');
+            const ogDescription = document.getElementById('ogDescription');
+            const ogImage = document.getElementById('ogImage');
+            
+            if (ogUrl) ogUrl.setAttribute('content', productUrl);
+            if (ogTitle) ogTitle.setAttribute('content', `${product.name} - Golden Source Technologies`);
+            if (ogDescription) ogDescription.setAttribute('content', productDescription);
+            if (ogImage) ogImage.setAttribute('content', productImage);
+            
+            // Update Twitter Card tags
+            const twitterTitle = document.getElementById('twitterTitle');
+            const twitterDescription = document.getElementById('twitterDescription');
+            const twitterImage = document.getElementById('twitterImage');
+            
+            if (twitterTitle) twitterTitle.setAttribute('content', `${product.name} - Golden Source Technologies`);
+            if (twitterDescription) twitterDescription.setAttribute('content', productDescription);
+            if (twitterImage) twitterImage.setAttribute('content', productImage);
+            
+            // Add structured data for product
+            addProductStructuredData(product, productImage);
+        }
+        
+        // Add structured data (Schema.org) for product
+        function addProductStructuredData(product, productImage) {
+            // Remove existing product structured data if any
+            const existingScript = document.getElementById('productStructuredData');
+            if (existingScript) {
+                existingScript.remove();
+            }
+            
+            const structuredData = {
+                "@context": "https://schema.org",
+                "@type": "Product",
+                "name": product.name,
+                "description": product.description || '',
+                "image": productImage,
+                "brand": {
+                    "@type": "Brand",
+                    "name": product.brand || "Golden Source Technologies"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "url": `https://goldensourcetech.co.ke/product?id=${product.id}`,
+                    "priceCurrency": "KES",
+                    "price": product.price,
+                    "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                    "seller": {
+                        "@type": "Organization",
+                        "name": "Golden Source Technologies"
+                    }
+                },
+                "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": "4.5",
+                    "reviewCount": "10"
+                }
+            };
+            
+            if (product.specifications) {
+                structuredData.additionalProperty = Object.entries(product.specifications).map(([key, value]) => ({
+                    "@type": "PropertyValue",
+                    "name": key,
+                    "value": value
+                }));
+            }
+            
+            const script = document.createElement('script');
+            script.id = 'productStructuredData';
+            script.type = 'application/ld+json';
+            script.textContent = JSON.stringify(structuredData);
+            document.head.appendChild(script);
+        }
+
         // Display product information
         function displayProduct(product) {
             console.log('Full product data received:', product);
@@ -827,50 +987,94 @@
             // Update page title
             document.title = `${product.name} - Golden Source Technologies`;
             
-            // Update breadcrumb
-            document.getElementById('categoryBreadcrumb').textContent = product.category.charAt(0).toUpperCase() + product.category.slice(1);
-            document.getElementById('productBreadcrumb').textContent = product.name;
-
-            // Display basic info
-            document.getElementById('productTitle').textContent = product.name;
-            document.getElementById('productDescription').textContent = product.description;
+            // Update SEO meta tags dynamically
+            updateSEOMetaTags(product);
             
-            // Display price
+            // Update breadcrumb (Desktop)
+            const categoryBreadcrumb = document.getElementById('categoryBreadcrumb');
+            const productBreadcrumb = document.getElementById('productBreadcrumb');
+            if (categoryBreadcrumb) categoryBreadcrumb.textContent = product.category.charAt(0).toUpperCase() + product.category.slice(1);
+            if (productBreadcrumb) productBreadcrumb.textContent = product.name;
+
+            // Display basic info (Desktop)
+            const productTitle = document.getElementById('productTitle');
+            const productDescription = document.getElementById('productDescription');
+            if (productTitle) productTitle.textContent = product.name;
+            if (productDescription) productDescription.textContent = product.description;
+            
+            // Display price (Desktop)
             const priceElement = document.getElementById('productPrice');
-            priceElement.textContent = `KSh ${product.price.toLocaleString()}`;
+            if (priceElement) {
+                priceElement.textContent = `KSh ${product.price.toLocaleString()}`;
+            }
             
             if (product.originalPrice && product.originalPrice > product.price) {
                 const originalPriceElement = document.getElementById('originalPrice');
-                originalPriceElement.textContent = `KSh ${product.originalPrice.toLocaleString()}`;
-                originalPriceElement.style.display = 'inline';
+                if (originalPriceElement) {
+                    originalPriceElement.textContent = `KSh ${product.originalPrice.toLocaleString()}`;
+                    originalPriceElement.style.display = 'inline';
+                }
             }
 
-            // Display availability
+            // Display availability (Desktop)
             updateAvailabilityStatus(product.stock);
 
-            // Display images
+            // Display images (Desktop)
             displayProductImages(product.images || []);
 
-            // Display full description in the main product box
+            // Display full description in the main product box (Desktop)
             const descriptionElement = document.getElementById('productFullDescription');
             if (descriptionElement) {
                 descriptionElement.innerHTML = product.description || 'No detailed description available.';
             }
 
-            // Display specifications in the main product box
+            // Display specifications in the main product box (Desktop)
             displaySpecifications(product.specifications || {});
 
-            // Confidence sections
-            renderAssuranceDetails(product);
-            renderFAQ(product);
+            // ===== MOBILE DISPLAY =====
+            // Update mobile title and description
+            const mobileTitle = document.getElementById('mobileProductTitle');
+            const mobileDescription = document.getElementById('mobileProductDescription');
+            if (mobileTitle) mobileTitle.textContent = product.name;
+            if (mobileDescription) mobileDescription.textContent = product.description || 'No description available.';
 
-            // Track & render recently viewed
-            trackRecentlyViewed(product);
-            renderRecentlyViewed();
+            // Display mobile product image
+            displayMobileProductImage(product.images || []);
 
-            // Setup action buttons + wishlist state
+            // Display mobile price
+            const mobilePrice = document.getElementById('mobileProductPrice');
+            const mobileOriginalPrice = document.getElementById('mobileOriginalPrice');
+            if (mobilePrice) {
+                mobilePrice.textContent = `KSh ${product.price.toLocaleString()}`;
+            }
+            if (mobileOriginalPrice && product.originalPrice && product.originalPrice > product.price) {
+                mobileOriginalPrice.textContent = `KSh ${product.originalPrice.toLocaleString()}`;
+                mobileOriginalPrice.style.display = 'inline';
+            } else if (mobileOriginalPrice) {
+                mobileOriginalPrice.style.display = 'none';
+            }
+
+            // Display mobile availability
+            updateMobileAvailabilityStatus(product.stock);
+
+            // Display mobile specifications
+            displayMobileSpecifications(product.specifications || {});
+
+            // Display mobile full description
+            const mobileDescriptionFull = document.getElementById('mobileProductDescriptionFull');
+            if (mobileDescriptionFull) {
+                mobileDescriptionFull.innerHTML = product.description || 'No detailed description available.';
+            }
+
+            // Setup action buttons (Desktop and Mobile)
             setupActionButtons(product);
-            checkWishlistStatus();
+            setupMobileActionButtons(product);
+
+            // Show mobile content
+            const mobileContent = document.getElementById('mobileProductContent');
+            if (mobileContent) {
+                mobileContent.style.display = 'block';
+            }
 
             hideLoading();
             showContent();
@@ -897,7 +1101,7 @@
             }
         }
 
-        // Display product images
+        // Display product images (Desktop)
         function displayProductImages(images) {
             console.log('Displaying product images:', images);
             
@@ -905,40 +1109,188 @@
                 console.log('No images found, using placeholder');
                 // Use default image
                 const mainImg = document.getElementById('mainProductImage');
-                mainImg.src = 'images/placeholder.jpg';
-                mainImg.alt = 'Product Image';
+                if (mainImg) {
+                    mainImg.src = 'images/placeholder.jpg';
+                    mainImg.alt = 'Product Image';
+                }
                 return;
             }
 
             console.log(`Found ${images.length} images`);
 
-            // Display main image
+            // Display main image (Desktop)
             const mainImg = document.getElementById('mainProductImage');
-            const firstImageUrl = images[0].url || images[0];
-            console.log('Setting main image to:', firstImageUrl);
-            mainImg.src = firstImageUrl;
-            mainImg.alt = currentProduct.name;
+            if (mainImg) {
+                const firstImageUrl = images[0].url || images[0];
+                console.log('Setting main image to:', firstImageUrl);
+                mainImg.src = firstImageUrl;
+                mainImg.alt = currentProduct.name;
+            }
 
-            // Display thumbnails
+            // Display thumbnails (Desktop)
             const thumbnailContainer = document.getElementById('thumbnailContainer');
-            thumbnailContainer.innerHTML = '';
+            if (thumbnailContainer) {
+                thumbnailContainer.innerHTML = '';
 
-            images.forEach((image, index) => {
-                const imageUrl = image.url || image;
-                console.log(`Creating thumbnail ${index + 1}:`, imageUrl);
-                
-                const thumbnail = document.createElement('img');
-                thumbnail.src = imageUrl;
-                thumbnail.alt = currentProduct.name;
-                thumbnail.className = 'thumbnail';
-                if (index === 0) thumbnail.classList.add('active');
+                images.forEach((image, index) => {
+                    const imageUrl = image.url || image;
+                    console.log(`Creating thumbnail ${index + 1}:`, imageUrl);
+                    
+                    const thumbnail = document.createElement('img');
+                    thumbnail.src = imageUrl;
+                    thumbnail.alt = currentProduct.name;
+                    thumbnail.className = 'thumbnail';
+                    if (index === 0) thumbnail.classList.add('active');
 
-                thumbnail.addEventListener('click', () => {
-                    changeMainImage(imageUrl, index);
+                    thumbnail.addEventListener('click', () => {
+                        changeMainImage(imageUrl, index);
+                    });
+
+                    thumbnailContainer.appendChild(thumbnail);
+                });
+            }
+        }
+
+        // Display mobile product image
+        function displayMobileProductImage(images) {
+            const mobileImageContainer = document.getElementById('mobileProductImage');
+            if (!mobileImageContainer) return;
+
+            if (!images || images.length === 0) {
+                mobileImageContainer.innerHTML = `
+                    <div class="mobile-product-image-wrapper">
+                        <img src="images/placeholder.jpg" alt="Product Image" class="mobile-product-main-image">
+                    </div>
+                `;
+                return;
+            }
+
+            const firstImageUrl = images[0].url || images[0];
+            mobileImageContainer.innerHTML = `
+                <div class="mobile-product-image-wrapper">
+                    <img src="${firstImageUrl}" alt="${currentProduct.name}" class="mobile-product-main-image" 
+                         onerror="this.src='images/placeholder.jpg'">
+                    ${images.length > 1 ? `
+                        <div class="mobile-product-thumbnails">
+                            ${images.slice(0, 4).map((img, idx) => {
+                                const imgUrl = img.url || img;
+                                return `<img src="${imgUrl}" alt="Thumbnail ${idx + 1}" 
+                                            class="mobile-product-thumbnail ${idx === 0 ? 'active' : ''}"
+                                            onclick="changeMobileMainImage('${imgUrl}', ${idx})">`;
+                            }).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Change mobile main image
+        function changeMobileMainImage(imageUrl, index) {
+            const mainImg = document.querySelector('.mobile-product-main-image');
+            if (mainImg) {
+                mainImg.src = imageUrl;
+            }
+            // Update active thumbnail
+            document.querySelectorAll('.mobile-product-thumbnail').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === index);
+            });
+        }
+
+        // Update mobile availability status
+        function updateMobileAvailabilityStatus(stock) {
+            const badge = document.getElementById('mobileAvailabilityBadge');
+            if (!badge) return;
+
+            const icon = badge.querySelector('i');
+            const text = badge.querySelector('span');
+
+            if (stock > 10) {
+                badge.className = 'mobile-availability-badge in-stock';
+                if (icon) icon.className = 'fas fa-check-circle';
+                if (text) text.textContent = 'In Stock';
+            } else if (stock > 0) {
+                badge.className = 'mobile-availability-badge low-stock';
+                if (icon) icon.className = 'fas fa-exclamation-triangle';
+                if (text) text.textContent = `Only ${stock} left`;
+            } else {
+                badge.className = 'mobile-availability-badge out-of-stock';
+                if (icon) icon.className = 'fas fa-times-circle';
+                if (text) text.textContent = 'Out of Stock';
+            }
+        }
+
+        // Display mobile specifications
+        function displayMobileSpecifications(specs) {
+            const specsSection = document.getElementById('mobileProductSpecs');
+            const specsContent = document.getElementById('mobileSpecsContent');
+            
+            if (!specsSection || !specsContent) return;
+
+            if (!specs || Object.keys(specs).length === 0) {
+                specsSection.style.display = 'none';
+                return;
+            }
+
+            specsSection.style.display = 'block';
+            specsContent.innerHTML = Object.entries(specs).map(([key, value]) => `
+                <div class="mobile-spec-row">
+                    <span class="mobile-spec-label">${key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                    <span class="mobile-spec-value">${value}</span>
+                </div>
+            `).join('');
+        }
+
+        // Setup mobile action buttons
+        function setupMobileActionButtons(product) {
+            const buyNowBtn = document.getElementById('mobileBuyNowBtn');
+            const addToCartBtn = document.getElementById('mobileAddToCartBtn');
+
+            if (buyNowBtn) {
+                buyNowBtn.addEventListener('click', () => {
+                    if (product.stock <= 0) {
+                        alert('This product is out of stock');
+                        return;
+                    }
+                    alert('Buy Now functionality coming soon!');
                 });
 
-                thumbnailContainer.appendChild(thumbnail);
-            });
+                if (product.stock <= 0) {
+                    buyNowBtn.disabled = true;
+                    buyNowBtn.innerHTML = '<i class="fas fa-times"></i> Out of Stock';
+                }
+            }
+
+            if (addToCartBtn) {
+                addToCartBtn.addEventListener('click', () => {
+                    if (product.stock <= 0) {
+                        alert('This product is out of stock');
+                        return;
+                    }
+                    if (window.cartManager) {
+                        window.cartManager.addToCart(
+                            product._id || product.id,
+                            product.name,
+                            product.price,
+                            product.images?.[0]?.url || product.images?.[0] || 'images/placeholder.jpg'
+                        );
+                        // Show success feedback
+                        const originalText = addToCartBtn.innerHTML;
+                        addToCartBtn.innerHTML = '<i class="fas fa-check"></i> Added!';
+                        addToCartBtn.style.background = '#10b981';
+                        setTimeout(() => {
+                            addToCartBtn.innerHTML = originalText;
+                            addToCartBtn.style.background = '';
+                        }, 2000);
+                    } else {
+                        alert('Cart functionality not available');
+                    }
+                });
+
+                if (product.stock <= 0) {
+                    addToCartBtn.disabled = true;
+                    addToCartBtn.innerHTML = '<i class="fas fa-times"></i> Out of Stock';
+                }
+            }
         }
 
         // Change main image
@@ -976,54 +1328,19 @@
         // Setup action buttons
         function setupActionButtons(product) {
             const buyNowBtn = document.getElementById('buyNowBtn');
-            const addToCartBtn = document.getElementById('addToCartBtn');
-            const wishlistBtn = document.getElementById('wishlistBtn');
 
-            if (buyNowBtn) {
-                buyNowBtn.addEventListener('click', () => {
-                    if (product.stock <= 0) {
-                        alert('This product is out of stock');
-                        return;
-                    }
-                    alert('Buy Now functionality coming soon!');
-                });
-
+            buyNowBtn.addEventListener('click', () => {
                 if (product.stock <= 0) {
-                    buyNowBtn.disabled = true;
-                    buyNowBtn.innerHTML = '<i class="fas fa-times me-2"></i> Out of Stock';
+                    alert('This product is out of stock');
+                    return;
                 }
-            }
+                alert('Buy Now functionality coming soon!');
+            });
 
-            if (addToCartBtn) {
-                addToCartBtn.addEventListener('click', () => {
-                    if (product.stock <= 0) {
-                        alert('This product is currently unavailable');
-                        return;
-                    }
-
-                    const pid = product._id || product.id;
-                    const price = Number(product.price || 0);
-                    const image = getPrimaryImage(product);
-
-                    if (typeof addToCart === 'function') {
-                        addToCart(pid, product.name, price, image);
-                        alert('Added to cart!');
-                    } else {
-                        alert('Cart functionality is temporarily unavailable.');
-                    }
-                });
-
-                if (product.stock <= 0) {
-                    addToCartBtn.disabled = true;
-                    addToCartBtn.innerHTML = '<i class="fas fa-box-open me-2"></i> Unavailable';
-                }
-            }
-
-            if (wishlistBtn) {
-                wishlistBtn.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    toggleWishlist();
-                });
+            // Disable button if out of stock
+            if (product.stock <= 0) {
+                buyNowBtn.disabled = true;
+                buyNowBtn.innerHTML = '<i class="fas fa-times me-2"></i> Out of Stock';
             }
         }
 
@@ -1031,16 +1348,17 @@
         // Load related products
         async function loadRelatedProducts(category) {
             try {
-                const response = await api.getProducts(category, 4);
+                const response = await api.getProducts(category, 12);
                 if (response.success && response.data && response.data.products) {
                     displayRelatedProducts(response.data.products);
+                    displayMobileRelatedProducts(response.data.products);
                 }
             } catch (error) {
                 console.error('Error loading related products:', error);
             }
         }
 
-        // Display related products
+        // Display related products (Desktop)
         function displayRelatedProducts(products) {
             const container = document.getElementById('relatedProductsContainer');
             container.innerHTML = '';
@@ -1054,9 +1372,6 @@
                     <div class="related-product-card" onclick="window.location.href='/product?id=${product._id || product.id}'">
                         <img src="${product.images?.[0]?.url || product.images?.[0] || 'images/placeholder.jpg'}" 
                              alt="${product.name}" class="related-product-image">
-                        <button class="floating-wishlist" onclick="event.stopPropagation(); event.preventDefault(); toggleWishlist('${product._id || product.id}', '${product.name.replace(/'/g, '\\\'').replace(/"/g, '\\"')}', ${product.price}, '${(product.images?.[0]?.url || product.images?.[0] || 'images/placeholder.jpg').replace(/'/g, '\\\'').replace(/"/g, '\\"')}', '${product.description.replace(/'/g, '\\\'').replace(/"/g, '\\"')}')" title="Add to Wishlist">
-                            <i class="fas fa-heart-o"></i>
-                        </button>
                         <div class="related-product-info">
                             <h6 class="related-product-title">${product.name}</h6>
                             <div class="related-product-price">KSh ${product.price.toLocaleString()}</div>
@@ -1065,6 +1380,51 @@
                 `;
                 container.appendChild(productCard);
             });
+        }
+
+        // Display related products (Mobile - Carousel format)
+        function displayMobileRelatedProducts(products) {
+            const container = document.getElementById('mobileRelatedProductsTrack');
+            const section = document.getElementById('mobileRelatedProductsSection');
+            
+            if (!container || !section) return;
+
+            // Filter out current product
+            const filteredProducts = products.filter(product => 
+                (product._id !== currentProduct._id && product.id !== currentProduct.id)
+            );
+
+            if (filteredProducts.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            container.innerHTML = filteredProducts.map(product => {
+                const imageUrl = product.images?.[0]?.url || product.images?.[0] || '/images/default.jpg';
+                const price = Number(product.price) || 0;
+                const originalPrice = Number(product.originalPrice) || 0;
+                const safeName = (product.name || 'Product').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                const productId = product._id || product.id;
+                const discount = originalPrice > price 
+                    ? `<span class="mobile-product-badge">-${Math.round(((originalPrice - price) / originalPrice) * 100)}%</span>`
+                    : '';
+                const originalPriceHtml = originalPrice > price 
+                    ? `<span class="original">KSh ${originalPrice.toLocaleString()}</span>`
+                    : '';
+                
+                return `
+                    <div class="mobile-product-card" onclick="window.location.href='/product?id=${productId}'">
+                        ${discount}
+                        <img src="${imageUrl}" alt="${safeName}" class="mobile-product-image" 
+                             onerror="this.src='/images/default.jpg'">
+                        <div class="mobile-product-info">
+                            <h3 class="mobile-product-name">${safeName}</h3>
+                            <div class="mobile-product-price">KSh ${price.toLocaleString()}${originalPriceHtml}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // Show/hide states
@@ -1092,207 +1452,6 @@
         }
 
 
-        // Wishlist functionality
-        function toggleWishlist() {
-            if (!currentProduct) {
-                console.error('No current product to add to wishlist');
-                return;
-            }
-
-            const wishlistBtn = document.getElementById('wishlistBtn');
-            const productId = currentProduct._id || currentProduct.id;
-            const productName = currentProduct.name;
-            const productPrice = currentProduct.price;
-            const productImage = currentProduct.images?.[0]?.url || currentProduct.images?.[0] || 'images/placeholder.jpg';
-            const productDescription = currentProduct.description || '';
-
-            // Get existing wishlist from localStorage
-            let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-            
-            // Check if product is already in wishlist
-            const existingIndex = wishlist.findIndex(item => item.id === productId);
-            
-            if (existingIndex > -1) {
-                // Remove from wishlist
-                wishlist.splice(existingIndex, 1);
-                wishlistBtn.innerHTML = '<i class="fas fa-heart me-2"></i>Add to Wishlist';
-                wishlistBtn.classList.remove('wishlisted');
-                console.log('✅ Product removed from wishlist');
-            } else {
-                // Add to wishlist
-                wishlist.push({
-                    id: productId,
-                    name: productName,
-                    price: productPrice,
-                    image: productImage,
-                    description: productDescription
-                });
-                wishlistBtn.innerHTML = '<i class="fas fa-heart me-2"></i>Added to Wishlist';
-                wishlistBtn.classList.add('wishlisted');
-                console.log('✅ Product added to wishlist');
-            }
-            
-            // Save to localStorage
-            localStorage.setItem('wishlist', JSON.stringify(wishlist));
-        }
-
-        function getPrimaryImage(product) {
-            if (product.images && product.images.length > 0) {
-                const first = product.images[0].url || product.images[0];
-                return first || 'images/placeholder.jpg';
-            }
-            return 'images/placeholder.jpg';
-        }
-
-        function formatPrice(amount) {
-            return `KSh ${Number(amount || 0).toLocaleString()}`;
-        }
-
-        function renderAssuranceDetails(product) {
-            const assuranceList = document.getElementById('assuranceList');
-            if (!assuranceList) return;
-
-            const brand = product.brand || 'this device';
-            const qualifiesFreeShip = Number(product.price || 0) >= 50000;
-
-            const bullets = [
-                {
-                    icon: 'fa-credit-card',
-                    text: `Secure card, bank transfer or M-Pesa available for ${brand}.`
-                },
-                {
-                    icon: 'fa-shipping-fast',
-                    text: qualifiesFreeShip 
-                        ? 'Enjoy complimentary countrywide delivery on this order.'
-                        : 'Same-day courier within Nairobi & next-day shipping nationwide.'
-                },
-                {
-                    icon: 'fa-check-circle',
-                    text: `Each ${brand} goes through a 10-point check before dispatch.`
-                }
-            ];
-
-            assuranceList.innerHTML = bullets.map(item => `
-                <li>
-                    <i class="fas ${item.icon}"></i>
-                    <span>${item.text}</span>
-                </li>
-            `).join('');
-        }
-
-        function renderFAQ(product) {
-            const faqContainer = document.getElementById('faqAccordion');
-            if (!faqContainer) return;
-
-            const faqs = [
-                {
-                    question: `Does the ${product.name} include official warranty?`,
-                    answer: 'Yes. All units are sourced from authorized distributors and include at least 12 months manufacturer warranty plus Golden Source support.'
-                },
-                {
-                    question: 'Can I inspect before paying?',
-                    answer: 'Absolutely. Choose pickup or pay-on-delivery (Nairobi) and inspect the item before completing payment.'
-                },
-                {
-                    question: 'What if I need to return the product?',
-                    answer: 'Notify us within 7 days for a fast exchange or refund, provided the unit is in its original condition.'
-                }
-            ];
-
-            faqContainer.innerHTML = faqs.map((item, index) => `
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="faqHeading${index}">
-                        <button class="accordion-button ${index === 0 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#faqCollapse${index}" aria-expanded="${index === 0}" aria-controls="faqCollapse${index}">
-                            ${item.question}
-                        </button>
-                    </h2>
-                    <div id="faqCollapse${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" aria-labelledby="faqHeading${index}">
-                        <div class="accordion-body">${item.answer}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function trackRecentlyViewed(product) {
-            try {
-                const summary = {
-                    id: product._id || product.id,
-                    name: product.name,
-                    price: Number(product.price || 0),
-                    image: getPrimaryImage(product)
-                };
-
-                if (!summary.id) return;
-
-                let history = [];
-                const stored = localStorage.getItem(RECENTLY_VIEWED_KEY);
-                if (stored) {
-                    history = JSON.parse(stored);
-                }
-
-                history = Array.isArray(history) ? history : [];
-                history = history.filter(item => item.id !== summary.id);
-                history.unshift(summary);
-                history = history.slice(0, 6);
-
-                localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(history));
-            } catch (error) {
-                console.warn('Unable to store recently viewed items', error);
-            }
-        }
-
-        function renderRecentlyViewed() {
-            const container = document.getElementById('recentlyViewedProducts');
-            if (!container) return;
-
-            let history = [];
-            try {
-                const stored = localStorage.getItem(RECENTLY_VIEWED_KEY);
-                history = stored ? JSON.parse(stored) : [];
-            } catch (error) {
-                console.warn('Unable to parse recently viewed history', error);
-            }
-
-            history = Array.isArray(history) ? history : [];
-            const currentId = currentProduct ? (currentProduct._id || currentProduct.id) : null;
-            const filtered = history.filter(item => item.id !== currentId);
-
-            if (!filtered.length) {
-                container.innerHTML = '<p class="text-muted mb-0">Browse a few items and your history will appear here for quick access.</p>';
-                return;
-            }
-
-            container.innerHTML = filtered.slice(0, 4).map(item => `
-                <div class="col-md-3 col-6 mb-3">
-                    <div class="recent-card" onclick="window.location.href='/product?id=${item.id}'">
-                        <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='/images/placeholder.jpg';">
-                        <div class="recent-info">
-                            <p class="mb-1">${item.name}</p>
-                            <span>${formatPrice(item.price)}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Check wishlist status on page load
-        function checkWishlistStatus() {
-            if (!currentProduct) return;
-            
-            const productId = currentProduct._id || currentProduct.id;
-            const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-            const isInWishlist = wishlist.some(item => item.id === productId);
-            
-            const wishlistBtn = document.getElementById('wishlistBtn');
-            if (isInWishlist) {
-                wishlistBtn.innerHTML = '<i class="fas fa-heart me-2"></i>Added to Wishlist';
-                wishlistBtn.classList.add('wishlisted');
-            } else {
-                wishlistBtn.innerHTML = '<i class="fas fa-heart me-2"></i>Add to Wishlist';
-                wishlistBtn.classList.remove('wishlisted');
-            }
-        }
 
 
         // Initialize page
@@ -1301,5 +1460,6 @@
             loadProduct();
         });
     </script>
+    <script src="js/mobile-home.js"></script>
 </body>
 </html>

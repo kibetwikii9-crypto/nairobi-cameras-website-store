@@ -2,60 +2,100 @@
 // Fetches real data from the backend API
 
 class APIClient {
+  // PERFORMANCE: Client-side request caching and debouncing
   constructor() {
     // Use environment-based URL for production deployment
     this.baseURL = window.location.origin + '/api';
+    this.requestCache = new Map();
+    this.pendingRequests = new Map();
+    this.CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   }
 
-  // Fetch products from API with improved error handling
+  // Fetch products from API with improved error handling and caching
   async getProducts(category = null, limit = null, featured = null) {
     try {
       let url = `${this.baseURL}/products`;
       const params = new URLSearchParams();
-      if (category) params.append('category', category);
+      if (category) {
+        params.append('category', category);
+      }
       if (limit) params.append('limit', limit);
       if (featured) params.append('featured', 'true');
       if (params.toString()) url += '?' + params.toString();
       
-      console.log('🔍 Fetching products from:', url);
-      
-      // Add timeout to prevent hanging requests
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        mode: 'cors',
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // PERFORMANCE: Check if request is already pending
+      if (this.pendingRequests.has(url)) {
+        return await this.pendingRequests.get(url);
       }
       
-      const data = await response.json();
-      console.log('📦 API Response:', data);
-      
-      if (data.success && data.data && data.data.products && data.data.products.length > 0) {
-        console.log(`✅ Successfully fetched ${data.data.products.length} products`);
-        return data;
-      } else {
-        console.warn('⚠️ API returned no products, falling back to static data');
-        return this.getStaticProducts();
+      // PERFORMANCE: Check cache
+      const cacheKey = url;
+      const cached = this.requestCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+        return cached.data;
       }
+      
+      // PERFORMANCE: Create request promise and store it
+      const requestPromise = (async () => {
+        try {
+          // Add timeout to prevent hanging requests (reduced to 8 seconds)
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Cache-Control': 'max-age=300' // Request caching
+            },
+            mode: 'cors',
+            signal: controller.signal,
+            cache: 'default' // Use browser cache
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          // PERFORMANCE: Cache successful responses
+          if (data.success && data.data && data.data.products) {
+            this.requestCache.set(cacheKey, {
+              data,
+              timestamp: Date.now()
+            });
+            // Clean up old cache (keep max 50 entries)
+            if (this.requestCache.size > 50) {
+              const firstKey = this.requestCache.keys().next().value;
+              this.requestCache.delete(firstKey);
+            }
+            return data;
+          } else {
+            return this.getStaticProducts();
+          }
+        } finally {
+          // Remove from pending requests
+          this.pendingRequests.delete(url);
+        }
+      })();
+      
+      // Store pending request
+      this.pendingRequests.set(url, requestPromise);
+      
+      return await requestPromise;
     } catch (error) {
+      // Remove from pending requests on error
+      this.pendingRequests.delete(url);
+      
       if (error.name === 'AbortError') {
         console.error('❌ Request timeout - server may be down');
       } else {
         console.error('❌ Error fetching products:', error);
       }
-      console.log('🔄 Falling back to static data');
       return this.getStaticProducts();
     }
   }
@@ -85,22 +125,6 @@ class APIClient {
       ]
     };
   }
-
-  // Simulate API request
-  async request(endpoint, options = {}) {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Handle different endpoints
-    if (endpoint.includes('/products')) {
-      return this.getStaticProducts();
-    } else if (endpoint.includes('/categories')) {
-      return this.getStaticCategories();
-    } else {
-      return { success: false, message: 'Endpoint not found' };
-    }
-  }
-
 
   async getProduct(id) {
     try {
@@ -191,7 +215,7 @@ const api = new APIClient();
 
 // Export for use in other files
 window.api = api;
-
+window.APIClient = APIClient; // Make class available globally
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
