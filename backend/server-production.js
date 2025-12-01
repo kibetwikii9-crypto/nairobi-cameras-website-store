@@ -407,23 +407,49 @@ app.get('/api/products', async (req, res) => {
 
         console.log('🔍 Products API - Where clause:', where);
         
-        const products = await Product.findAndCountAll({
-            where,
-            limit: parseInt(limit),
-            offset: (parseInt(page) - 1) * parseInt(limit),
-            order: [['createdAt', 'DESC']]
-        });
-
-        console.log(`📦 Found ${products.count} products, returning ${products.rows.length} products`);
+        let products;
+        try {
+            products = await Product.findAndCountAll({
+                where,
+                limit: parseInt(limit),
+                offset: (parseInt(page) - 1) * parseInt(limit),
+                order: [['createdAt', 'DESC']]
+            });
+            console.log(`📦 Found ${products.count} products, returning ${products.rows ? products.rows.length : 0} products`);
+            
+            // Ensure products.rows is an array
+            if (!products.rows || !Array.isArray(products.rows)) {
+                console.warn('⚠️ products.rows is not an array, converting...');
+                products.rows = Array.isArray(products) ? products : [];
+            }
+        } catch (queryError) {
+            console.error('❌ Product query error:', queryError);
+            console.error('❌ Query error message:', queryError.message);
+            console.error('❌ Query error code:', queryError.code);
+            console.error('❌ Query error details:', queryError.details);
+            console.error('❌ Query error hint:', queryError.hint);
+            // Return empty result instead of throwing
+            return res.json({
+                success: true,
+                data: {
+                    products: [],
+                    pagination: {
+                        currentPage: parseInt(page) || 1,
+                        totalPages: 0,
+                        totalProducts: 0
+                    }
+                }
+            });
+        }
 
         res.json({
             success: true,
             data: {
-                products: products.rows,
+                products: products.rows || [],
                 pagination: {
                     currentPage: parseInt(page),
-                    totalPages: Math.ceil(products.count / parseInt(limit)),
-                    totalProducts: products.count
+                    totalPages: Math.ceil((products.count || 0) / parseInt(limit)),
+                    totalProducts: products.count || 0
                 }
             }
         });
@@ -432,8 +458,8 @@ app.get('/api/products', async (req, res) => {
         console.error('❌ Error details:', error.message);
         console.error('❌ Error stack:', error.stack);
         
-        // Return empty products array instead of error to prevent frontend issues
-        res.json({
+        // Always return 200 with empty products array instead of 500 error
+        res.status(200).json({
             success: true,
             data: {
                 products: [],

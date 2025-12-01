@@ -167,34 +167,51 @@ class ProductModel {
    * Find and count all (for pagination)
    */
   async findAndCountAll(options = {}) {
-    // Get count
-    let countQuery = this.client.from(this.tableName).select('*', { count: 'exact', head: true });
-    
-    if (options.where) {
-      Object.keys(options.where).forEach(key => {
-        const value = options.where[key];
-        if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-          countQuery = countQuery.eq(key, value);
-        } else {
-          // For complex operators, just apply simple equality for count
-          const opKeys = Object.keys(value);
-          if (opKeys.length === 0 || !value[require('sequelize')?.Op]) {
+    try {
+      // Get count
+      let countQuery = this.client.from(this.tableName).select('*', { count: 'exact', head: true });
+      
+      if (options.where) {
+        Object.keys(options.where).forEach(key => {
+          const value = options.where[key];
+          if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+            // Handle boolean values and simple equality
             countQuery = countQuery.eq(key, value);
+          } else {
+            // For complex operators, just apply simple equality for count
+            const opKeys = Object.keys(value);
+            if (opKeys.length === 0 || !value[require('sequelize')?.Op]) {
+              countQuery = countQuery.eq(key, value);
+            }
           }
-        }
-      });
+        });
+      }
+
+      const { count, error: countError } = await countQuery;
+      if (countError) {
+        console.error('❌ Supabase count query error:', countError);
+        console.error('❌ Count error message:', countError.message);
+        console.error('❌ Count error code:', countError.code);
+        console.error('❌ Count error details:', countError.details);
+        throw countError;
+      }
+
+      // Get data
+      const result = await this.findAll(options);
+      
+      // Ensure result has rows property
+      const rows = result.rows || (Array.isArray(result) ? result : []);
+
+      return {
+        rows: rows,
+        count: count || 0
+      };
+    } catch (error) {
+      console.error('❌ findAndCountAll error:', error);
+      console.error('❌ Error in table:', this.tableName);
+      console.error('❌ Error with options:', JSON.stringify(options, null, 2));
+      throw error;
     }
-
-    const { count, error: countError } = await countQuery;
-    if (countError) throw countError;
-
-    // Get data
-    const result = await this.findAll(options);
-
-    return {
-      rows: result.rows,
-      count: count || 0
-    };
   }
 
   /**
