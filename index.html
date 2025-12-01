@@ -29,6 +29,16 @@
     <meta name="twitter:description" content="Shop the latest laptops, smartphones, cameras, audio equipment, and smart home devices. Best prices, genuine products, fast delivery in Nairobi, Kenya.">
     <meta name="twitter:image" content="https://goldensourcetech.co.ke/images/logo.png">
     
+    <!-- Video Meta Tags for SEO -->
+    <meta property="og:video" content="https://goldensourcetech.co.ke/video/hero-anim.mp4">
+    <meta property="og:video:type" content="video/mp4">
+    <meta property="og:video:width" content="1920">
+    <meta property="og:video:height" content="1080">
+    <meta property="og:video:secure_url" content="https://goldensourcetech.co.ke/video/hero-anim.mp4">
+    <meta name="twitter:player" content="https://goldensourcetech.co.ke/video/hero-anim.mp4">
+    <meta name="twitter:player:width" content="1920">
+    <meta name="twitter:player:height" content="1080">
+    
     <!-- Structured Data (Schema.org) -->
     <script type="application/ld+json">
     {
@@ -56,6 +66,29 @@
         ],
         "priceRange": "$$",
         "currenciesAccepted": "KES"
+    }
+    </script>
+    
+    <!-- Video Structured Data (Schema.org VideoObject) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        "name": "Golden Source Technologies - Premium Electronics Store",
+        "description": "Welcome to Golden Source Technologies - Your trusted source for premium electronics including laptops, smartphones, cameras, audio equipment, and smart home devices in Nairobi, Kenya. Discover cutting-edge technology with unbeatable prices.",
+        "thumbnailUrl": "https://goldensourcetech.co.ke/images/logo.png",
+        "uploadDate": "2024-12-19T00:00:00+03:00",
+        "duration": "PT30S",
+        "contentUrl": "https://goldensourcetech.co.ke/video/hero-anim.mp4",
+        "embedUrl": "https://goldensourcetech.co.ke/",
+        "publisher": {
+            "@type": "Organization",
+            "name": "Golden Source Technologies",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://goldensourcetech.co.ke/images/logo.png"
+            }
+        }
     }
     </script>
     <link rel="icon" type="image/png" href="/images/favicon.png">
@@ -150,7 +183,7 @@
     </nav>
 
     <section class="hero">
-        <video class="hero-video" autoplay muted loop playsinline>
+        <video class="hero-video" autoplay muted loop playsinline poster="images/logo.png" preload="metadata">
             <source src="video/hero-anim.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
@@ -306,12 +339,30 @@
     
     <!-- Hero Section - 50vh -->
     <section class="mobile-hero">
-        <video class="mobile-hero-video" autoplay muted loop playsinline>
+        <video class="mobile-hero-video" autoplay muted loop playsinline poster="images/logo.png" preload="metadata">
             <source src="video/hero-anim.mp4" type="video/mp4">
         </video>
         <div class="mobile-hero-content">
+            <!-- Hero Camera Image and Caption - Side by Side -->
+            <div class="mobile-hero-camera-wrapper">
+                <a href="/cameras" class="mobile-hero-camera-link" aria-label="View Premium Pocket Cameras">
+                    <img src="images/herocamera.png" alt="Premium Pocket Cameras" class="mobile-hero-camera-image">
+                </a>
+                <a href="/cameras" class="mobile-hero-caption-link" aria-label="View Premium Pocket Cameras">
+                    <p class="mobile-hero-camera-caption">Premium Pocket Cameras — Click to View & Purchase</p>
+                </a>
+            </div>
+            
             <h1>Premium Electronics</h1>
             <p>Discover cutting-edge technology with unbeatable prices</p>
+            
+            <!-- Trending Offers Button - Centered -->
+            <div class="mobile-hero-buttons">
+                <a href="/deals" class="mobile-hero-btn mobile-hero-btn-trending" aria-label="View Trending Offers">
+                    <i class="fas fa-fire"></i>
+                    <span>Trending Offers</span>
+                </a>
+            </div>
         </div>
     </section>
     

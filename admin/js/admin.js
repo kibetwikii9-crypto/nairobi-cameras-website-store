@@ -328,6 +328,27 @@ function updateRecentOrders(orders) {
 function updateTopProducts(products) {
     const container = document.getElementById('topProducts');
     
+    // Ensure products is an array - handle all possible formats
+    if (!products) {
+        products = [];
+    } else if (!Array.isArray(products)) {
+        // Try to extract array from object
+        if (products.rows && Array.isArray(products.rows)) {
+            products = products.rows;
+        } else if (products.data && Array.isArray(products.data)) {
+            products = products.data;
+        } else {
+            console.warn('⚠️ topProducts is not an array:', typeof products, products);
+            products = [];
+        }
+    }
+    
+    // Final check
+    if (!Array.isArray(products)) {
+        console.error('❌ topProducts is still not an array after processing');
+        products = [];
+    }
+    
     if (products.length === 0) {
         container.innerHTML = '<p class="text-muted text-center py-4">No products available</p>';
         return;

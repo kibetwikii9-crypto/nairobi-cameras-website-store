@@ -171,3 +171,6 @@ Your website is now fully optimized for search engines and social media. Google 
 - ✅ Show proper previews when shared on social media
 - ✅ Understand your products and business
 
+
+
+

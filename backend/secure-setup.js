@@ -24,8 +24,10 @@ function generateAdminPassword() {
 
 // Create secure environment file
 function createSecureEnv() {
-    const envContent = `# Database Configuration (SQLite - file-based)
-DATABASE_PATH=./database/golden-source-tech.sqlite
+    const envContent = `# Supabase Configuration (REQUIRED)
+# Get these from: Supabase Dashboard → Settings → API
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 
 # JWT Configuration - SECURE RANDOM STRING
 JWT_SECRET=${generateJWTSecret()}
@@ -48,25 +50,37 @@ RATE_LIMIT_MAX_REQUESTS=100
 # Admin Configuration
 ADMIN_EMAIL=admin@goldensource.com
 ADMIN_PASSWORD=${generateAdminPassword()}
+ADMIN_PHONE=+254 724 369 971
 
-# Cloudinary (for image uploads)
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
+# Contact Information
+CONTACT_PHONE=+254 724 369 971
+CONTACT_EMAIL=info@goldensource.com
 `;
 
     const envPath = path.join(__dirname, '.env');
-    fs.writeFileSync(envPath, envContent);
     
-    console.log('✅ Secure environment file created');
-    console.log('🔑 JWT Secret generated');
-    console.log('🔐 Admin password generated');
-    console.log('📧 Admin Email: admin@goldensource.com');
-    console.log('🔑 Admin Password: ' + envContent.match(/ADMIN_PASSWORD=(.+)/)[1]);
-    console.log('\n⚠️  IMPORTANT: Keep these credentials secure!');
-    console.log('📁 Environment file saved to: ' + envPath);
+    if (fs.existsSync(envPath)) {
+        console.log('⚠️  .env file already exists!');
+        console.log('📝 Please update it manually with the generated values above.');
+        console.log('');
+        console.log('Generated values:');
+        console.log('JWT_SECRET:', generateJWTSecret());
+        console.log('ADMIN_PASSWORD:', generateAdminPassword());
+    } else {
+        fs.writeFileSync(envPath, envContent);
+        console.log('✅ Secure .env file created!');
+        console.log('📝 IMPORTANT: Update SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY with your Supabase credentials');
+        console.log('📝 Get them from: Supabase Dashboard → Settings → API');
+    }
 }
 
-// Run the setup
+// Run setup
+console.log('🔐 Secure Setup for Golden Source Technologies Backend');
+console.log('');
 createSecureEnv();
-
+console.log('');
+console.log('📋 Next steps:');
+console.log('   1. Update SUPABASE_URL in .env file');
+console.log('   2. Update SUPABASE_SERVICE_ROLE_KEY in .env file');
+console.log('   3. Run database migration: backend/database/supabase-migration-complete.sql');
+console.log('   4. Start server: npm run dev');

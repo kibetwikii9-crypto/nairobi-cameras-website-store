@@ -5,16 +5,17 @@
   "main": "index.js",
   "scripts": {
     "start": "node server-production.js",
-    "dev": "nodemon server-sqlite.js",
-    "init-db": "node database/init-db.js",
+    "dev": "nodemon server-dev.js",
     "secure-setup": "node secure-setup.js",
     "install-deps": "npm install",
+    "test-supabase": "node test-supabase-connection.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@supabase/supabase-js": "^2.86.0",
     "bcryptjs": "^3.0.2",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
@@ -25,8 +26,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
-    "sequelize": "^6.35.0",
-    "sqlite3": "^5.1.6"
+    "sequelize": "^6.35.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

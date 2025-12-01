@@ -305,6 +305,22 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    // Check if we're on a category page (has product container) or homepage (no container)
+    const containers = getProductContainers();
+    const isHomepage = window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname.endsWith('index.html');
+    
+    // Skip initialization on homepage - it uses carousels instead
+    if (isHomepage && containers.length === 0) {
+        console.log('🏠 Homepage detected - skipping product loader (uses carousels instead)');
+        return;
+    }
+    
+    // Skip if no product container found (not a category page)
+    if (containers.length === 0) {
+        console.log('⏭️ No product container found - skipping product loader');
+        return;
+    }
+    
     console.log('📱 Page loaded - initializing product loader');
     const productLoader = new ProductLoader();
     

@@ -2445,6 +2445,22 @@ body {
             overflow: hidden !important;
             pointer-events: none !important;
         }
+        
+        /* CRITICAL: Ensure mobile cart items container is NOT affected by old styles */
+        .mobile-shell #cartItemsMobile,
+        .mobile-shell .mobile-cart-items-container,
+        .mobile-cart-page #cartItemsMobile,
+        .mobile-cart-page .mobile-cart-items-container {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            height: auto !important;
+            overflow: visible !important;
+            pointer-events: auto !important;
+            padding: 1rem !important;
+            margin: 0 !important;
+            margin-bottom: 400px !important;
+        }
     }
 }
 

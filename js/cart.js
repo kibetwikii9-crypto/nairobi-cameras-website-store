@@ -192,9 +192,12 @@ class CartManager {
             emptyCart = document.getElementById('emptyCartMobile');
             console.log('🛒 Mobile view: Looking for mobile elements first');
             console.log('🛒 Found cartItemsMobile:', !!cartItems);
-            // If mobile element not found, fallback to desktop (shouldn't happen)
+            // If mobile element not found, fallback to desktop (only log if on cart page)
             if (!cartItems) {
-                console.warn('⚠️ cartItemsMobile not found, falling back to cartItems');
+                const isCartPage = window.location.pathname.includes('/cart') || window.location.pathname.includes('cart.html');
+                if (isCartPage) {
+                    console.warn('⚠️ cartItemsMobile not found, falling back to cartItems');
+                }
                 cartItems = document.getElementById('cartItems');
             }
             if (!emptyCart) {
@@ -229,8 +232,13 @@ class CartManager {
         console.log('🛒 cartItems element:', cartItems);
         console.log('🛒 emptyCart element:', emptyCart);
 
+        // If no cart container found, we're not on the cart page - just update badge and return silently
         if (!cartItems) {
-            console.warn('⚠️ Cart items container not found! Looking for cartItems or cartItemsMobile');
+            // Only log warning if we're actually on the cart page
+            const isCartPage = window.location.pathname.includes('/cart') || window.location.pathname.includes('cart.html');
+            if (isCartPage) {
+                console.warn('⚠️ Cart items container not found on cart page!');
+            }
             this.updateCartBadge();
             return;
         }

@@ -10,14 +10,15 @@ const router = express.Router();
 // @access  Private (Admin)
 router.get('/dashboard', async (req, res) => {
     try {
+        // Fetch data with error handling for each operation
         const [
             totalUsers,
             totalProducts,
             totalOrders,
             pendingOrders,
             totalRevenue,
-            recentOrders
-        ] = await Promise.all([
+            recentOrdersResult
+        ] = await Promise.allSettled([
             User.count({ where: { role: 'user' } }),
             Product.count({ where: { isActive: true } }),
             Order.count(),
@@ -26,35 +27,85 @@ router.get('/dashboard', async (req, res) => {
             Order.findAll({
                 include: [{ model: User, as: 'user', attributes: ['name', 'email'] }],
                 order: [['createdAt', 'DESC']],
-                limit: 5
+                limit: 5,
+                raw: true // Return array directly instead of { rows, count }
             })
         ]);
 
-        // Get top products (simplified for SQLite)
-        const topProducts = await Product.findAll({
-            where: { isActive: true },
-            order: [['createdAt', 'DESC']],
-            limit: 5,
-            attributes: ['id', 'name', 'price', 'images', 'stock']
-        });
+        // Extract values from Promise.allSettled results
+        const totalUsersCount = totalUsers.status === 'fulfilled' ? totalUsers.value : 0;
+        const totalProductsCount = totalProducts.status === 'fulfilled' ? totalProducts.value : 0;
+        const totalOrdersCount = totalOrders.status === 'fulfilled' ? totalOrders.value : 0;
+        const pendingOrdersCount = pendingOrders.status === 'fulfilled' ? pendingOrders.value : 0;
+        const totalRevenueValue = totalRevenue.status === 'fulfilled' ? totalRevenue.value : 0;
+        // Extract recentOrders and ensure it's an array
+        let recentOrders = [];
+        if (recentOrdersResult.status === 'fulfilled') {
+            const ordersValue = recentOrdersResult.value;
+            // Handle both array and { rows, count } format
+            recentOrders = Array.isArray(ordersValue) ? ordersValue : (ordersValue?.rows || []);
+        } else {
+            console.warn('⚠️ Error fetching recent orders with user:', recentOrdersResult.reason?.message);
+            recentOrders = [];
+        }
+
+        // Get top products
+        let topProducts = [];
+        try {
+            const productsResult = await Product.findAll({
+                where: { isActive: true },
+                order: [['createdAt', 'DESC']],
+                limit: 5,
+                attributes: ['id', 'name', 'price', 'images', 'stock'],
+                raw: true // Return array directly instead of { rows, count }
+            });
+            
+            // Ensure it's an array - handle all possible return formats
+            if (Array.isArray(productsResult)) {
+                topProducts = productsResult;
+            } else if (productsResult && typeof productsResult === 'object') {
+                // Handle { rows: [...] } format
+                topProducts = productsResult.rows || [];
+            } else {
+                console.warn('⚠️ productsResult is unexpected type:', typeof productsResult, productsResult);
+                topProducts = [];
+            }
+            
+            // Final safety check
+            if (!Array.isArray(topProducts)) {
+                console.error('❌ topProducts is still not an array after processing:', typeof topProducts, topProducts);
+                topProducts = [];
+            } else {
+                console.log(`✅ Fetched ${topProducts.length} top products`);
+            }
+        } catch (productsError) {
+            console.error('❌ Error fetching top products:', productsError);
+            console.error('❌ Error stack:', productsError.stack);
+            topProducts = [];
+        }
 
         res.json({
             success: true,
             data: {
                 stats: {
-                    totalUsers,
-                    totalProducts,
-                    totalOrders,
-                    pendingOrders,
-                    totalRevenue: totalRevenue || 0
+                    totalUsers: totalUsersCount,
+                    totalProducts: totalProductsCount,
+                    totalOrders: totalOrdersCount,
+                    pendingOrders: pendingOrdersCount,
+                    totalRevenue: totalRevenueValue || 0
                 },
-                recentOrders,
-                topProducts
+                recentOrders: Array.isArray(recentOrders) ? recentOrders : [],
+                topProducts: Array.isArray(topProducts) ? topProducts : []
             }
         });
     } catch (error) {
-        console.error('Dashboard error:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('❌ Dashboard error:', error);
+        console.error('❌ Error stack:', error.stack);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error',
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        });
     }
 });
 
@@ -95,8 +146,13 @@ router.get('/products', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Get admin products error:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('❌ Get admin products error:', error);
+        console.error('❌ Error stack:', error.stack);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error',
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        });
     }
 });
 
@@ -286,32 +342,45 @@ router.get('/analytics', async (req, res) => {
         const [
             totalRevenue,
             totalOrders,
-            categoryStats
+            allProducts
         ] = await Promise.all([
             Order.sum('total', { where: { paymentStatus: 'paid' } }),
             Order.count({ where: { paymentStatus: 'paid' } }),
             Product.findAll({
                 where: { isActive: true },
                 attributes: ['category'],
-                group: ['category'],
                 raw: true
             })
         ]);
+
+        // Group by category manually (Supabase doesn't support GROUP BY directly)
+        const categoryMap = {};
+        (allProducts || []).forEach(product => {
+            const category = product.category || 'uncategorized';
+            categoryMap[category] = (categoryMap[category] || 0) + 1;
+        });
+
+        const categoryStats = Object.keys(categoryMap).map(category => ({
+            category,
+            count: categoryMap[category]
+        }));
 
         res.json({
             success: true,
             data: {
                 totalRevenue: totalRevenue || 0,
                 totalOrders,
-                categoryStats: categoryStats.map(stat => ({
-                    category: stat.category,
-                    count: 1 // Simplified for SQLite
-                }))
+                categoryStats
             }
         });
     } catch (error) {
-        console.error('Analytics error:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('❌ Analytics error:', error);
+        console.error('❌ Error stack:', error.stack);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error',
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        });
     }
 });
 

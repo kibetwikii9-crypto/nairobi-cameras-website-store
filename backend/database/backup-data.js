@@ -1,13 +1,15 @@
 // Database backup and restore utility
 const fs = require('fs');
 const path = require('path');
+const { recordDatabaseState } = require('../utils/diagnostics');
+const { backupToCloud, restoreFromCloud } = require('../utils/cloud-backup');
 
 // Enhanced backup with automatic scheduling
 const BACKUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 let backupInterval = null;
 
 // Backup database data to JSON file
-const backupData = async (Product, User, Order) => {
+const backupData = async (Product, User, Order, dbPath = null) => {
   try {
     console.log('💾 Creating database backup...');
     
@@ -16,6 +18,15 @@ const backupData = async (Product, User, Order) => {
     const orders = await Order.findAll({ raw: true });
     
     console.log(`📊 Backup data: ${products.length} products, ${users.length} users, ${orders.length} orders`);
+    
+    // Record state before backup
+    if (dbPath) {
+      try {
+        await recordDatabaseState(Product, User, Order, dbPath);
+      } catch (stateError) {
+        console.warn('⚠️ Could not record state before backup:', stateError.message);
+      }
+    }
     
     const backupData = {
       products,
@@ -40,6 +51,16 @@ const backupData = async (Product, User, Order) => {
       return false;
     }
     
+    // CRITICAL FOR RENDER FREE TIER: Also backup to cloud/external storage
+    // Since Render free tier has ephemeral storage, local backup.json will be lost on restart
+    try {
+      await backupToCloud(backupData);
+      console.log('✅ Cloud backup attempted (if configured)');
+    } catch (cloudError) {
+      console.warn('⚠️ Cloud backup failed (this is OK if not configured):', cloudError.message);
+      // Don't fail the backup if cloud backup fails
+    }
+    
     return true;
   } catch (error) {
     console.error('❌ Backup failed:', error);
@@ -49,22 +70,61 @@ const backupData = async (Product, User, Order) => {
 };
 
 // Restore database data from JSON file
-const restoreData = async (Product, User, Order) => {
+const restoreData = async (Product, User, Order, dbPath = null) => {
   try {
-    const backupPath = path.join(__dirname, 'backup.json');
+    // CRITICAL FOR RENDER FREE TIER: Try to restore from cloud first
+    // Since Render free tier has ephemeral storage, backup.json may not exist
+    let backupData = null;
     
-    if (!fs.existsSync(backupPath)) {
-      console.log('📄 No backup file found, skipping restore');
+    // First, try to restore from cloud/external storage
+    try {
+      const cloudBackup = await restoreFromCloud();
+      if (cloudBackup && cloudBackup.products && cloudBackup.products.length > 0) {
+        console.log('📦 Restoring from cloud backup...');
+        backupData = cloudBackup;
+      }
+    } catch (cloudError) {
+      console.log('📄 No cloud backup found, trying local backup.json...');
+    }
+    
+    // If no cloud backup, try local backup.json file
+    if (!backupData) {
+      const backupPath = path.join(__dirname, 'backup.json');
+      
+      if (fs.existsSync(backupPath)) {
+        console.log('🔄 Restoring database from local backup.json...');
+        backupData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+      } else {
+        console.log('📄 No backup file found (this is normal on Render free tier after restart)');
+        console.log('⚠️ RENDER FREE TIER WARNING: Database file is ephemeral and will be lost on restart');
+        console.log('⚠️ RECOMMENDATION: Use Render PostgreSQL or implement cloud storage backup');
+        return true;
+      }
+    }
+    
+    if (!backupData) {
+      console.log('📄 No backup data available to restore');
       return true;
     }
     
     console.log('🔄 Restoring database from backup...');
-    const backupData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+    
+    // Record state before restore
+    let stateBeforeRestore = null;
+    if (dbPath) {
+      try {
+        stateBeforeRestore = await recordDatabaseState(Product, User, Order, dbPath);
+      } catch (stateError) {
+        console.warn('⚠️ Could not record state before restore:', stateError.message);
+      }
+    }
     
     // Check if data already exists
     const existingProducts = await Product.count();
-    console.log(`📊 Current products in database: ${existingProducts}`);
-    console.log(`📊 Products in backup: ${backupData.products ? backupData.products.length : 0}`);
+    const existingUsers = await User.count();
+    const existingOrders = await Order.count();
+    console.log(`📊 Current data in database: ${existingProducts} products, ${existingUsers} users, ${existingOrders} orders`);
+    console.log(`📊 Data in backup: ${backupData.products ? backupData.products.length : 0} products, ${backupData.users ? backupData.users.length : 0} users, ${backupData.orders ? backupData.orders.length : 0} orders`);
     
     // CRITICAL: Only restore if database is empty AND backup exists
     // This prevents overwriting existing products
@@ -101,7 +161,6 @@ const restoreData = async (Product, User, Order) => {
     }
     
     // Restore users if needed
-    const existingUsers = await User.count();
     if (existingUsers === 0 && backupData.users && backupData.users.length > 0) {
       console.log(`🔄 Restoring ${backupData.users.length} users from backup...`);
       await User.bulkCreate(backupData.users);
@@ -109,11 +168,32 @@ const restoreData = async (Product, User, Order) => {
     }
     
     // Restore orders if needed
-    const existingOrders = await Order.count();
     if (existingOrders === 0 && backupData.orders && backupData.orders.length > 0) {
       console.log(`🔄 Restoring ${backupData.orders.length} orders from backup...`);
       await Order.bulkCreate(backupData.orders);
       console.log(`✅ Restored ${backupData.orders.length} orders`);
+    }
+    
+    // Record state after restore
+    let stateAfterRestore = null;
+    if (dbPath) {
+      try {
+        stateAfterRestore = await recordDatabaseState(Product, User, Order, dbPath);
+        
+        // Check for data loss after restore
+        if (stateBeforeRestore && stateAfterRestore) {
+          const { detectDataLoss } = require('../utils/diagnostics');
+          const issues = detectDataLoss(stateAfterRestore, stateBeforeRestore);
+          if (issues && issues.length > 0) {
+            console.error('🚨 ISSUES DETECTED AFTER RESTORE:');
+            issues.forEach(issue => {
+              console.error(`🚨 ${issue.severity}: ${issue.message}`);
+            });
+          }
+        }
+      } catch (stateError) {
+        console.warn('⚠️ Could not record state after restore:', stateError.message);
+      }
     }
     
     console.log('✅ Database restore completed');
@@ -125,7 +205,7 @@ const restoreData = async (Product, User, Order) => {
 };
 
 // Start automatic backup system
-const startAutoBackup = (Product, User, Order) => {
+const startAutoBackup = (Product, User, Order, dbPath = null) => {
   if (backupInterval) {
     clearInterval(backupInterval);
   }
@@ -133,7 +213,7 @@ const startAutoBackup = (Product, User, Order) => {
   console.log('🔄 Starting automatic backup system...');
   backupInterval = setInterval(async () => {
     try {
-      await backupData(Product, User, Order);
+      await backupData(Product, User, Order, dbPath);
       console.log('✅ Automatic backup completed');
     } catch (error) {
       console.error('❌ Automatic backup failed:', error);

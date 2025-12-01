@@ -5,7 +5,7 @@ A complete backend system for the Golden Source Technologies electronics store w
 ## 🚀 Features
 
 - **RESTful API** with Express.js
-- **SQLite Database** with Sequelize ORM
+- **Supabase Database** (PostgreSQL via HTTPS REST API)
 - **JWT Authentication** for secure access
 - **Admin Panel** for product and order management
 - **Product Management** with image uploads
@@ -17,7 +17,7 @@ A complete backend system for the Golden Source Technologies electronics store w
 ## 📋 Prerequisites
 
 - Node.js (v14 or higher)
-- SQLite (file-based database)
+- Supabase account (free tier available)
 - Git
 
 ## 🛠️ Installation & Setup
@@ -31,8 +31,9 @@ npm install
 ### 2. Environment Configuration
 Create a `.env` file in the backend directory:
 ```env
-# Database (SQLite - file-based)
-DATABASE_PATH=./database/golden-source-tech.sqlite
+# Supabase Configuration (REQUIRED)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 
 # JWT Secret
 JWT_SECRET=your-super-secret-jwt-key-here
@@ -44,11 +45,18 @@ NODE_ENV=development
 # File uploads are stored locally in /images/uploads
 ```
 
+**To get Supabase credentials:**
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Create a new project (or use existing)
+3. Go to Settings → API
+4. Copy:
+   - **Project URL** → `SUPABASE_URL`
+   - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY`
+
 ### 3. Database Setup
-```bash
-# Run the setup script to create admin user and sample data
-npm run setup
-```
+1. Go to Supabase Dashboard → SQL Editor
+2. Run the migration file: `backend/database/supabase-migration-complete.sql`
+3. This creates all required tables (products, users, orders)
 
 ### 4. Start the Server
 ```bash
@@ -95,7 +103,7 @@ Access the admin panel at: `http://localhost:5000/admin`
 
 **Default Admin Credentials:**
 - Email: `admin@goldensource.com`
-- Password: `admin123`
+- Password: Set via `ADMIN_PASSWORD` in `.env` (default: `SecureAdmin2024!`)
 
 ### Admin Features:
 - **Dashboard** - Overview of sales, orders, and users
@@ -107,15 +115,15 @@ Access the admin panel at: `http://localhost:5000/admin`
 ## 🗄️ Database Models
 
 ### User
-- name, email, password, role, phone, address
+- name, email, password, role, phone, address, isActive
 - Authentication and profile management
 
 ### Product
-- name, description, price, category, brand, images
+- name, description, price, category, brand, images, specifications
 - Stock management and reviews
 
 ### Order
-- orderNumber, user, items, shippingAddress
+- orderNumber, user, items, shippingAddress, status
 - Payment and status tracking
 
 ## 🔧 Development
@@ -123,35 +131,39 @@ Access the admin panel at: `http://localhost:5000/admin`
 ### Project Structure
 ```
 backend/
+├── config/          # Database configuration (Supabase)
 ├── models/          # Database models
-├── routes/           # API routes
-├── middleware/       # Authentication middleware
-├── server.js         # Main server file
-├── setup.js          # Database setup script
-└── package.json      # Dependencies and scripts
+├── routes/          # API routes
+├── middleware/      # Authentication middleware
+├── server-dev.js    # Development server
+├── server-production.js  # Production server
+└── package.json     # Dependencies and scripts
 ```
 
 ### Available Scripts
-- `npm run dev` - Start development server
+- `npm run dev` - Start development server (with auto-restart)
 - `npm start` - Start production server
-- `npm run setup` - Initialize database with sample data
+- `npm run test-supabase` - Test Supabase connection
 
 ## 🚀 Deployment
 
-### Vercel Deployment
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run `vercel` in the backend directory
-3. Set environment variables in Vercel dashboard
-4. Deploy: `vercel --prod`
+### Render Deployment
+1. Push code to GitHub
+2. Connect repository to Render
+3. Set environment variables in Render dashboard:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `JWT_SECRET`
+   - `NODE_ENV=production`
+4. Deploy
 
 ### Environment Variables for Production
 ```env
-MONGODB_URI=your-production-mongodb-uri
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 JWT_SECRET=your-production-jwt-secret
 NODE_ENV=production
-CLOUDINARY_CLOUD_NAME=your-cloudinary-name
-CLOUDINARY_API_KEY=your-cloudinary-key
-CLOUDINARY_API_SECRET=your-cloudinary-secret
+PORT=10000
 ```
 
 ## 📱 Frontend Integration
@@ -169,6 +181,7 @@ The backend serves the frontend files and provides API endpoints for:
 - Input validation with express-validator
 - CORS protection
 - Admin role authorization
+- Row Level Security (RLS) in Supabase
 
 ## 📊 Analytics
 
@@ -190,15 +203,23 @@ The admin panel includes:
 
 For issues or questions:
 - Check the console logs for error details
-- Verify environment variables are set correctly
-- Ensure SQLite database file is accessible
-- Check JWT token validity
+- Verify Supabase credentials are set correctly
+- Ensure Supabase project is active (not paused)
+- Check database tables exist (run migration SQL)
+- Verify JWT token validity
 
 ## 🎯 Next Steps
 
-1. Add optional CDN/distributed storage if needed
-2. Deploy to Render/production environment
-3. Set up automated backups for SQLite database
+1. Set up Supabase project and run migration
+2. Configure environment variables
+3. Deploy to Render/production environment
 4. Set up domain and SSL
 5. Configure email notifications
 6. Add payment gateway integration
+
+## 💡 Database Information
+
+- **Type:** Supabase (PostgreSQL via HTTPS REST API)
+- **Persistence:** Permanent (cloud storage)
+- **Backup:** Automatic backups every 5 minutes
+- **Location:** Supabase cloud (external database)

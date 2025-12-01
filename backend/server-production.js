@@ -1,14 +1,22 @@
+// Load environment variables FIRST before anything else
+const dotenv = require('dotenv');
+if (process.env.NODE_ENV === 'production') {
+  dotenv.config({ path: './env.production' });
+} else {
+  dotenv.config();
+}
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const { upload, buildImageResponse } = require('./services/fileStorage');
 const fs = require('fs');
-const { syncDatabase, User, Product, Order } = require('./config/database');
+const { syncDatabase, User, Product, Order, getDatabasePath, getDatabaseType } = require('./config/database');
 const { backupData, restoreData, startAutoBackup } = require('./database/backup-data');
+const { recordDatabaseState, getDiagnosticReport, findMultipleDatabaseFiles, verifyDataIntegrity } = require('./utils/diagnostics');
 
 // Function to create sample products
 const createSampleProducts = async (Product) => {
@@ -86,12 +94,6 @@ const createSampleProducts = async (Product) => {
   }
 };
 
-// Load environment variables
-if (process.env.NODE_ENV === 'production') {
-  dotenv.config({ path: './env.production' });
-} else {
-  dotenv.config();
-}
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -242,8 +244,79 @@ app.get('/api/health', (req, res) => {
         environment: process.env.NODE_ENV || 'production',
         version: '1.0.0',
         uptime: process.uptime(),
-        database: 'SQLite'
+        database: getDatabaseType()
     });
+});
+
+// Diagnostic endpoints (Admin only - add auth if needed)
+app.get('/api/diagnostics', async (req, res) => {
+    try {
+        const report = getDiagnosticReport();
+        const renderPersistentPaths = [
+            '/opt/render/project/src/backend/database',
+            '/opt/render/project/src/database',
+            '/opt/render/project/database',
+            path.join(process.cwd(), 'database'),
+            path.join(__dirname, '../database')
+        ];
+        const multipleFiles = findMultipleDatabaseFiles(renderPersistentPaths);
+        const integrity = await verifyDataIntegrity(Product, User, Order);
+        const { getCloudBackupRecommendation } = require('./utils/cloud-backup');
+        const cloudRecommendation = getCloudBackupRecommendation();
+        
+        const productCount = await Product.count();
+        const userCount = await User.count();
+        const orderCount = await Order.count();
+        
+        // Check if we're on Render free tier with empty database
+        const isRenderFreeTierIssue = process.env.NODE_ENV === 'production' && productCount === 0;
+        
+        res.json({
+            success: true,
+            diagnostics: {
+                report,
+                multipleDatabaseFiles: multipleFiles,
+                integrity,
+                databasePath: getDatabasePath(),
+                currentCounts: {
+                    products: productCount,
+                    users: userCount,
+                    orders: orderCount
+                },
+                renderFreeTierWarning: isRenderFreeTierIssue ? {
+                    issue: 'Database is empty - likely due to Render free tier ephemeral storage',
+                    explanation: 'Render free tier deletes all files on restart/redeploy',
+                    recommendation: cloudRecommendation
+                } : null,
+                environment: process.env.NODE_ENV || 'development'
+            }
+        });
+    } catch (error) {
+        console.error('Diagnostics error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to generate diagnostics',
+            error: error.message
+        });
+    }
+});
+
+// Database state endpoint
+app.get('/api/diagnostics/state', async (req, res) => {
+    try {
+        const state = await recordDatabaseState(Product, User, Order, getDatabasePath());
+        res.json({
+            success: true,
+            state
+        });
+    } catch (error) {
+        console.error('State recording error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to record state',
+            error: error.message
+        });
+    }
 });
 
 // Manual backup endpoint
@@ -487,11 +560,36 @@ app.post('/api/products', async (req, res) => {
             req.body.images[0].isPrimary = true;
         }
         
+        // Record state BEFORE creation
+        const stateBefore = await recordDatabaseState(Product, User, Order, getDatabasePath());
+        const productCountBefore = stateBefore ? stateBefore.productCount : await Product.count();
+        
         const product = await Product.create(req.body);
+        
+        // Record state AFTER creation
+        const stateAfter = await recordDatabaseState(Product, User, Order, getDatabasePath());
+        const productCountAfter = stateAfter ? stateAfter.productCount : await Product.count();
+        
+        // Check for data loss
+        if (stateBefore && stateAfter) {
+            const issues = require('./utils/diagnostics').detectDataLoss(stateAfter, stateBefore);
+            if (issues && issues.length > 0) {
+                console.error('🚨 DATA LOSS DETECTED AFTER PRODUCT CREATION!');
+                issues.forEach(issue => {
+                    console.error(`🚨 ${issue.severity}: ${issue.message}`);
+                });
+            }
+        }
+        
+        // Verify product was actually saved
+        if (productCountAfter <= productCountBefore) {
+            console.error('🚨 CRITICAL: Product count did not increase after creation!');
+            console.error(`🚨 Before: ${productCountBefore}, After: ${productCountAfter}`);
+        }
         
         // Immediately backup after creating product
         try {
-            await backupData(Product, User, Order);
+            await backupData(Product, User, Order, getDatabasePath());
             console.log('✅ Backup created after product creation');
         } catch (backupError) {
             console.error('⚠️ Backup failed after product creation:', backupError);
@@ -499,7 +597,7 @@ app.post('/api/products', async (req, res) => {
         }
         
         console.log(`✅ Product created successfully with ID: ${product.id}`);
-        console.log(`📦 Total products in database: ${await Product.count()}`);
+        console.log(`📦 Total products in database: ${productCountAfter} (was ${productCountBefore})`);
         
         res.status(201).json({
             success: true,
@@ -615,6 +713,10 @@ app.post('/api/auth/register', async (req, res) => {
             });
         }
 
+        // Record state BEFORE user creation
+        const stateBefore = await recordDatabaseState(Product, User, Order, getDatabasePath());
+        const userCountBefore = stateBefore ? stateBefore.userCount : await User.count();
+        
         // Create new user (simple password storage - in production, use bcrypt)
         const user = await User.create({
             name: name.trim(),
@@ -622,9 +724,41 @@ app.post('/api/auth/register', async (req, res) => {
             password, // In production, hash this with bcrypt
             role: 'admin' // Default to admin for admin panel
         });
+        
+        // Record state AFTER user creation
+        const stateAfter = await recordDatabaseState(Product, User, Order, getDatabasePath());
+        const userCountAfter = stateAfter ? stateAfter.userCount : await User.count();
+        
+        // Check for data loss
+        if (stateBefore && stateAfter) {
+            const issues = require('./utils/diagnostics').detectDataLoss(stateAfter, stateBefore);
+            if (issues && issues.length > 0) {
+                console.error('🚨 DATA LOSS DETECTED AFTER USER CREATION!');
+                issues.forEach(issue => {
+                    console.error(`🚨 ${issue.severity}: ${issue.message}`);
+                });
+            }
+        }
+        
+        // Verify user was actually saved
+        if (userCountAfter <= userCountBefore) {
+            console.error('🚨 CRITICAL: User count did not increase after creation!');
+            console.error(`🚨 Before: ${userCountBefore}, After: ${userCountAfter}`);
+        }
+        
+        // Immediately backup after creating user
+        try {
+            await backupData(Product, User, Order, getDatabasePath());
+            console.log('✅ Backup created after user creation');
+        } catch (backupError) {
+            console.error('⚠️ Backup failed after user creation:', backupError);
+        }
 
         // Generate token
         const token = 'admin-token-' + Date.now();
+        
+        console.log(`✅ User created successfully with ID: ${user.id}`);
+        console.log(`👥 Total users in database: ${userCountAfter} (was ${userCountBefore})`);
         
         res.status(201).json({
             success: true,
@@ -698,10 +832,21 @@ app.use('/api/admin', require('./routes/admin'));
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
     if (req.file) {
+      const imageResponse = buildImageResponse(req.file);
+      console.log('📸 Image uploaded:', imageResponse);
+      
+      if (!imageResponse || !imageResponse.url) {
+        console.error('❌ buildImageResponse did not return a valid URL');
+        return res.status(500).json({
+          success: false,
+          message: 'Upload succeeded but failed to generate URL'
+        });
+      }
+      
       return res.json({
         success: true,
         message: 'Image uploaded successfully',
-        data: buildImageResponse(req.file)
+        data: imageResponse
       });
     }
 
@@ -857,6 +1002,16 @@ const startServer = async () => {
         // Only perform database operations if database is connected
         if (dbConnected) {
             try {
+                // Record initial database state
+                const initialState = await recordDatabaseState(Product, User, Order, getDatabasePath());
+                console.log('📊 Initial database state recorded:', {
+                    products: initialState?.productCount || 0,
+                    users: initialState?.userCount || 0,
+                    orders: initialState?.orderCount || 0,
+                    dbPath: initialState?.dbPath,
+                    dbFileSize: initialState?.dbFileSize
+                });
+                
                 // Create admin user if it doesn't exist
                 const adminExists = await User.findOne({ where: { email: 'admin@goldensource.com' } });
                 if (!adminExists) {
@@ -871,11 +1026,66 @@ const startServer = async () => {
                 }
 
                 // Try to restore data from backup
-                await restoreData(Product, User, Order);
+                const stateBeforeRestore = await recordDatabaseState(Product, User, Order, getDatabasePath());
+                await restoreData(Product, User, Order, getDatabasePath());
+                const stateAfterRestore = await recordDatabaseState(Product, User, Order, getDatabasePath());
+                
+                // Check for issues after restore
+                if (stateBeforeRestore && stateAfterRestore) {
+                    const issues = require('./utils/diagnostics').detectDataLoss(stateAfterRestore, stateBeforeRestore);
+                    if (issues && issues.length > 0) {
+                        console.error('🚨 ISSUES DETECTED AFTER RESTORE:');
+                        issues.forEach(issue => {
+                            console.error(`🚨 ${issue.severity}: ${issue.message}`);
+                        });
+                    }
+                }
                 
                 // Check if we have any products after restore
                 const productCount = await Product.count();
-                console.log(`📦 Database initialized with ${productCount} existing products`);
+                const userCount = await User.count();
+                console.log(`📦 Database initialized with ${productCount} products, ${userCount} users`);
+                
+                // CRITICAL WARNING FOR RENDER FREE TIER
+                if (productCount === 0 && process.env.NODE_ENV === 'production') {
+                    console.error('');
+                    console.error('🚨 ============================================');
+                    console.error('🚨 RENDER FREE TIER DATA LOSS WARNING');
+                    console.error('🚨 ============================================');
+                    console.error('🚨 Your database is EMPTY. This is because:');
+                    console.error('🚨 1. Render free tier uses EPHEMERAL storage');
+                    console.error('🚨 2. Database file is DELETED on every restart/redeploy');
+                    console.error('🚨 3. All data is LOST when Render restarts your service');
+                    console.error('');
+                    console.error('✅ SOLUTIONS:');
+                    console.error('   1. Use Supabase PostgreSQL (FREE forever) - RECOMMENDED');
+                    console.error('   2. Use Render PostgreSQL (free 30 days, then upgrade)');
+                    console.error('   3. Upgrade to Render paid plan for persistent disk');
+                    console.error('');
+                    console.error('📋 Current status:');
+                    console.error(`   - Products: ${productCount}`);
+                    console.error(`   - Users: ${userCount}`);
+                    console.error(`   - Database path: ${getDatabasePath()}`);
+                    console.error('🚨 ============================================');
+                    console.error('');
+                }
+                
+                // Check for multiple database files
+                const renderPersistentPaths = [
+                    '/opt/render/project/src/backend/database',
+                    '/opt/render/project/src/database',
+                    '/opt/render/project/database',
+                    path.join(process.cwd(), 'database'),
+                    path.join(__dirname, '../database')
+                ];
+                const multipleFiles = findMultipleDatabaseFiles(renderPersistentPaths);
+                if (multipleFiles.length > 1) {
+                    console.warn('⚠️ WARNING: Multiple database files found!');
+                    multipleFiles.forEach(file => {
+                        console.warn(`⚠️   - ${file.path} (${file.size} bytes, modified: ${file.modified})`);
+                    });
+                    console.warn('⚠️ This could cause data loss if the wrong file is used!');
+                }
                 
                 // If no products exist, optionally create sample products
                 if (productCount === 0) {
@@ -891,10 +1101,27 @@ const startServer = async () => {
                 }
                 
                 // Create backup of current data
-                await backupData(Product, User, Order);
+                await backupData(Product, User, Order, getDatabasePath());
+                
+                // Record final state after initialization
+                const finalState = await recordDatabaseState(Product, User, Order, getDatabasePath());
+                console.log('📊 Final database state after initialization:', {
+                    products: finalState?.productCount || 0,
+                    users: finalState?.userCount || 0,
+                    orders: finalState?.orderCount || 0
+                });
                 
                 // Start automatic backup system
-                startAutoBackup(Product, User, Order);
+                startAutoBackup(Product, User, Order, getDatabasePath());
+                
+                // Schedule periodic state recording (every 5 minutes)
+                setInterval(async () => {
+                    try {
+                        await recordDatabaseState(Product, User, Order, getDatabasePath());
+                    } catch (error) {
+                        console.error('❌ Error recording periodic state:', error);
+                    }
+                }, 5 * 60 * 1000); // Every 5 minutes
             } catch (dbError) {
                 console.error('❌ Database operation error:', dbError);
                 console.log('⚠️ Continuing with limited functionality');
@@ -909,7 +1136,13 @@ const startServer = async () => {
             console.log('📱 Frontend: https://nairobi-cameras-website-store.onrender.com');
             console.log('🔧 API: https://nairobi-cameras-website-store.onrender.com/api');
             console.log('💚 Health Check: https://nairobi-cameras-website-store.onrender.com/api/health');
-            console.log('🗄️ Database: SQLite (file-based)');
+            const dbType = getDatabaseType();
+            console.log(`🗄️ Database: ${dbType}`);
+            if (dbType.includes('Supabase')) {
+                console.log('🎉 Data persistence: PERMANENT (cloud storage)');
+            } else {
+                console.log('⚠️ Data persistence: May be lost on Render free tier restarts');
+            }
             console.log('✅ Server startup completed successfully');
         });
 

@@ -1,16 +1,16 @@
+// Load environment variables FIRST before anything else
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const fs = require('fs');
 const { upload, buildImageResponse } = require('./services/fileStorage');
-const { syncDatabase, User, Product, Order } = require('./config/database');
-
-// Load environment variables
-dotenv.config();
+const { syncDatabase, User, Product, Order, getDatabaseType } = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,11 +51,18 @@ if (process.env.NODE_ENV === 'production') {
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
     
-    const allowedOrigins = process.env.ALLOWED_ORIGINS ? 
-      process.env.ALLOWED_ORIGINS.split(',') : 
-      [process.env.RENDER_EXTERNAL_URL || 'https://nairobi-cameras.onrender.com', 'http://localhost:3000', 'http://localhost:5000'];
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5000',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5000',
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
     
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -68,18 +75,16 @@ const corsOptions = {
       }
     }
   },
-  credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  credentials: true
 };
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(compression());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve static files from frontend
-app.use(express.static(path.join(__dirname, '../')));
+// Serve static files
+app.use(express.static(path.join(__dirname, '..')));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -90,7 +95,7 @@ app.get('/api/health', (req, res) => {
         environment: process.env.NODE_ENV || 'development',
         version: '1.0.0',
         uptime: process.uptime(),
-        database: 'SQLite'
+        database: getDatabaseType()
     });
 });
 
@@ -146,12 +151,12 @@ app.get('/api/products/:id', async (req, res) => {
     try {
         const product = await Product.findByPk(req.params.id);
         if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
+            return res.status(404).json({ success: false, message: 'Product not found' });
         }
         res.json({ success: true, data: { product } });
     } catch (error) {
         console.error('Get product error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
@@ -216,59 +221,11 @@ app.get('/api/search', async (req, res) => {
 // Create product (Admin only)
 app.post('/api/products', async (req, res) => {
     try {
-        console.log('📦 Creating new product...');
-        console.log('📦 Product data:', JSON.stringify(req.body, null, 2));
-        
-        // Validate required fields
-        if (!req.body.name || !req.body.category || !req.body.price) {
-            return res.status(400).json({ 
-                success: false,
-                message: 'Missing required fields: name, category, and price are required' 
-            });
-        }
-        
-        // Ensure category is lowercase and valid
-        const validCategories = ['laptops', 'phones', 'cameras', 'audio', 'accessories', 'smart-home'];
-        const category = req.body.category.toLowerCase().trim();
-        if (!validCategories.includes(category)) {
-            return res.status(400).json({ 
-                success: false,
-                message: `Invalid category. Must be one of: ${validCategories.join(', ')}` 
-            });
-        }
-        req.body.category = category;
-        
-        // Ensure isActive is set (default to true)
-        if (req.body.isActive === undefined) {
-            req.body.isActive = true;
-        }
-        
-        // Ensure at least one image
-        if (!req.body.images || !Array.isArray(req.body.images) || req.body.images.length === 0) {
-            return res.status(400).json({ 
-                success: false,
-                message: 'At least one image is required' 
-            });
-        }
-        
-        // Set first image as primary
-        if (req.body.images && req.body.images.length > 0) {
-            req.body.images[0].isPrimary = true;
-        }
-        
-        const product = await Product.create(req.body);
-        
-        console.log(`✅ Product created successfully with ID: ${product.id}`);
-        console.log(`📦 Total products in database: ${await Product.count()}`);
-        
-        res.status(201).json({
-            success: true,
-            message: 'Product created successfully',
-            data: { product }
-        });
+        const productData = req.body;
+        const product = await Product.create(productData);
+        res.status(201).json({ success: true, data: product });
     } catch (error) {
-        console.error('❌ Create product error:', error);
-        console.error('❌ Error details:', error.message);
+        console.error('Create product error:', error);
         res.status(500).json({ 
             success: false,
             message: 'Server error',
@@ -280,17 +237,13 @@ app.post('/api/products', async (req, res) => {
 // Update product (Admin only)
 app.put('/api/products/:id', async (req, res) => {
     try {
-        const product = await Product.findByPk(req.params.id);
+        const product = await Product.update(req.body, {
+            where: { id: req.params.id }
+        });
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
-        
-        await product.update(req.body);
-        res.json({
-            success: true,
-            message: 'Product updated successfully',
-            data: { product }
-        });
+        res.json({ success: true, data: product });
     } catch (error) {
         console.error('Update product error:', error);
         res.status(500).json({ message: 'Server error' });
@@ -300,87 +253,11 @@ app.put('/api/products/:id', async (req, res) => {
 // Delete product (Admin only)
 app.delete('/api/products/:id', async (req, res) => {
     try {
-        const product = await Product.findByPk(req.params.id);
-        if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
-        }
-        
-        await product.destroy();
-        res.json({
-            success: true,
-            message: 'Product deleted successfully'
-        });
+        await Product.destroy({ where: { id: req.params.id } });
+        res.json({ success: true, message: 'Product deleted' });
     } catch (error) {
         console.error('Delete product error:', error);
         res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// Orders API
-app.get('/api/orders', async (req, res) => {
-    try {
-        const orders = await Order.findAll({
-            include: [{ model: User, as: 'user' }],
-            order: [['createdAt', 'DESC']]
-        });
-        
-        res.json({
-            success: true,
-            data: { orders }
-        });
-    } catch (error) {
-        console.error('Get orders error:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// Create order
-app.post('/api/orders', async (req, res) => {
-    try {
-        const order = await Order.create(req.body);
-        res.status(201).json({
-            success: true,
-            message: 'Order created successfully',
-            data: { order }
-        });
-    } catch (error) {
-        console.error('Create order error:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// Authentication routes
-app.post('/api/auth/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        
-        const user = await User.findOne({ where: { email } });
-        if (!user) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
-        }
-
-        // Simple password check (in production, use bcrypt)
-        if (user.password !== password) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
-        }
-
-        // Generate JWT token (simplified for demo)
-        const token = 'admin-token-' + Date.now();
-        
-        res.json({
-            success: true,
-            message: 'Login successful',
-            token,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
-        });
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
@@ -391,10 +268,21 @@ app.use('/api/admin', require('./routes/admin'));
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
     if (req.file) {
+      const imageResponse = buildImageResponse(req.file);
+      console.log('📸 Image uploaded:', imageResponse);
+      
+      if (!imageResponse || !imageResponse.url) {
+        console.error('❌ buildImageResponse did not return a valid URL');
+        return res.status(500).json({
+          success: false,
+          message: 'Upload succeeded but failed to generate URL'
+        });
+      }
+      
       return res.json({
         success: true,
         message: 'Image uploaded successfully',
-        data: buildImageResponse(req.file)
+        data: imageResponse
       });
     }
 
@@ -426,61 +314,14 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
       message: 'No image file or URL provided'
     });
   } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({
-      success: false,
-      message: `Upload failed: ${error.message}`
+    console.error('❌ Upload error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Upload failed', 
+      error: error.message 
     });
   }
 });
-
-// Handle favicon requests (prevent 404 locally)
-app.get('/favicon.ico', (req, res) => {
-  res.sendFile(path.join(__dirname, '../images/favicon.png'));
-});
-
-// Serve uploaded images with proper headers
-app.use('/images/uploads', express.static(path.join(__dirname, '../images/uploads'), {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
-            res.setHeader('Content-Type', 'image/jpeg');
-        } else if (filePath.endsWith('.png')) {
-            res.setHeader('Content-Type', 'image/png');
-        } else if (filePath.endsWith('.gif')) {
-            res.setHeader('Content-Type', 'image/gif');
-        } else if (filePath.endsWith('.webp')) {
-            res.setHeader('Content-Type', 'image/webp');
-        }
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-    }
-}));
-
-// Serve static images from root images directory
-app.use('/images', express.static(path.join(__dirname, '../images'), {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
-            res.setHeader('Content-Type', 'image/jpeg');
-        } else if (filePath.endsWith('.png')) {
-            res.setHeader('Content-Type', 'image/png');
-        } else if (filePath.endsWith('.gif')) {
-            res.setHeader('Content-Type', 'image/gif');
-        } else if (filePath.endsWith('.svg')) {
-            res.setHeader('Content-Type', 'image/svg+xml');
-        }
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-    }
-}));
-
-// Serve static files (CSS, JS) from root directory
-app.use(express.static(path.join(__dirname, '..'), {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
-        } else if (filePath.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
-        }
-    }
-}));
 
 // Serve frontend files - Root
 app.get('/', (req, res) => {
@@ -505,8 +346,6 @@ htmlPages.forEach(page => {
     });
 });
 
-// Also support .html URLs for backward compatibility
-
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({
@@ -516,47 +355,31 @@ app.use((req, res) => {
     });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Error:', err.stack);
-    res.status(err.status || 500).json({
-        success: false,
-        message: process.env.NODE_ENV === 'production' ? 'Something went wrong!' : err.message
-    });
-});
-
 // Initialize database and start server
 const startServer = async () => {
     try {
+        console.log('🚀 Starting server initialization...');
+        console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
+        console.log('🔌 Port:', PORT);
+        
+        // Sync database
         const dbConnected = await syncDatabase();
         if (!dbConnected) {
-            console.error('❌ Failed to connect to database');
+            console.error('❌ Failed to connect to database. Server will not start.');
             process.exit(1);
         }
-
-        // Create admin user if it doesn't exist
-        const adminExists = await User.findOne({ where: { email: 'admin@goldensource.com' } });
-        if (!adminExists) {
-            await User.create({
-                name: 'Admin User',
-                email: 'admin@goldensource.com',
-                password: process.env.ADMIN_PASSWORD || 'SecureAdmin2024!',
-                role: 'admin',
-                phone: process.env.ADMIN_PHONE || '+254 724 369 971'
-            });
-            console.log('✅ Admin user created');
-        }
-
-        // No automatic product seeding - products should be added via admin panel
-        const productCount = await Product.count();
-        console.log(`📦 Database initialized with ${productCount} existing products`);
-
+        
+        console.log('✅ Database connection established');
+        
+        // Start server
         app.listen(PORT, () => {
             console.log('🚀 Server running on port', PORT);
             console.log('📱 Frontend: http://localhost:' + PORT);
             console.log('🔧 API: http://localhost:' + PORT + '/api');
             console.log('💚 Health Check: http://localhost:' + PORT + '/api/health');
-            console.log('🗄️ Database: SQLite (file-based)');
+            const dbType = getDatabaseType();
+            console.log(`🗄️ Database: ${dbType}`);
+            console.log('🎉 Data persistence: PERMANENT (cloud storage)');
         });
     } catch (error) {
         console.error('❌ Server startup error:', error);
@@ -566,4 +389,12 @@ const startServer = async () => {
 
 startServer();
 
-module.exports = app;
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(err.status || 500).json({
+        success: false,
+        message: process.env.NODE_ENV === 'production' ? 'Something went wrong!' : err.message
+    });
+});
+

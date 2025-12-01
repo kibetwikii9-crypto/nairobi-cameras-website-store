@@ -137,3 +137,6 @@ Use tools like:
 - Lighthouse (Chrome DevTools)
 - WebPageTest
 
+
+
+
