@@ -13,8 +13,9 @@ class APIClient {
 
   // Fetch products from API with improved error handling and caching
   async getProducts(category = null, limit = null, featured = null) {
+    let url = null; // Declare outside try block to access in catch
     try {
-      let url = `${this.baseURL}/products`;
+      url = `${this.baseURL}/products`;
       const params = new URLSearchParams();
       if (category) {
         params.append('category', category);
@@ -79,7 +80,9 @@ class APIClient {
           }
         } finally {
           // Remove from pending requests
-          this.pendingRequests.delete(url);
+          if (url) {
+            this.pendingRequests.delete(url);
+          }
         }
       })();
       
@@ -88,8 +91,10 @@ class APIClient {
       
       return await requestPromise;
     } catch (error) {
-      // Remove from pending requests on error
-      this.pendingRequests.delete(url);
+      // Remove from pending requests on error (safely check if url exists)
+      if (url) {
+        this.pendingRequests.delete(url);
+      }
       
       if (error.name === 'AbortError') {
         console.error('❌ Request timeout - server may be down');
