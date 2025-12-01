@@ -1754,71 +1754,269 @@
     }
     
     /* ========================================================================
-       Modern Mobile Cart Page Design
+       Mobile Cart Items - Horizontal Row Layout (Thin Rod Style)
        ===================================================================== */
     
-    /* PROTECTION LAYER SUMMARY:
-       ========================
-       1. Maximum CSS Specificity: All cart styles use multiple selector levels
-          (body .mobile-shell .mobile-cart-page) to ensure they override old styles
-       2. !important Flags: Critical properties use !important to prevent overrides
-       3. Old Style Neutralization: style.css cart styles are scoped to desktop-only
-       4. Media Query Isolation: All mobile cart styles are within @media (max-width: 991px)
-       5. Desktop Shell Hiding: Desktop shell is completely hidden on mobile
-       6. Background Protection: Multiple layers prevent gradient/background conflicts
-       
-       These protections ensure our new cart design remains intact and old styles
-       cannot interfere with the mobile cart page.
-    */
+    /* Cart Items Container */
+    #cartItemsMobile {
+        padding: 1rem;
+        padding-bottom: 0;
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 0;
+    }
     
-    /* CRITICAL: Override ALL old cart styles from style.css - Maximum Specificity */
-    @media (max-width: 991px) {
-        /* Override old cart-container styles */
-        .mobile-cart-page,
-        .mobile-shell .mobile-cart-page,
-        body .mobile-shell .mobile-cart-page {
-            /* Padding will be set dynamically by JavaScript based on actual header heights */
-            /* Fallback: 120px (slightly more for cart page) */
-            padding-top: var(--mobile-header-height, 120px) !important;
-            padding-bottom: 400px !important;
-            background: #ffffff !important;
-            background-color: #ffffff !important;
-            background-image: none !important;
-            min-height: 100vh !important;
-            position: relative !important;
-            z-index: 1 !important;
-            margin: 0 !important;
-            margin-top: 0 !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            overflow-y: visible !important;
-            overflow-x: hidden !important;
+    /* Remove extra spacing on cart page */
+    .mobile-category:has(#cartItemsMobile) {
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+    
+    /* Footer spacing - should be after summary wrapper, not cart items */
+    .mobile-cart-summary-wrapper + .mobile-footer {
+        margin-top: 0 !important;
+    }
+    
+    /* Remove footer margin-top on cart page when summary is present */
+    .mobile-category:has(#cartItemsMobile) ~ .mobile-cart-summary-wrapper ~ .mobile-footer {
+        margin-top: 0 !important;
+    }
+    
+    /* Ensure card-grid doesn't interfere with cart items */
+    #cartItemsMobile.card-grid {
+        display: block;
+        grid-template-columns: none;
+        gap: 0;
+    }
+    
+    /* Cart Item - Horizontal Row Layout */
+    #cartItemsMobile .cart-item-enhanced {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        min-height: 80px;
+    }
+    
+    /* Remove margin from last cart item - no space before footer */
+    #cartItemsMobile .cart-item-enhanced:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Cart Item Image - Compact */
+    #cartItemsMobile .item-image-enhanced {
+        width: 70px;
+        height: 70px;
+        min-width: 70px;
+        flex-shrink: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+    
+    #cartItemsMobile .item-image-enhanced img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    
+    /* Cart Item Info - Takes remaining space */
+    #cartItemsMobile .item-info-enhanced {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        overflow: hidden;
+    }
+    
+    /* Product Name - Single line, truncated */
+    #cartItemsMobile .item-name-enhanced {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Price Row - Unit price and total side by side */
+    #cartItemsMobile .item-price-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin: 0;
+    }
+    
+    #cartItemsMobile .item-price-enhanced {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin: 0;
+        white-space: nowrap;
+    }
+    
+    #cartItemsMobile .item-total-enhanced {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #e90100;
+        margin: 0;
+        white-space: nowrap;
+    }
+    
+    /* Actions Row - Quantity controls and remove button */
+    #cartItemsMobile .item-actions-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin: 0;
+    }
+    
+    /* Quantity Controls - Compact */
+    #cartItemsMobile .quantity-enhanced {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 0.25rem;
+    }
+    
+    #cartItemsMobile .qty-btn-enhanced {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        border: none;
+        background: #ffffff;
+        color: #374151;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    #cartItemsMobile .qty-btn-enhanced:active {
+        background: #e90100;
+        color: #ffffff;
+        transform: scale(0.95);
+    }
+    
+    #cartItemsMobile .qty-value-enhanced {
+        min-width: 20px;
+        text-align: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+    
+    /* Remove Button - Compact */
+    #cartItemsMobile .remove-btn-enhanced {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        border: none;
+        background: #fee2e2;
+        color: #dc2626;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+    
+    #cartItemsMobile .remove-btn-enhanced:active {
+        background: #dc2626;
+        color: #ffffff;
+        transform: scale(0.95);
+    }
+    
+    /* Empty Cart State */
+    #cartItemsMobile .empty-cart {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: #6b7280;
+    }
+    
+    /* Responsive adjustments for very small screens */
+    @media (max-width: 360px) {
+        #cartItemsMobile .item-image-enhanced {
+            width: 60px;
+            height: 60px;
+            min-width: 60px;
         }
         
-        /* Override old cart-header styles */
-        .mobile-cart-header,
-        .mobile-shell .mobile-cart-header,
-        body .mobile-shell .mobile-cart-header {
-            background: linear-gradient(135deg, #e90100, #ff5c60) !important;
-            background-color: transparent !important;
-            background-image: none !important;
-            padding: 1.5rem 1rem !important;
-            margin: 0 !important;
-            margin-top: 0 !important;
-            margin-bottom: 1rem !important;
-            box-shadow: 0 2px 8px rgba(233, 1, 0, 0.2) !important;
-            border-radius: 0 !important;
-            border: none !important;
-            position: relative !important;
-            z-index: 5 !important;
+        #cartItemsMobile .item-name-enhanced {
+            font-size: 0.85rem;
         }
         
-        /* Override old cart-title styles */
-        .cart-page-title,
-        .mobile-cart-header .cart-page-title,
-        .mobile-shell .cart-page-title,
-        body .mobile-shell .cart-page-title {
-            font-size: 1.5rem !important;
+        #cartItemsMobile .item-price-enhanced {
+            font-size: 0.75rem;
+        }
+        
+        #cartItemsMobile .item-total-enhanced {
+            font-size: 0.9rem;
+        }
+        
+        #cartItemsMobile .qty-btn-enhanced {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+        }
+        
+        #cartItemsMobile .remove-btn-enhanced {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+        }
+    }
+    
+    /* ========================================================================
+       Modern Footer Design
+       ===================================================================== */
+    
+    .mobile-footer {
+        background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+        color: #ffffff;
+        padding: 0;
+        margin-top: 3rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Footer on cart page - ensure it's visible and properly spaced */
+    .mobile-shell:has(#cartItemsMobile) .mobile-footer,
+    .mobile-cart-page ~ .mobile-footer,
+    .mobile-cart-summary-wrapper ~ .mobile-footer {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin-top: 0 !important;
+    }
+    
+    .footer-container {
+        display: block;
+        padding: 3rem 1.5rem 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
             font-weight: 700 !important;
             color: #ffffff !important;
             margin: 0 !important;
@@ -1851,7 +2049,7 @@
             padding-bottom: 2rem !important;
             margin: 0 !important;
             margin-top: 0 !important;
-            margin-bottom: 400px !important;
+            margin-bottom: 0 !important;
             background: transparent !important;
             background-color: transparent !important;
             border-radius: 0 !important;
@@ -1901,7 +2099,7 @@
         /* Padding will be set dynamically by JavaScript based on actual header heights */
         /* Fallback: 120px (slightly more for cart page) */
         padding-top: var(--mobile-header-height, 120px) !important;
-        padding-bottom: 400px !important; /* Increased to ensure checkout is accessible */
+        padding-bottom: 0 !important; /* No extra padding - summary is in normal flow */
         background: #ffffff !important;
         min-height: 100vh;
         position: relative;
@@ -1935,7 +2133,7 @@
         padding-top: 1rem !important;
         padding-bottom: 2rem !important;
         margin-top: 0 !important;
-        margin-bottom: 400px !important;
+        margin-bottom: 0 !important;
         box-sizing: border-box !important;
         overflow: visible !important;
         height: auto !important;
@@ -1954,11 +2152,7 @@
         padding-bottom: 2rem !important;
     }
     
-    /* When summary wrapper is visible, ensure proper spacing */
-    .mobile-cart-page:has(.mobile-cart-summary-wrapper[style*="display: block"]),
-    .mobile-cart-page:has(.mobile-cart-summary-wrapper[style*="display: flex"]) {
-        padding-bottom: 250px !important;
-    }
+    /* Summary wrapper is now in normal flow, no extra padding needed */
     
     /* ========================================================================
        CRITICAL: Final Protection Layer - Prevent ANY old styles from affecting mobile cart
@@ -2125,8 +2319,9 @@
         padding-bottom: 2rem !important; /* Extra padding at bottom */
         margin: 0 !important;
         margin-top: 0 !important;
-        margin-bottom: 400px !important; /* Extra space to prevent items from being hidden behind fixed footer (summary + footer) */
+        margin-bottom: 0 !important; /* Extra space to prevent items from being hidden behind fixed footer (summary + footer) */
         background: transparent !important;
+        background-color: transparent !important;
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
@@ -2137,10 +2332,13 @@
         z-index: 10 !important;
         box-sizing: border-box !important;
         overflow: visible !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
         height: auto !important;
+        max-height: none !important;
     }
     
-    /* Ensure cart items are visible inside the container */
+    /* Ensure cart items are visible inside the container - Enhanced for cart page */
     #cartItemsMobile > .cart-item-enhanced,
     .mobile-cart-items-container > .cart-item-enhanced,
     #cartItemsMobile .cart-item-enhanced,
@@ -2150,6 +2348,14 @@
         opacity: 1 !important;
         position: relative !important;
         z-index: 1 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: 100px !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        margin-bottom: 1rem !important;
     }
     
     /* Force padding on cart items container - maximum specificity */
@@ -2161,7 +2367,7 @@
         padding-right: 1rem !important;
         padding-top: 1rem !important;
         padding-bottom: 2rem !important;
-        margin-bottom: 400px !important;
+        margin-bottom: 0 !important;
     }
     
     /* Cart Item Card - Optimized Mobile Layout */
@@ -2273,10 +2479,15 @@
         flex-shrink: 0 !important;
     }
     
-    .mobile-cart-items-container .qty-btn-enhanced {
+    .mobile-cart-items-container .qty-btn-enhanced,
+    #cartItemsMobile .qty-btn-enhanced {
         width: 32px !important;
         height: 32px !important;
         min-width: 32px !important;
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        z-index: 10 !important;
+        position: relative !important;
         border: none !important;
         background: #ffffff !important;
         color: #000000 !important; /* Pure black for better visibility */
@@ -2314,10 +2525,15 @@
         color: #000000 !important; /* Pure black for better visibility */
     }
     
-    .mobile-cart-items-container .remove-btn-enhanced {
+    .mobile-cart-items-container .remove-btn-enhanced,
+    #cartItemsMobile .remove-btn-enhanced {
         background: transparent !important;
         border: none !important;
         color: #666 !important; /* Darker for better visibility */
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        z-index: 10 !important;
+        position: relative !important;
         font-size: 1.1rem !important;
         padding: 0.5rem !important;
         cursor: pointer !important;
@@ -2404,21 +2620,16 @@
         box-shadow: 0 2px 6px rgba(233, 1, 0, 0.2) !important;
     }
     
-    /* Cart Summary Wrapper - Fixed container for summary + footer */
+    /* Cart Summary Wrapper - Normal flow between items and footer */
     .mobile-cart-summary-wrapper {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        z-index: 200 !important;
+        position: relative !important;
+        width: 100% !important;
         background: transparent !important;
-        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1) !important;
         display: flex !important;
         flex-direction: column !important;
-        max-height: 85vh !important;
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        pointer-events: auto !important; /* Allow interaction with footer */
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding: 0 !important;
     }
     
     /* Ensure cart items are scrollable and visible above the fixed footer */
@@ -2447,18 +2658,45 @@
         height: auto !important;
     }
     
-    /* Add extra margin to cart items container to ensure items aren't hidden behind fixed footer */
+    /* Cart items container - normal spacing */
     .mobile-cart-page .mobile-cart-items-container,
     .mobile-cart-page #cartItemsMobile {
-        margin-bottom: 400px !important; /* Space for summary + footer */
-        padding-bottom: 2rem !important; /* Extra padding at bottom */
-        padding-top: 1rem !important; /* Top padding for visibility */
-        min-height: 200px !important; /* Ensure container has height */
+        margin-bottom: 0 !important;
+        padding-bottom: 1rem !important;
+        padding-top: 1rem !important;
+        min-height: 200px !important;
+    }
+    
+    /* Ensure proper spacing between cart items and summary */
+    .mobile-cart-page .mobile-category {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    /* Ensure summary wrapper has proper spacing */
+    .mobile-cart-summary-wrapper {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
     
     /* CRITICAL: Ensure cart items are visible and not hidden */
+    /* Cart page specific - Maximum specificity to ensure visibility */
+    .mobile-cart-page #cartItemsMobile,
+    .mobile-cart-page .mobile-cart-items-container,
+    main.mobile-cart-page #cartItemsMobile,
+    main.mobile-cart-page .mobile-cart-items-container {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
+        min-height: 200px !important;
+        overflow: visible !important;
+    }
+    
     .mobile-cart-page #cartItemsMobile .cart-item-enhanced,
-    .mobile-cart-page .mobile-cart-items-container .cart-item-enhanced {
+    .mobile-cart-page .mobile-cart-items-container .cart-item-enhanced,
+    main.mobile-cart-page #cartItemsMobile .cart-item-enhanced,
+    main.mobile-cart-page .mobile-cart-items-container .cart-item-enhanced {
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
@@ -2468,14 +2706,18 @@
         margin-bottom: 1rem !important;
     }
     
-    /* Cart Summary - Inside fixed wrapper */
+    /* Cart Summary - Normal flow */
     .mobile-cart-summary {
         background: #ffffff !important;
-        border-top: 1px solid #e5e5e5 !important;
-        padding: 1.25rem 1rem !important;
+        border-top: 2px solid #e5e5e5 !important;
+        border-bottom: 1px solid #e5e5e5 !important;
+        padding: 1.5rem 1rem !important;
         border-radius: 0 !important;
         backdrop-filter: none !important;
         flex-shrink: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
     
     /* Footer inside fixed wrapper - scrolls with summary */
@@ -2496,10 +2738,7 @@
         padding: 3rem 1.5rem 2rem !important;
     }
     
-    /* Hide standalone footer when cart footer is present */
-    .mobile-cart-page ~ .mobile-footer:not(.mobile-cart-footer) {
-        display: none !important;
-    }
+    /* Footer should be visible on cart page - no hiding needed */
     
     .summary-header {
         margin-bottom: 1rem;
@@ -2608,6 +2847,58 @@
     
     .secure-payment-note i {
         color: #10b981 !important;
+    }
+    
+    /* Payment Methods Mobile */
+    .payment-methods-mobile {
+        margin-top: 1rem !important;
+        padding-top: 1rem !important;
+        border-top: 1px solid #e5e5e5 !important;
+    }
+    
+    .payment-label-mobile {
+        font-size: 0.85rem !important;
+        color: #555 !important;
+        font-weight: 600 !important;
+        text-align: center !important;
+        margin: 0 0 0.75rem 0 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    .payment-icons-mobile {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 1rem !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .payment-icon-mobile {
+        width: 50px !important;
+        height: 50px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: #f8f9fa !important;
+        border: 1px solid #e5e5e5 !important;
+        border-radius: 8px !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .payment-icon-mobile:hover {
+        background: #e9ecef !important;
+        border-color: #e90100 !important;
+        transform: translateY(-2px) !important;
+    }
+    
+    .payment-icon-mobile i {
+        font-size: 1.5rem !important;
+        color: #555 !important;
+    }
+    
+    .payment-icon-mobile:hover i {
+        color: #e90100 !important;
     }
     
     /* Responsive adjustments for very small screens */

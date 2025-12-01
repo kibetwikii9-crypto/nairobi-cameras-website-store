@@ -130,19 +130,33 @@ class CartManager {
 
     // Remove item from cart
     removeFromCart(productId) {
-        const item = this.cart.find(item => item.id === productId);
+        // Handle both string and number IDs
+        const productIdStr = String(productId);
+        const productIdNum = Number(productId);
+        
+        // Try to find item by string ID first, then number ID
+        const item = this.cart.find(item => String(item.id) === productIdStr || Number(item.id) === productIdNum);
+        
         if (item) {
-            this.cart = this.cart.filter(item => item.id !== productId);
+            this.cart = this.cart.filter(item => String(item.id) !== productIdStr && Number(item.id) !== productIdNum);
             this.saveCart();
             this.updateCartDisplay();
             this.showNotification(`${item.name} removed from cart`, 'info');
             this.trackEvent('cart:remove', { productId });
+        } else {
+            console.warn('⚠️ Item not found in cart for removal:', productId, 'Cart items:', this.cart);
         }
     }
 
     // Update item quantity
     updateQuantity(productId, quantity) {
-        const item = this.cart.find(item => item.id === productId);
+        // Handle both string and number IDs
+        const productIdStr = String(productId);
+        const productIdNum = Number(productId);
+        
+        // Try to find item by string ID first, then number ID
+        let item = this.cart.find(item => String(item.id) === productIdStr || Number(item.id) === productIdNum);
+        
         if (item) {
             if (quantity <= 0) {
                 this.removeFromCart(productId);
@@ -152,6 +166,8 @@ class CartManager {
                 this.updateCartDisplay();
                 this.trackEvent('cart:updateQuantity', { productId, quantity });
             }
+        } else {
+            console.warn('⚠️ Item not found in cart:', productId, 'Cart items:', this.cart);
         }
     }
 
@@ -218,11 +234,21 @@ class CartManager {
                 emptyCart = document.getElementById('emptyCartMobile');
             }
         }
-        const productAmount = document.getElementById('productAmount') || document.getElementById('productAmountMobile');
-        const deliveryFee = document.getElementById('deliveryFee') || document.getElementById('deliveryFeeMobile');
-        const taxAmount = document.getElementById('taxAmount') || document.getElementById('taxAmountMobile');
-        const totalAmount = document.getElementById('totalAmount') || document.getElementById('totalAmountMobile');
-        const checkoutBtn = document.getElementById('checkoutBtn') || document.getElementById('checkoutBtnMobile');
+        // Get summary elements - prioritize mobile on mobile view, desktop on desktop
+        let productAmount, deliveryFee, taxAmount, totalAmount, checkoutBtn;
+        if (isMobileView) {
+            productAmount = document.getElementById('productAmountMobile') || document.getElementById('productAmount');
+            deliveryFee = document.getElementById('deliveryFeeMobile') || document.getElementById('deliveryFee');
+            taxAmount = document.getElementById('taxAmountMobile') || document.getElementById('taxAmount');
+            totalAmount = document.getElementById('totalAmountMobile') || document.getElementById('totalAmount');
+            checkoutBtn = document.getElementById('checkoutBtnMobile') || document.getElementById('checkoutBtn');
+        } else {
+            productAmount = document.getElementById('productAmount') || document.getElementById('productAmountMobile');
+            deliveryFee = document.getElementById('deliveryFee') || document.getElementById('deliveryFeeMobile');
+            taxAmount = document.getElementById('taxAmount') || document.getElementById('taxAmountMobile');
+            totalAmount = document.getElementById('totalAmount') || document.getElementById('totalAmountMobile');
+            checkoutBtn = document.getElementById('checkoutBtn') || document.getElementById('checkoutBtnMobile');
+        }
         const freeDeliveryMessage = document.getElementById('freeDeliveryMessage');
         const freeDeliveryPercent = document.getElementById('freeDeliveryPercent');
         const freeDeliveryProgress = document.getElementById('freeDeliveryProgress');
@@ -257,37 +283,41 @@ class CartManager {
                 checkoutBtn.disabled = true;
                 const isMobile = checkoutBtn.id === 'checkoutBtnMobile';
                 checkoutBtn.innerHTML = isMobile 
-                    ? '<i class="fas fa-lock"></i>Cart is Empty'
-                    : '<i class="fas fa-lock me-2"></i>Cart is Empty';
+                    ? '<i class="fas fa-shopping-cart"></i>Cart is Empty'
+                    : '<i class="fas fa-shopping-cart me-2"></i>Cart is Empty';
             }
-            // Hide summary wrapper when cart is empty
-            const cartSummary = document.getElementById('mobileCartSummary');
-            const cartSummaryWrapper = document.querySelector('.mobile-cart-summary-wrapper');
-            if (cartSummary) {
-                cartSummary.style.display = 'none';
-            }
-            if (cartSummaryWrapper) {
-                cartSummaryWrapper.style.display = 'none';
+            // Hide summary wrapper when cart is empty (mobile only)
+            if (isMobileView) {
+                const cartSummary = document.getElementById('mobileCartSummary');
+                const cartSummaryWrapper = document.getElementById('mobileCartSummaryWrapper');
+                if (cartSummary) {
+                    cartSummary.style.display = 'none';
+                }
+                if (cartSummaryWrapper) {
+                    cartSummaryWrapper.style.display = 'none';
+                }
             }
             return;
         }
 
         if (emptyCart) emptyCart.style.display = 'none';
         
-        // Show summary wrapper when cart has items
-        const cartSummary = document.getElementById('mobileCartSummary');
-        const cartSummaryWrapper = document.querySelector('.mobile-cart-summary-wrapper');
-        if (cartSummary) {
-            cartSummary.style.display = 'flex';
-        }
-        if (cartSummaryWrapper) {
-            cartSummaryWrapper.style.display = 'flex';
+        // Show summary wrapper when cart has items (mobile only)
+        if (isMobileView) {
+            const cartSummary = document.getElementById('mobileCartSummary');
+            const cartSummaryWrapper = document.getElementById('mobileCartSummaryWrapper');
+            if (cartSummary) {
+                cartSummary.style.display = 'block';
+            }
+            if (cartSummaryWrapper) {
+                cartSummaryWrapper.style.display = 'flex';
+            }
         }
         if (checkoutBtn) {
             checkoutBtn.disabled = false;
             const isMobile = checkoutBtn.id === 'checkoutBtnMobile';
             checkoutBtn.innerHTML = isMobile 
-                ? '<i class="fas fa-lock"></i>Proceed to Checkout'
+                ? '<i class="fas fa-credit-card"></i>Proceed to Checkout'
                 : '<i class="fas fa-credit-card me-2"></i>Proceed to Checkout';
         }
 
@@ -319,15 +349,15 @@ class CartManager {
                             </div>
                             <div class="item-actions-row">
                                 <div class="quantity-enhanced">
-                                    <button class="qty-btn-enhanced" onclick="cartManager.updateQuantity('${item.id}', ${item.quantity - 1})">
+                                    <button class="qty-btn-enhanced" onclick="window.cartManager.updateQuantity('${item.id}', ${item.quantity - 1})" type="button">
                                         <i class="fas fa-minus"></i>
                                     </button>
                                     <span class="qty-value-enhanced">${item.quantity}</span>
-                                    <button class="qty-btn-enhanced" onclick="cartManager.updateQuantity('${item.id}', ${item.quantity + 1})">
+                                    <button class="qty-btn-enhanced" onclick="window.cartManager.updateQuantity('${item.id}', ${item.quantity + 1})" type="button">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
-                                <button class="remove-btn-enhanced" onclick="cartManager.removeFromCart('${item.id}')" title="Remove Item">
+                                <button class="remove-btn-enhanced" onclick="window.cartManager.removeFromCart('${item.id}')" title="Remove Item" type="button">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -347,16 +377,16 @@ class CartManager {
                             <div class="item-price-enhanced">KSh ${item.price.toLocaleString()}</div>
                         </div>
                         <div class="quantity-enhanced">
-                            <button class="qty-btn-enhanced" onclick="cartManager.updateQuantity('${item.id}', ${item.quantity - 1})">
+                            <button class="qty-btn-enhanced" onclick="window.cartManager.updateQuantity('${item.id}', ${item.quantity - 1})" type="button">
                                 <i class="fas fa-minus"></i>
                             </button>
                             <span class="qty-value-enhanced">${item.quantity}</span>
-                            <button class="qty-btn-enhanced" onclick="cartManager.updateQuantity('${item.id}', ${item.quantity + 1})">
+                            <button class="qty-btn-enhanced" onclick="window.cartManager.updateQuantity('${item.id}', ${item.quantity + 1})" type="button">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
                         <div class="item-total-enhanced">KSh ${(item.price * item.quantity).toLocaleString()}</div>
-                        <button class="remove-btn-enhanced" onclick="cartManager.removeFromCart('${item.id}')" title="Remove Item">
+                        <button class="remove-btn-enhanced" onclick="window.cartManager.removeFromCart('${item.id}')" title="Remove Item" type="button">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -368,17 +398,39 @@ class CartManager {
         console.log('🛒 Setting innerHTML to cartItems container');
         cartItems.innerHTML = cartItemsHTML;
         
-        // Force visibility and padding via inline styles as fallback
+        // Force visibility and padding via inline styles as fallback - Enhanced for cart page
         if (isMobile) {
             cartItems.style.paddingLeft = '1rem';
             cartItems.style.paddingRight = '1rem';
+            cartItems.style.paddingTop = '1rem';
             cartItems.style.display = 'block';
             cartItems.style.visibility = 'visible';
             cartItems.style.opacity = '1';
+            cartItems.style.height = 'auto';
+            cartItems.style.maxHeight = 'none';
+            cartItems.style.overflow = 'visible';
+            cartItems.style.position = 'relative';
+            cartItems.style.zIndex = '1';
+            cartItems.style.marginBottom = '0'; // No extra margin needed - summary is in flow
             console.log('🛒 Applied inline styles to mobile cart container');
         }
         
         console.log('🛒 Cart items HTML set. Container now has', cartItems.children.length, 'children');
+        
+        // Force visibility on all cart items - Critical for cart page
+        if (isMobile && cartItems.children.length > 0) {
+            Array.from(cartItems.children).forEach((child, index) => {
+                if (child.classList.contains('cart-item-enhanced')) {
+                    child.style.display = 'flex';
+                    child.style.visibility = 'visible';
+                    child.style.opacity = '1';
+                    child.style.position = 'relative';
+                    child.style.zIndex = '1';
+                    child.style.marginBottom = '1rem';
+                    console.log(`🛒 Forced visibility on cart item ${index + 1}`);
+                }
+            });
+        }
         
         // Verify items are visible
         const firstItem = cartItems.querySelector('.cart-item-enhanced');
@@ -776,9 +828,8 @@ class CartManager {
     }
 }
 
-// Global cart manager instance
+// Global cart manager instance (created once)
 const cartManager = new CartManager();
-window.cartManager = cartManager;
 
 // Global functions for HTML onclick calls
 function addToCart(productId, productName, price, image) {
@@ -1003,13 +1054,67 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Event delegation for cart buttons (more reliable than inline onclick)
+document.addEventListener('click', function(e) {
+    // Handle quantity decrease button
+    if (e.target.closest('.qty-btn-enhanced')) {
+        const button = e.target.closest('.qty-btn-enhanced');
+        const cartItem = button.closest('.cart-item-enhanced');
+        if (cartItem && window.cartManager) {
+            const productId = cartItem.getAttribute('data-product-id');
+            if (productId) {
+                // Check if it's plus or minus button
+                const isPlus = button.querySelector('.fa-plus') || button.innerHTML.includes('fa-plus');
+                const isMinus = button.querySelector('.fa-minus') || button.innerHTML.includes('fa-minus');
+                
+                if (isPlus) {
+                    // Find current quantity
+                    const qtySpan = cartItem.querySelector('.qty-value-enhanced');
+                    const currentQty = qtySpan ? parseInt(qtySpan.textContent) || 1 : 1;
+                    window.cartManager.updateQuantity(productId, currentQty + 1);
+                } else if (isMinus) {
+                    // Find current quantity
+                    const qtySpan = cartItem.querySelector('.qty-value-enhanced');
+                    const currentQty = qtySpan ? parseInt(qtySpan.textContent) || 1 : 1;
+                    window.cartManager.updateQuantity(productId, currentQty - 1);
+                }
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+    }
+    
+    // Handle remove/delete button
+    if (e.target.closest('.remove-btn-enhanced')) {
+        const button = e.target.closest('.remove-btn-enhanced');
+        const cartItem = button.closest('.cart-item-enhanced');
+        if (cartItem && window.cartManager) {
+            const productId = cartItem.getAttribute('data-product-id');
+            if (productId) {
+                window.cartManager.removeFromCart(productId);
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+    }
+});
+
 // Initialize cart when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🛒 Cart system initialized');
     if (window.cartManager) {
         window.cartManager.updateCartBadge();
         // Also update cart display if on cart page
-        window.cartManager.updateCartDisplay();
+        const isCartPage = window.location.pathname.includes('/cart') || window.location.pathname.includes('cart.html');
+        if (isCartPage) {
+            console.log('🛒 Cart page detected, forcing cart display update');
+            // Force update multiple times to ensure it works
+            window.cartManager.updateCartDisplay();
+            setTimeout(() => window.cartManager.updateCartDisplay(), 100);
+            setTimeout(() => window.cartManager.updateCartDisplay(), 500);
+        } else {
+            window.cartManager.updateCartDisplay();
+        }
     }
 });
 
