@@ -592,7 +592,34 @@ app.post('/api/products', async (req, res) => {
         const stateBefore = await recordDatabaseState(Product, User, Order, getDatabasePath());
         const productCountBefore = stateBefore ? stateBefore.productCount : await Product.count();
         
-        const product = await Product.create(req.body);
+        // Prepare product data for Supabase (ensure camelCase columns are properly formatted)
+        const productData = {
+            name: req.body.name,
+            description: req.body.description || null,
+            price: parseFloat(req.body.price),
+            originalPrice: req.body.originalPrice ? parseFloat(req.body.originalPrice) : null,
+            category: req.body.category,
+            brand: req.body.brand || null,
+            model: req.body.model || null,
+            stock: parseInt(req.body.stock) || 0,
+            isActive: req.body.isActive !== undefined ? req.body.isActive : true,
+            isFeatured: req.body.isFeatured || false,
+            images: Array.isArray(req.body.images) ? req.body.images : [],
+            specifications: req.body.specifications || {}
+        };
+        
+        console.log('📦 Prepared product data for Supabase:', JSON.stringify(productData, null, 2));
+        
+        const product = await Product.create(productData);
+        
+        // Check if product was actually created
+        if (!product || !product.id) {
+            console.error('🚨 CRITICAL: Product.create returned null or no ID!');
+            console.error('🚨 Product result:', product);
+            throw new Error('Product creation returned no data. Check Supabase logs for details.');
+        }
+        
+        console.log('✅ Product created with ID:', product.id);
         
         // Record state AFTER creation
         const stateAfter = await recordDatabaseState(Product, User, Order, getDatabasePath());
