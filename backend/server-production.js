@@ -636,9 +636,13 @@ app.post('/api/products', async (req, res) => {
         console.error('❌ Create product error:', error);
         console.error('❌ Error details:', error.message);
         console.error('❌ Error stack:', error.stack);
-        res.status(500).json({ 
+        console.error('❌ Error code:', error.code);
+        console.error('❌ Error details:', error.details);
+        console.error('❌ Error hint:', error.hint);
+        // Return 200 with error message instead of 500 to prevent admin panel breakage
+        res.status(200).json({ 
             success: false,
-            message: 'Server error',
+            message: 'Failed to create product',
             error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
         });
     }
@@ -659,8 +663,15 @@ app.put('/api/products/:id', async (req, res) => {
             data: { product }
         });
     } catch (error) {
-        console.error('Update product error:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('❌ Update product error:', error);
+        console.error('❌ Error details:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        // Return 200 with error message instead of 500 to prevent admin panel breakage
+        res.status(200).json({ 
+            success: false,
+            message: 'Failed to update product',
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        });
     }
 });
 
@@ -678,8 +689,15 @@ app.delete('/api/products/:id', async (req, res) => {
             message: 'Product deleted successfully'
         });
     } catch (error) {
-        console.error('Delete product error:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('❌ Delete product error:', error);
+        console.error('❌ Error details:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        // Return 200 with error message instead of 500 to prevent admin panel breakage
+        res.status(200).json({ 
+            success: false,
+            message: 'Failed to delete product',
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        });
     }
 });
 
