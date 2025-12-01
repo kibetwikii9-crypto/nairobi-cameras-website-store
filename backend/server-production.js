@@ -714,15 +714,27 @@ app.put('/api/products/:id', async (req, res) => {
 // Delete product (Admin only)
 app.delete('/api/products/:id', async (req, res) => {
     try {
-        const product = await Product.findByPk(req.params.id);
+        const productId = req.params.id;
+        console.log('🗑️ Deleting product with ID:', productId);
+        
+        // Check if product exists first
+        const product = await Product.findByPk(productId);
         if (!product) {
+            console.log('⚠️ Product not found:', productId);
             return res.status(200).json({ 
                 success: false,
                 message: 'Product not found' 
             });
         }
         
-        await product.destroy();
+        console.log('📦 Product found, deleting:', product.id);
+        
+        // Delete using the Supabase adapter's destroy method
+        // The adapter expects options.where.id
+        await Product.destroy({ where: { id: productId } });
+        
+        console.log('✅ Product deleted successfully:', productId);
+        
         res.json({
             success: true,
             message: 'Product deleted successfully'
@@ -731,6 +743,7 @@ app.delete('/api/products/:id', async (req, res) => {
         console.error('❌ Delete product error:', error);
         console.error('❌ Error details:', error.message);
         console.error('❌ Error stack:', error.stack);
+        console.error('❌ Error code:', error.code);
         // Return 200 with error message instead of 500 to prevent admin panel breakage
         res.status(200).json({ 
             success: false,
