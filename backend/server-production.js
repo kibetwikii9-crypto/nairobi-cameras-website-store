@@ -1004,11 +1004,42 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err.stack);
+    console.error('❌ Unhandled error:', err);
+    console.error('❌ Error stack:', err.stack);
+    console.error('❌ Request path:', req.path);
+    
+    // For /api/products, always return 200 with empty products to prevent frontend breakage
+    if (req.path === '/api/products' || req.path.startsWith('/api/products?')) {
+        return res.status(200).json({
+            success: true,
+            data: {
+                products: [],
+                pagination: {
+                    currentPage: 1,
+                    totalPages: 0,
+                    totalProducts: 0
+                }
+            }
+        });
+    }
+    
     res.status(err.status || 500).json({
         success: false,
         message: process.env.NODE_ENV === 'production' ? 'Something went wrong!' : err.message
     });
+});
+
+// Global error handlers for unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled Rejection at:', promise);
+    console.error('❌ Reason:', reason);
+    // Don't exit the process, just log the error
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+    console.error('❌ Error stack:', error.stack);
+    // Don't exit the process, just log the error
 });
 
 // Initialize database and start server
