@@ -639,11 +639,20 @@ app.post('/api/products', async (req, res) => {
         console.error('❌ Error code:', error.code);
         console.error('❌ Error details:', error.details);
         console.error('❌ Error hint:', error.hint);
-        // Return 200 with error message instead of 500 to prevent admin panel breakage
+        console.error('❌ Product data that failed:', JSON.stringify(req.body, null, 2));
+        
+        // Return 200 with detailed error message to help debug
+        const errorMessage = process.env.NODE_ENV === 'development' 
+            ? error.message 
+            : (error.message || 'Internal server error');
+        
         res.status(200).json({ 
             success: false,
             message: 'Failed to create product',
-            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+            error: errorMessage,
+            errorCode: error.code,
+            errorDetails: process.env.NODE_ENV === 'development' ? error.details : undefined,
+            errorHint: process.env.NODE_ENV === 'development' ? error.hint : undefined
         });
     }
 });

@@ -236,14 +236,30 @@ class ProductModel {
    * Create a new product
    */
   async create(productData) {
-    const { data, error } = await this.client
-      .from(this.tableName)
-      .insert(productData)
-      .select()
-      .single();
+    try {
+      console.log('📦 ProductModel.create - Input data:', JSON.stringify(productData, null, 2));
+      
+      const { data, error } = await this.client
+        .from(this.tableName)
+        .insert(productData)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (error) {
+        console.error('❌ Supabase insert error:', error);
+        console.error('❌ Error code:', error.code);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error details:', error.details);
+        console.error('❌ Error hint:', error.hint);
+        throw error;
+      }
+      
+      console.log('✅ ProductModel.create - Success:', data?.id);
+      return data;
+    } catch (error) {
+      console.error('❌ ProductModel.create - Exception:', error);
+      throw error;
+    }
   }
 
   /**
