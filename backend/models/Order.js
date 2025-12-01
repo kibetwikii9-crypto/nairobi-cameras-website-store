@@ -34,12 +34,24 @@ module.exports = (sequelize) => {
       allowNull: true
     },
     paymentMethod: {
-      type: DataTypes.ENUM('cash', 'mpesa', 'card', 'bank_transfer'),
+      type: DataTypes.ENUM('cash', 'mpesa', 'card', 'bank_transfer', 'pesapal'),
       allowNull: false
     },
     paymentStatus: {
-      type: DataTypes.ENUM('pending', 'paid', 'failed', 'refunded'),
+      type: DataTypes.ENUM('pending', 'paid', 'failed', 'refunded', 'processing'),
       defaultValue: 'pending'
+    },
+    pesapalOrderTrackingId: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    pesapalMerchantReference: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    pesapalPaymentMethod: {
+      type: DataTypes.STRING,
+      allowNull: true
     },
     orderStatus: {
       type: DataTypes.ENUM('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'),

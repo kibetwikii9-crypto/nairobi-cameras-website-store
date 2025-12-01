@@ -746,12 +746,16 @@ class CartManager {
                                 </div>
                             </form>
                             <div class="payment-methods">
-                                <button class="payment-btn" type="button" data-action="confirm-order">
+                                <button class="payment-btn pesapal-btn" type="button" data-action="pesapal-payment" style="background: linear-gradient(135deg, #10b981, #059669); margin-bottom: 0.75rem;">
+                                    <i class="fas fa-credit-card"></i>
+                                    Pay with Pesapal (M-Pesa, Card, etc.)
+                                </button>
+                                <button class="payment-btn" type="button" data-action="confirm-order" style="background: #6b7280;">
                                     <i class="fas fa-headset"></i>
                                     Confirm order & choose payment with an agent
                                 </button>
                                 <small class="payment-note">
-                                    Our customer care team will call to arrange M-Pesa, bank transfer, or pay-on-delivery.
+                                    Secure payment via Pesapal or contact our team for alternative payment methods.
                                 </small>
                             </div>
                         </div>
@@ -794,10 +798,108 @@ class CartManager {
     }
 
     attachCheckoutHandlers(modal, orderData) {
+        const pesapalBtn = modal.querySelector('[data-action="pesapal-payment"]');
         const confirmBtn = modal.querySelector('[data-action="confirm-order"]');
         const form = modal.querySelector('#checkoutForm');
+        
+        if (pesapalBtn) {
+            pesapalBtn.addEventListener('click', () => this.processPesapalPayment(form, orderData));
+        }
+        
         if (confirmBtn) {
             confirmBtn.addEventListener('click', () => this.processPayment('manual', form, orderData));
+        }
+    }
+    
+    // Process Pesapal payment
+    async processPesapalPayment(form, orderData) {
+        const formData = this.collectCheckoutFormData(form);
+        
+        // Validate required fields
+        if (!formData.fullName || !formData.email || !formData.phone) {
+            this.showNotification('Please fill in your contact details (Name, Email, Phone) before proceeding.', 'warning');
+            return;
+        }
+
+        // Split full name into first and last name
+        const nameParts = formData.fullName.trim().split(' ');
+        const firstName = nameParts[0] || formData.fullName;
+        const lastName = nameParts.slice(1).join(' ') || formData.fullName;
+
+        // Prepare order data for backend
+        const paymentData = {
+            items: this.cart.map(item => ({
+                id: item.id,
+                quantity: item.quantity
+            })),
+            customer: {
+                firstName: firstName,
+                lastName: lastName,
+                email: formData.email,
+                phoneNumber: formData.phone
+            },
+            shippingAddress: {
+                addressLine1: formData.line1 || '',
+                addressLine2: formData.line2 || '',
+                city: formData.city || 'Nairobi',
+                state: formData.state || 'Nairobi County',
+                postalCode: formData.postalCode || ''
+            },
+            billingAddress: {
+                addressLine1: formData.line1 || '',
+                addressLine2: formData.line2 || '',
+                city: formData.city || 'Nairobi',
+                state: formData.state || 'Nairobi County',
+                postalCode: formData.postalCode || ''
+            },
+            notes: formData.notes || ''
+        };
+
+        try {
+            // Show loading state
+            const pesapalBtn = document.querySelector('[data-action="pesapal-payment"]');
+            if (pesapalBtn) {
+                pesapalBtn.disabled = true;
+                pesapalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            }
+
+            // Send payment request to backend
+            const response = await fetch('/api/payments/pesapal/initiate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentData)
+            });
+
+            const result = await response.json();
+
+            if (result.success && result.data.redirectUrl) {
+                // Store order info in localStorage for callback page
+                localStorage.setItem('pendingOrder', JSON.stringify({
+                    orderId: result.data.orderId,
+                    orderNumber: result.data.orderNumber,
+                    orderTrackingId: result.data.orderTrackingId
+                }));
+
+                // Clear cart
+                this.clearCart();
+
+                // Redirect to Pesapal payment page
+                window.location.href = result.data.redirectUrl;
+            } else {
+                throw new Error(result.message || 'Failed to initiate payment');
+            }
+        } catch (error) {
+            console.error('Pesapal payment error:', error);
+            this.showNotification(`Payment error: ${error.message}`, 'info');
+            
+            // Reset button
+            const pesapalBtn = document.querySelector('[data-action="pesapal-payment"]');
+            if (pesapalBtn) {
+                pesapalBtn.disabled = false;
+                pesapalBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay with Pesapal (M-Pesa, Card, etc.)';
+            }
         }
     }
 

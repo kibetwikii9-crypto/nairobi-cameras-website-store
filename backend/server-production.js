@@ -925,6 +925,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/payments', require('./routes/payments'));
 
 // Simple image upload endpoint
 app.post('/api/upload', upload.single('image'), async (req, res) => {
