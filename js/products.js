@@ -115,11 +115,8 @@ class ProductLoader {
             }
         }
         
-        // Normalize image URL (replace broken local upload paths)
-        if (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/')) {
-            console.warn('⚠️ Replacing broken local upload path with placeholder:', imageUrl);
-            imageUrl = '/images/default.jpg';
-        }
+        // Note: We no longer pre-emptively replace /images/uploads/ paths
+        // The imageHandler will handle errors if the image fails to load
         
         // Handle pricing safely
         const price = Number(product.price) || 0;

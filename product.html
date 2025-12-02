@@ -1121,12 +1121,7 @@
             // Display main image (Desktop)
             const mainImg = document.getElementById('mainProductImage');
             if (mainImg) {
-                let firstImageUrl = images[0].url || images[0];
-                // Replace broken local upload paths
-                if (firstImageUrl.includes('/images/uploads/') || firstImageUrl.includes('images/uploads/')) {
-                    console.warn('⚠️ Replacing broken local upload path with placeholder:', firstImageUrl);
-                    firstImageUrl = 'images/placeholder.jpg';
-                }
+                const firstImageUrl = images[0].url || images[0];
                 console.log('Setting main image to:', firstImageUrl);
                 mainImg.src = firstImageUrl;
                 mainImg.alt = currentProduct.name;
@@ -1138,12 +1133,7 @@
                 thumbnailContainer.innerHTML = '';
 
                 images.forEach((image, index) => {
-                    let imageUrl = image.url || image;
-                    // Replace broken local upload paths
-                    if (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/')) {
-                        console.warn('⚠️ Replacing broken local upload path with placeholder:', imageUrl);
-                        imageUrl = 'images/placeholder.jpg';
-                    }
+                    const imageUrl = image.url || image;
                     console.log(`Creating thumbnail ${index + 1}:`, imageUrl);
                     
                     const thumbnail = document.createElement('img');
@@ -1175,12 +1165,7 @@
                 return;
             }
 
-            let firstImageUrl = images[0].url || images[0];
-            // Replace broken local upload paths
-            if (firstImageUrl.includes('/images/uploads/') || firstImageUrl.includes('images/uploads/')) {
-                console.warn('⚠️ Replacing broken local upload path with placeholder:', firstImageUrl);
-                firstImageUrl = 'images/placeholder.jpg';
-            }
+            const firstImageUrl = images[0].url || images[0];
             mobileImageContainer.innerHTML = `
                 <div class="mobile-product-image-wrapper">
                     <img src="${firstImageUrl}" alt="${currentProduct.name}" class="mobile-product-main-image" 
@@ -1188,11 +1173,7 @@
                     ${images.length > 1 ? `
                         <div class="mobile-product-thumbnails">
                             ${images.slice(0, 4).map((img, idx) => {
-                                let imgUrl = img.url || img;
-                                // Replace broken local upload paths
-                                if (imgUrl.includes('/images/uploads/') || imgUrl.includes('images/uploads/')) {
-                                    imgUrl = 'images/placeholder.jpg';
-                                }
+                                const imgUrl = img.url || img;
                                 return `<img src="${imgUrl}" alt="Thumbnail ${idx + 1}" 
                                             class="mobile-product-thumbnail ${idx === 0 ? 'active' : ''}"
                                             onclick="changeMobileMainImage('${imgUrl}', ${idx})">`;

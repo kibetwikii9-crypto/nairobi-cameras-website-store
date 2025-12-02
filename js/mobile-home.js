@@ -338,10 +338,6 @@
     
     function createMobileProductCard(product) {
         let imageUrl = product.images?.[0]?.url || '/images/default.jpg';
-        // Replace broken local upload paths
-        if (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/')) {
-            imageUrl = '/images/default.jpg';
-        }
         const price = Number(product.price) || 0;
         const originalPrice = Number(product.originalPrice) || 0;
         const safeName = escapeHtml(product.name || 'Product');
