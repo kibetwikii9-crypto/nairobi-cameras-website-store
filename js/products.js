@@ -152,7 +152,7 @@ class ProductLoader {
             <div class="product-card clickable-card" data-product-id="${product.id}" onclick="viewProduct(${product.id})">
                 <div class="product-image">
                     <img src="${imageUrl}" alt="${safeName}" 
-                         onerror="this.handleImageError(this)" 
+                         onerror="window.imageHandler && window.imageHandler.handleImageError(this)" 
                          onload="this.classList.remove('loading')"
                          loading="lazy"
                          class="product-img loading">
