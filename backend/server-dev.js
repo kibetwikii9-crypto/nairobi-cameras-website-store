@@ -307,11 +307,39 @@ app.put('/api/products/:id', async (req, res) => {
 // Delete product (Admin only)
 app.delete('/api/products/:id', async (req, res) => {
     try {
-        await Product.destroy({ where: { id: req.params.id } });
-        res.json({ success: true, message: 'Product deleted' });
+        const productId = req.params.id;
+        console.log('🗑️ Deleting product with ID:', productId);
+        
+        // Check if product exists first
+        const product = await Product.findByPk(productId);
+        if (!product) {
+            console.log('⚠️ Product not found:', productId);
+            return res.status(404).json({ 
+                success: false,
+                message: 'Product not found' 
+            });
+        }
+        
+        console.log('📦 Product found, deleting:', product.id);
+        
+        // Delete the product
+        await Product.destroy({ where: { id: productId } });
+        
+        console.log('✅ Product deleted successfully:', productId);
+        
+        res.json({ 
+            success: true, 
+            message: 'Product deleted successfully' 
+        });
     } catch (error) {
-        console.error('Delete product error:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('❌ Delete product error:', error);
+        console.error('❌ Error details:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        res.status(500).json({ 
+            success: false,
+            message: 'Failed to delete product',
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        });
     }
 });
 

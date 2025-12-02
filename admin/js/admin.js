@@ -459,7 +459,8 @@ function updateProductsTable(products, pagination) {
                                 <div class="d-flex align-items-center">
                                     <img src="${imageUrl}" 
                                          class="rounded me-3" width="50" height="50" style="object-fit: cover;"
-                                         onerror="this.src='/images/placeholder.svg'">
+                                         onerror="this.onerror=null; this.src='/images/placeholder.svg';"
+                                         loading="lazy">
                                     <div>
                                         <h6 class="mb-1">${product.name}</h6>
                                         <small class="text-muted">${product.brand}</small>
@@ -1367,27 +1368,61 @@ function toggleFeatured(productId, isFeatured) {
 }
 
 function deleteProduct(productId) {
-    if (confirm('Are you sure you want to delete this product?')) {
-        fetch(`${API_BASE}/products/${productId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${authToken}`
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('Product deleted successfully', 'success');
-                loadProducts();
-            } else {
-                showAlert(data.message, 'danger');
-            }
-        })
-        .catch(error => {
-            console.error('Delete product error:', error);
-            showAlert('Failed to delete product', 'danger');
-        });
+    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+        return;
     }
+    
+    console.log('🗑️ Deleting product:', productId);
+    
+    fetch(`${API_BASE}/products/${productId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(async response => {
+        console.log('🗑️ Delete response status:', response.status);
+        
+        // Handle non-OK responses
+        if (!response.ok) {
+            let errorMessage = `Failed to delete product (Status: ${response.status})`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch (e) {
+                // Response is not JSON, use status text
+                const statusText = response.statusText || 'Unknown error';
+                errorMessage = `Failed to delete product: ${statusText} (Status: ${response.status})`;
+            }
+            throw new Error(errorMessage);
+        }
+        
+        // Try to parse JSON response
+        try {
+            return await response.json();
+        } catch (parseError) {
+            // If response is not JSON, return success based on status code
+            if (response.status === 200 || response.status === 204) {
+                return { success: true, message: 'Product deleted successfully' };
+            }
+            throw new Error('Invalid server response');
+        }
+    })
+    .then(data => {
+        console.log('🗑️ Delete response data:', data);
+        
+        if (data.success) {
+            showAlert('Product deleted successfully', 'success');
+            loadProducts(); // Reload the products list
+        } else {
+            showAlert(data.message || 'Failed to delete product', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Delete product error:', error);
+        showAlert(`Failed to delete product: ${error.message}`, 'danger');
+    });
 }
 
 // Order management functions
