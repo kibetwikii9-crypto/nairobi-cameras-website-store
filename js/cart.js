@@ -746,15 +746,24 @@ class CartManager {
                                 </div>
                             </form>
                             <div class="payment-methods">
-                                <button class="payment-btn pesapal-btn" type="button" data-action="pesapal-payment" style="background: linear-gradient(135deg, #10b981, #059669); margin-bottom: 0.75rem;">
-                                    <i class="fas fa-credit-card"></i>
-                                    Pay with Pesapal (M-Pesa, Card, etc.)
+                                <h4 style="margin-bottom: 0.75rem; font-size: 0.9rem; color: #374151; font-weight: 500;">Choose Payment Method</h4>
+                                <button class="payment-btn mpesa-btn" type="button" data-action="pesapal-payment" data-method="mpesa" style="background: #ffffff; border: 1px solid #e5e7eb; color: #374151; padding: 0.625rem 1rem; font-size: 0.875rem; margin-bottom: 0.5rem; border-radius: 6px; width: 100%; text-align: left; transition: all 0.2s;">
+                                    <i class="fas fa-mobile-alt" style="margin-right: 0.5rem;"></i>
+                                    Pay with M-Pesa
                                 </button>
-                                <button class="payment-btn" type="button" data-action="confirm-order" style="background: #6b7280;">
-                                    <i class="fas fa-headset"></i>
+                                <button class="payment-btn card-btn" type="button" data-action="pesapal-payment" data-method="card" style="background: #ffffff; border: 1px solid #e5e7eb; color: #374151; padding: 0.625rem 1rem; font-size: 0.875rem; margin-bottom: 0.5rem; border-radius: 6px; width: 100%; text-align: left; transition: all 0.2s;">
+                                    <i class="fas fa-credit-card" style="margin-right: 0.5rem;"></i>
+                                    Pay with Card
+                                </button>
+                                <button class="payment-btn bank-btn" type="button" data-action="pesapal-payment" data-method="bank" style="background: #ffffff; border: 1px solid #e5e7eb; color: #374151; padding: 0.625rem 1rem; font-size: 0.875rem; margin-bottom: 0.5rem; border-radius: 6px; width: 100%; text-align: left; transition: all 0.2s;">
+                                    <i class="fas fa-university" style="margin-right: 0.5rem;"></i>
+                                    Pay with Bank
+                                </button>
+                                <button class="payment-btn" type="button" data-action="confirm-order" style="background: #ffffff; border: 1px solid #e5e7eb; color: #374151; padding: 0.625rem 1rem; font-size: 0.875rem; margin-top: 0.5rem; border-radius: 6px; width: 100%; text-align: left; transition: all 0.2s;">
+                                    <i class="fas fa-headset" style="margin-right: 0.5rem;"></i>
                                     Confirm order & choose payment with an agent
                                 </button>
-                                <small class="payment-note">
+                                <small class="payment-note" style="display: block; margin-top: 0.75rem; font-size: 0.75rem; color: #6b7280;">
                                     Secure payment via Pesapal or contact our team for alternative payment methods.
                                 </small>
                             </div>
@@ -779,6 +788,25 @@ class CartManager {
         `;
         
         document.body.appendChild(modal);
+        
+        // Add hover styles for payment buttons
+        const style = document.createElement('style');
+        style.textContent = `
+            .payment-btn:hover {
+                background: #f9fafb !important;
+                border-color: #d1d5db !important;
+                cursor: pointer;
+            }
+            .payment-btn:active {
+                background: #f3f4f6 !important;
+            }
+            .payment-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+        `;
+        document.head.appendChild(style);
+        
         this.attachCheckoutHandlers(modal, orderData);
     }
 
@@ -798,13 +826,17 @@ class CartManager {
     }
 
     attachCheckoutHandlers(modal, orderData) {
-        const pesapalBtn = modal.querySelector('[data-action="pesapal-payment"]');
+        const pesapalBtns = modal.querySelectorAll('[data-action="pesapal-payment"]');
         const confirmBtn = modal.querySelector('[data-action="confirm-order"]');
         const form = modal.querySelector('#checkoutForm');
         
-        if (pesapalBtn) {
-            pesapalBtn.addEventListener('click', () => this.processPesapalPayment(form, orderData));
-        }
+        // Attach handlers to all payment method buttons
+        pesapalBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const method = btn.getAttribute('data-method') || 'pesapal';
+                this.processPesapalPayment(form, orderData, method, btn);
+            });
+        });
         
         if (confirmBtn) {
             confirmBtn.addEventListener('click', () => this.processPayment('manual', form, orderData));
@@ -812,7 +844,7 @@ class CartManager {
     }
     
     // Process Pesapal payment
-    async processPesapalPayment(form, orderData) {
+    async processPesapalPayment(form, orderData, paymentMethod = 'pesapal', clickedBtn = null) {
         const formData = this.collectCheckoutFormData(form);
         
         // Validate required fields
@@ -855,12 +887,24 @@ class CartManager {
             notes: formData.notes || ''
         };
 
+        // Store original button content for error recovery
+        let originalButtonContent = null;
+        if (clickedBtn) {
+            originalButtonContent = clickedBtn.innerHTML;
+        }
+
         try {
-            // Show loading state
-            const pesapalBtn = document.querySelector('[data-action="pesapal-payment"]');
-            if (pesapalBtn) {
-                pesapalBtn.disabled = true;
-                pesapalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            // Show loading state on the clicked button
+            if (clickedBtn) {
+                clickedBtn.disabled = true;
+                clickedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            } else {
+                // Fallback: disable all payment buttons
+                const pesapalBtns = document.querySelectorAll('[data-action="pesapal-payment"]');
+                pesapalBtns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                });
             }
 
             // Send payment request to backend
@@ -894,11 +938,24 @@ class CartManager {
             console.error('Pesapal payment error:', error);
             this.showNotification(`Payment error: ${error.message}`, 'info');
             
-            // Reset button
-            const pesapalBtn = document.querySelector('[data-action="pesapal-payment"]');
-            if (pesapalBtn) {
-                pesapalBtn.disabled = false;
-                pesapalBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay with Pesapal (M-Pesa, Card, etc.)';
+            // Reset the clicked button or all payment buttons
+            if (clickedBtn && originalButtonContent) {
+                clickedBtn.disabled = false;
+                clickedBtn.innerHTML = originalButtonContent;
+            } else {
+                // Fallback: reset all payment buttons
+                const pesapalBtns = document.querySelectorAll('[data-action="pesapal-payment"]');
+                pesapalBtns.forEach(btn => {
+                    btn.disabled = false;
+                    const method = btn.getAttribute('data-method');
+                    if (method === 'mpesa') {
+                        btn.innerHTML = '<i class="fas fa-mobile-alt" style="margin-right: 0.5rem;"></i> Pay with M-Pesa';
+                    } else if (method === 'card') {
+                        btn.innerHTML = '<i class="fas fa-credit-card" style="margin-right: 0.5rem;"></i> Pay with Card';
+                    } else if (method === 'bank') {
+                        btn.innerHTML = '<i class="fas fa-university" style="margin-right: 0.5rem;"></i> Pay with Bank';
+                    }
+                });
             }
         }
     }
