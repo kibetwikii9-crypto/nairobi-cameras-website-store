@@ -993,11 +993,17 @@ function displayExistingImages(images) {
     preview.innerHTML = '';
 
     images.forEach((image, index) => {
+        let imageUrl = image.url;
+        // Replace broken local upload paths
+        if (imageUrl && (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/'))) {
+            imageUrl = '/images/placeholder.svg';
+        }
         const imgContainer = document.createElement('div');
         imgContainer.className = 'd-inline-block me-2 mb-2';
         imgContainer.innerHTML = `
             <div class="position-relative">
-                <img src="${image.url}" class="rounded" style="width: 100px; height: 100px; object-fit: cover;">
+                <img src="${imageUrl || '/images/placeholder.svg'}" class="rounded" style="width: 100px; height: 100px; object-fit: cover;"
+                     onerror="this.src='/images/placeholder.svg'">
                 <span class="badge bg-primary position-absolute top-0 start-0" style="transform: translate(-50%, -50%);">
                     ${index + 1}
                 </span>
