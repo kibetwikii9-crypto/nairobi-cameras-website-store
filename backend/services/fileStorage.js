@@ -63,6 +63,10 @@ async function uploadToSupabaseStorage(filePath, fileName, contentType = 'image/
       .from('product-images')
       .getPublicUrl(data.path);
 
+    if (!urlData || !urlData.publicUrl) {
+      throw new Error('Failed to generate public URL from Supabase Storage');
+    }
+
     return {
       url: urlData.publicUrl,
       path: data.path
@@ -105,12 +109,25 @@ async function buildImageResponse(file) {
         storage: 'supabase'
       };
     } catch (error) {
-      console.error('Failed to upload to Supabase, falling back to local:', error);
+      console.error('❌ Failed to upload to Supabase, falling back to local:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details
+      });
       // Fall back to local storage if Supabase upload fails
+      // Continue to local storage fallback below
     }
   }
 
   // Fallback to local storage (ephemeral - will be lost on redeploy)
+  // This is used when:
+  // 1. Supabase is not configured
+  // 2. Supabase upload failed
+  if (!file.path) {
+    throw new Error('File path is missing. Cannot generate image URL.');
+  }
+
   return {
     filename: file.filename,
     url: `/images/uploads/${file.filename}`,

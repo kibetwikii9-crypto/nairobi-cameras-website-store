@@ -271,14 +271,23 @@ app.use('/api/payments', require('./routes/payments'));
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
     if (req.file) {
+      console.log('📸 File received:', {
+        filename: req.file.filename,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+        path: req.file.path
+      });
+      
       const imageResponse = await buildImageResponse(req.file);
-      console.log('📸 Image uploaded:', imageResponse);
+      console.log('📸 Image response:', imageResponse);
       
       if (!imageResponse || !imageResponse.url) {
         console.error('❌ buildImageResponse did not return a valid URL');
+        console.error('❌ Response object:', imageResponse);
         return res.status(500).json({
           success: false,
-          message: 'Upload succeeded but failed to generate URL'
+          message: 'Upload succeeded but failed to generate URL',
+          error: 'buildImageResponse returned invalid response'
         });
       }
       
