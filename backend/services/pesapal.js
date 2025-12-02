@@ -16,12 +16,44 @@ class PesapalService {
         this.callbackUrl = process.env.PESAPAL_CALLBACK_URL || `${process.env.BASE_URL || 'http://localhost:3000'}/payment-callback`;
         
         // Pesapal API endpoints
+        // Note: Pesapal v3 uses different endpoints
         this.baseUrl = this.environment === 'production' 
             ? 'https://pay.pesapal.com/v3'
             : 'https://cybqa.pesapal.com/pesapalv3';
         
+        // Alternative base URLs if the above don't work
+        this.alternativeBaseUrl = this.environment === 'production'
+            ? 'https://pay.pesapal.com'
+            : 'https://cybqa.pesapal.com';
+        
         this.accessToken = null;
         this.tokenExpiry = null;
+        
+        // Log environment configuration on initialization
+        this.logConfiguration();
+    }
+    
+    /**
+     * Log current Pesapal configuration
+     */
+    logConfiguration() {
+        console.log('\n🔐 Pesapal Configuration:');
+        console.log('   Environment:', this.environment === 'production' ? '✅ PRODUCTION (LIVE)' : '⚠️ SANDBOX (TEST)');
+        console.log('   Base URL:', this.baseUrl);
+        console.log('   Consumer Key:', this.consumerKey ? `${this.consumerKey.substring(0, 8)}...` : '❌ NOT SET');
+        console.log('   Consumer Secret:', this.consumerSecret ? '✅ SET' : '❌ NOT SET');
+        console.log('   IPN URL:', this.ipnUrl);
+        console.log('   Callback URL:', this.callbackUrl);
+        
+        if (this.environment === 'production') {
+            console.log('   ⚠️  LIVE MODE: Real payments will be processed!');
+            if (!this.consumerKey || !this.consumerSecret) {
+                console.error('   ❌ ERROR: Consumer Key and Secret must be set for production!');
+            }
+        } else {
+            console.log('   ℹ️  TEST MODE: No real payments will be processed');
+        }
+        console.log('');
     }
 
     /**
@@ -44,7 +76,7 @@ class PesapalService {
 
     /**
      * Get access token from Pesapal v3 API
-     * Pesapal v3 uses Consumer Key and Secret for authentication
+     * Pesapal v3 uses Consumer Key and Secret in request body
      */
     async getAccessToken() {
         // Return cached token if still valid
@@ -53,33 +85,13 @@ class PesapalService {
         }
 
         try {
-            const url = `${this.baseUrl}/api/Auth/RequestToken`;
+            // Try the standard v3 endpoint first
+            let url = `${this.baseUrl}/api/Auth/RequestToken`;
             
-            const response = await axios.post(url, null, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                auth: {
-                    username: this.consumerKey,
-                    password: this.consumerSecret
-                }
-            });
-
-            if (response.data && response.data.token) {
-                this.accessToken = response.data.token;
-                // Cache token for 55 minutes (tokens typically expire in 1 hour)
-                this.tokenExpiry = Date.now() + (55 * 60 * 1000);
-                return this.accessToken;
-            }
-
-            throw new Error('Failed to get access token');
-        } catch (error) {
-            console.error('Pesapal Auth Error:', error.response?.data || error.message);
-            // If basic auth fails, try alternative method
+            // Pesapal v3 expects consumer_key and consumer_secret in the request body
+            let response;
             try {
-                const url = `${this.baseUrl}/api/Auth/RequestToken`;
-                const response = await axios.post(url, {
+                response = await axios.post(url, {
                     consumer_key: this.consumerKey,
                     consumer_secret: this.consumerSecret
                 }, {
@@ -88,17 +100,67 @@ class PesapalService {
                         'Accept': 'application/json'
                     }
                 });
+            } catch (firstError) {
+                // If that fails, try alternative endpoint
+                console.log('Trying alternative endpoint...');
+                url = `${this.alternativeBaseUrl}/api/Auth/RequestToken`;
+                response = await axios.post(url, {
+                    consumer_key: this.consumerKey,
+                    consumer_secret: this.consumerSecret
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+            }
 
-                if (response.data && response.data.token) {
-                    this.accessToken = response.data.token;
-                    this.tokenExpiry = Date.now() + (55 * 60 * 1000);
-                    return this.accessToken;
-                }
-            } catch (altError) {
-                console.error('Pesapal Alternative Auth Error:', altError.response?.data || altError.message);
+            if (response.data && response.data.token) {
+                this.accessToken = response.data.token;
+                // Cache token for 4 minutes (Pesapal tokens expire in 5 minutes)
+                this.tokenExpiry = Date.now() + (4 * 60 * 1000);
+                return this.accessToken;
             }
             
-            throw new Error(`Failed to authenticate with Pesapal: ${error.message}`);
+            // Check for alternative response formats
+            if (response.data && response.data.access_token) {
+                this.accessToken = response.data.access_token;
+                this.tokenExpiry = Date.now() + (4 * 60 * 1000);
+                return this.accessToken;
+            }
+
+            throw new Error(`Failed to get access token - unexpected response format: ${JSON.stringify(response.data)}`);
+        } catch (error) {
+            console.error('Pesapal Auth Error:', error.response?.data || error.message);
+            
+            // Try alternative: Basic Auth
+            if (error.response?.status === 401 || error.response?.status === 500) {
+                try {
+                    const url = `${this.baseUrl}/api/Auth/RequestToken`;
+                    const response = await axios.post(url, null, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        auth: {
+                            username: this.consumerKey,
+                            password: this.consumerSecret
+                        }
+                    });
+
+                    if (response.data && response.data.token) {
+                        this.accessToken = response.data.token;
+                        this.tokenExpiry = Date.now() + (4 * 60 * 1000);
+                        console.log('✅ Pesapal access token obtained (via Basic Auth)');
+                        return this.accessToken;
+                    }
+                } catch (altError) {
+                    console.error('Pesapal Basic Auth Error:', altError.response?.data || altError.message);
+                }
+            }
+            
+            const errorMsg = error.response?.data?.error?.message || error.message;
+            throw new Error(`Failed to authenticate with Pesapal: ${errorMsg}`);
         }
     }
 
