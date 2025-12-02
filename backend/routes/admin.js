@@ -124,6 +124,8 @@ router.get('/dashboard', async (req, res) => {
 // @access  Private (Admin)
 router.get('/products', async (req, res) => {
     try {
+        console.log('📦 Admin products request:', req.query);
+        
         const { page = 1, limit = 20, category, search, isActive } = req.query;
         
         const where = {};
@@ -137,6 +139,8 @@ router.get('/products', async (req, res) => {
             ];
         }
 
+        console.log('📦 Query where clause:', JSON.stringify(where, null, 2));
+
         const products = await Product.findAndCountAll({
             where,
             order: [['createdAt', 'DESC']],
@@ -144,10 +148,13 @@ router.get('/products', async (req, res) => {
             offset: (parseInt(page) - 1) * parseInt(limit)
         });
 
+        console.log('📦 Found products:', products.count);
+        console.log('📦 Products rows:', products.rows?.length || 0);
+
         res.json({
             success: true,
             data: {
-                products: products.rows,
+                products: products.rows || [],
                 pagination: {
                     currentPage: parseInt(page),
                     totalPages: Math.ceil(products.count / parseInt(limit)),
@@ -157,7 +164,10 @@ router.get('/products', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ Get admin products error:', error);
+        console.error('❌ Error message:', error.message);
         console.error('❌ Error stack:', error.stack);
+        console.error('❌ Error code:', error.code);
+        console.error('❌ Error details:', error.details);
         // Return 200 with empty products instead of 500 to prevent admin panel breakage
         res.status(200).json({
             success: true,
@@ -168,7 +178,8 @@ router.get('/products', async (req, res) => {
                     totalPages: 0,
                     totalProducts: 0
                 }
-            }
+            },
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });

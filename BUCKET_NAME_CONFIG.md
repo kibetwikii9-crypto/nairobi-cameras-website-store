@@ -2,19 +2,15 @@
 
 ## Current Setup
 
-The bucket name is **hardcoded** in `backend/services/imageStorage.js` as `'product-images'` (lines 88 and 105).
+The bucket name defaults to `'images'` in `backend/services/imageStorage.js` but can be overridden via environment variable.
 
 ## Two Options
 
-### Option 1: Create Bucket with Name `product-images` (Recommended)
+### Option 1: Use Default Bucket Name `images` (Recommended)
 
-1. Go to Supabase Dashboard → Storage
-2. Click "New bucket"
-3. Name it exactly: `product-images`
-4. Set it to **Public**
-5. Click "Create bucket"
+The code defaults to `images` bucket name. If your bucket is named `images`, it will work automatically with no changes needed.
 
-This matches the code, so no changes needed.
+If you need to use a different bucket name, see Option 2 below.
 
 ### Option 2: Change Code to Use Different Bucket Name
 

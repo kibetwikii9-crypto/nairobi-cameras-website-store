@@ -87,3 +87,5 @@ If connection pooling doesn't work, the issue might be:
 
 In that case, **Supabase JS client (HTTPS)** is the best solution!
 
+
+

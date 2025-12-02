@@ -88,3 +88,5 @@ Your website now uses Supabase. Your data will **NEVER disappear** again!
 
 **Your code didn't change - just add DATABASE_URL and it works!** 🎉
 
+
+

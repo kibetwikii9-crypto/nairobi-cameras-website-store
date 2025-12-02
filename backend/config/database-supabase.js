@@ -777,6 +777,56 @@ class OrderModel {
   }
 
   /**
+   * Find one order
+   */
+  async findOne(options) {
+    let query = this.client.from(this.tableName).select('*').limit(1);
+
+    if (options.where) {
+      Object.keys(options.where).forEach(key => {
+        query = query.eq(key, options.where[key]);
+      });
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data?.[0] || null;
+  }
+
+  /**
+   * Find by primary key
+   */
+  async findByPk(id) {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw error;
+    }
+
+    return data;
+  }
+
+  /**
+   * Update an order
+   */
+  async update(orderData, options) {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .update(orderData)
+      .eq('id', options.where.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  /**
    * Bulk create orders (for restore)
    */
   async bulkCreate(orders, options = {}) {

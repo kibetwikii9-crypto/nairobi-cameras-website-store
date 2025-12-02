@@ -176,3 +176,5 @@ npm run test-supabase
 
 You should see: **✅ SUCCESS! Connected to Supabase!**
 
+
+

@@ -598,13 +598,13 @@ class CartManager {
 
     // Update cart badge
     updateCartBadge() {
-        const badges = document.querySelectorAll('#cartBadge, .cart-badge');
+        const badges = document.querySelectorAll('#cartBadge, #mobileCartBadge, .cart-badge, .cart-count-badge');
         const count = this.getCartItemCount();
         
         badges.forEach(badge => {
             if (badge) {
                 badge.textContent = count;
-                badge.style.display = count > 0 ? 'inline' : 'none';
+                badge.style.display = count > 0 ? 'block' : 'none';
             }
         });
     }
@@ -1114,7 +1114,20 @@ class CartManager {
             }
         } catch (error) {
             console.error('Pesapal payment error:', error);
-            this.showNotification(`Payment error: ${error.message}`, 'info');
+            
+            // Check if it's a product not found error
+            if (error.message && error.message.includes('not found')) {
+                this.showNotification('Product not found. Please clear your cart and re-add products from the product pages.', 'warning');
+                // Optionally auto-clear cart after a delay
+                setTimeout(() => {
+                    if (confirm('Would you like to clear your cart and start fresh?')) {
+                        this.clearCart();
+                        window.location.href = '/';
+                    }
+                }, 2000);
+            } else {
+                this.showNotification(`Payment error: ${error.message}`, 'info');
+            }
             
             // Reset the clicked button or all payment buttons
             if (clickedBtn && originalButtonContent) {

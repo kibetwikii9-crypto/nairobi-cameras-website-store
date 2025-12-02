@@ -373,6 +373,8 @@ function updateTopProducts(products) {
 // Load products
 async function loadProducts() {
     try {
+        console.log('📦 Loading products for admin panel...');
+        
         const search = document.getElementById('productSearch')?.value || '';
         const category = document.getElementById('categoryFilter')?.value || '';
         const status = document.getElementById('statusFilter')?.value || '';
@@ -385,28 +387,52 @@ async function loadProducts() {
             ...(status && { isActive: status })
         });
 
+        console.log('📦 Fetching from:', `${API_BASE}/admin/products?${params}`);
+        
         const response = await fetch(`${API_BASE}/admin/products?${params}`, {
             headers: {
                 'Authorization': `Bearer ${authToken}`
             }
         });
 
+        console.log('📦 Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
+        console.log('📦 Products data received:', data);
 
         if (data.success) {
-            updateProductsTable(data.data.products, data.data.pagination);
+            console.log('📦 Products count:', data.data?.products?.length || 0);
+            updateProductsTable(data.data.products || [], data.data.pagination || {});
+        } else {
+            console.error('❌ API returned success: false', data);
+            showAlert(data.message || 'Failed to load products', 'danger');
         }
     } catch (error) {
-        console.error('Products load error:', error);
-        showAlert('Failed to load products', 'danger');
+        console.error('❌ Products load error:', error);
+        console.error('❌ Error details:', {
+            message: error.message,
+            stack: error.stack
+        });
+        showAlert(`Failed to load products: ${error.message}`, 'danger');
     }
 }
 
 // Update products table
 function updateProductsTable(products, pagination) {
+    console.log('📦 Updating products table with', products.length, 'products');
+    
     const container = document.getElementById('productsTable');
+    if (!container) {
+        console.error('❌ productsTable container not found');
+        return;
+    }
     
     if (products.length === 0) {
+        console.log('⚠️ No products to display');
         container.innerHTML = '<p class="text-muted text-center py-4">No products found</p>';
         return;
     }
@@ -426,11 +452,7 @@ function updateProductsTable(products, pagination) {
                 </thead>
                 <tbody>
                     ${products.map(product => {
-                        let imageUrl = product.images?.[0]?.url || '/images/placeholder.svg';
-                        // Replace broken local upload paths
-                        if (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/')) {
-                            imageUrl = '/images/placeholder.svg';
-                        }
+                        const imageUrl = product.images?.[0]?.url || '/images/placeholder.svg';
                         return `
                         <tr>
                             <td>
@@ -958,65 +980,165 @@ function createCategoryChart(categoryData) {
 
 // Product management functions
 function editProduct(productId) {
+    console.log('📦 Loading product for editing:', productId);
+    
     // Load product data and populate form
     fetch(`${API_BASE}/products/${productId}`)
-        .then(response => response.json())
+        .then(response => {
+            console.log('📦 Product fetch response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.success) {
-                const product = data.data.product;
-                document.getElementById('productId').value = product.id;
-                document.getElementById('productName').value = product.name;
-                document.getElementById('productBrand').value = product.brand;
-                document.getElementById('productPrice').value = product.price;
-                document.getElementById('productOriginalPrice').value = product.originalPrice || '';
-                document.getElementById('productStock').value = product.stock;
-                document.getElementById('productCategory').value = product.category;
-                document.getElementById('productStatus').value = product.isActive;
-                document.getElementById('productDescription').value = product.description;
-                document.getElementById('productSpecifications').value = product.specifications ? JSON.stringify(product.specifications, null, 2) : '';
-                document.getElementById('productFeatured').checked = product.isFeatured;
+            console.log('📦 Product data received:', data);
+            
+            if (!data.success) {
+                console.error('❌ API returned success: false', data);
+                showAlert(data.message || 'Failed to load product data', 'danger');
+                return;
+            }
+            
+            // Handle different response structures
+            const product = data.data?.product || data.data || data.product;
+            
+            if (!product) {
+                console.error('❌ No product data in response:', data);
+                showAlert('Product data not found in response', 'danger');
+                return;
+            }
+            
+            console.log('📦 Product object:', product);
+            
+            // Populate form fields
+            const productIdField = document.getElementById('productId');
+            const productNameField = document.getElementById('productName');
+            const productBrandField = document.getElementById('productBrand');
+            const productPriceField = document.getElementById('productPrice');
+            const productOriginalPriceField = document.getElementById('productOriginalPrice');
+            const productStockField = document.getElementById('productStock');
+            const productCategoryField = document.getElementById('productCategory');
+            const productStatusField = document.getElementById('productStatus');
+            const productDescriptionField = document.getElementById('productDescription');
+            const productSpecificationsField = document.getElementById('productSpecifications');
+            const productFeaturedField = document.getElementById('productFeatured');
+            
+            if (productIdField) productIdField.value = product.id || '';
+            if (productNameField) productNameField.value = product.name || '';
+            if (productBrandField) productBrandField.value = product.brand || '';
+            if (productPriceField) productPriceField.value = product.price || '';
+            if (productOriginalPriceField) productOriginalPriceField.value = product.originalPrice || '';
+            if (productStockField) productStockField.value = product.stock || 0;
+            if (productCategoryField) productCategoryField.value = product.category || '';
+            if (productStatusField) productStatusField.value = product.isActive !== undefined ? product.isActive : true;
+            if (productDescriptionField) productDescriptionField.value = product.description || '';
+            if (productSpecificationsField) {
+                productSpecificationsField.value = product.specifications 
+                    ? (typeof product.specifications === 'string' 
+                        ? product.specifications 
+                        : JSON.stringify(product.specifications, null, 2))
+                    : '';
+            }
+            if (productFeaturedField) productFeaturedField.checked = product.isFeatured || false;
+            
+            // Display existing images
+            console.log('📦 Product images:', product.images);
+            displayExistingImages(product.images || []);
+            
+            // Also populate image URL inputs for editing
+            const imageUrlContainer = document.getElementById('imageUrlContainer');
+            if (imageUrlContainer && product.images && product.images.length > 0) {
+                // Clear existing inputs
+                imageUrlContainer.innerHTML = '';
                 
-                // Display existing images
-                displayExistingImages(product.images || []);
+                // Add image URL inputs for each image
+                product.images.forEach((image, index) => {
+                    const imageUrl = typeof image === 'string' ? image : (image.url || image);
+                    if (imageUrl) {
+                        addImageUrl(imageUrl);
+                    }
+                });
                 
-                document.getElementById('productModalTitle').textContent = 'Edit Product';
-                new bootstrap.Modal(document.getElementById('productModal')).show();
+                // If no images, add one empty input
+                if (product.images.length === 0) {
+                    addImageUrl('');
+                }
+            }
+            
+            // Update modal title and show
+            const modalTitle = document.getElementById('productModalTitle');
+            if (modalTitle) modalTitle.textContent = 'Edit Product';
+            
+            // Show modal
+            const modalElement = document.getElementById('productModal');
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+                console.log('✅ Product modal opened');
+            } else {
+                console.error('❌ Product modal element not found');
             }
         })
         .catch(error => {
-            console.error('Load product error:', error);
-            showAlert('Failed to load product', 'danger');
+            console.error('❌ Load product error:', error);
+            console.error('❌ Error details:', {
+                message: error.message,
+                stack: error.stack
+            });
+            showAlert(`Failed to load product: ${error.message}`, 'danger');
         });
 }
 
 function displayExistingImages(images) {
+    console.log('🖼️ Displaying images:', images);
+    
     const preview = document.getElementById('imagePreview');
+    if (!preview) {
+        console.error('❌ imagePreview element not found');
+        return;
+    }
+    
     preview.innerHTML = '';
+    
+    if (!images || images.length === 0) {
+        console.log('⚠️ No images to display');
+        preview.innerHTML = '<p class="text-muted">No images</p>';
+        return;
+    }
 
     images.forEach((image, index) => {
-        let imageUrl = image.url;
-        // Replace broken local upload paths
-        if (imageUrl && (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/'))) {
-            imageUrl = '/images/placeholder.svg';
+        // Handle both object format {url: '...'} and string format
+        let imageUrl = typeof image === 'string' ? image : (image.url || image);
+        
+        if (!imageUrl) {
+            console.warn('⚠️ Image missing URL at index', index, image);
+            return;
         }
+        
+        console.log(`🖼️ Image ${index + 1}:`, imageUrl);
+        
         const imgContainer = document.createElement('div');
         imgContainer.className = 'd-inline-block me-2 mb-2';
+        const escapedUrl = imageUrl.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         imgContainer.innerHTML = `
             <div class="position-relative">
-                <img src="${imageUrl || '/images/placeholder.svg'}" class="rounded" style="width: 100px; height: 100px; object-fit: cover;"
-                     onerror="this.src='/images/placeholder.svg'">
+                <img src="${imageUrl}" class="rounded" style="width: 100px; height: 100px; object-fit: cover;"
+                     onerror="console.error('Image failed to load:', this.src); this.src='/images/placeholder.svg'">
                 <span class="badge bg-primary position-absolute top-0 start-0" style="transform: translate(-50%, -50%);">
                     ${index + 1}
                 </span>
-                ${image.isPrimary ? '<span class="badge bg-success position-absolute bottom-0 start-0">Primary</span>' : ''}
+                ${(typeof image === 'object' && image.isPrimary) ? '<span class="badge bg-success position-absolute bottom-0 start-0">Primary</span>' : ''}
                 <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" 
-                        onclick="removeExistingImage(this, '${image.url}')" style="transform: translate(50%, -50%);">
+                        onclick="removeExistingImage(this, '${escapedUrl}')" style="transform: translate(50%, -50%);">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
         `;
         preview.appendChild(imgContainer);
     });
+    
+    console.log('✅ Images displayed');
 }
 
 async function saveProduct() {

@@ -181,7 +181,17 @@ class PesapalService {
      */
     async createPaymentRequest(orderData, customerData) {
         try {
+            console.log('💳 Creating Pesapal payment request...');
+            console.log('💳 Order data:', JSON.stringify(orderData, null, 2));
+            console.log('💳 Customer data:', JSON.stringify(customerData, null, 2));
+            
+            // Get access token
+            console.log('🔐 Getting access token...');
             const accessToken = await this.getAccessToken();
+            if (!accessToken) {
+                throw new Error('Failed to obtain access token from Pesapal');
+            }
+            console.log('✅ Access token obtained');
             
             const paymentData = {
                 id: orderData.orderNumber,
@@ -207,22 +217,33 @@ class PesapalService {
             };
 
             // First, register IPN
+            console.log('📡 Registering IPN...');
             const ipnResponse = await this.registerIPN();
             if (ipnResponse && ipnResponse.ipn_id) {
                 paymentData.notification_id = ipnResponse.ipn_id;
+                console.log('✅ IPN registered:', ipnResponse.ipn_id);
+            } else {
+                console.warn('⚠️ IPN registration failed or returned no ID, continuing without IPN');
             }
 
             const url = `${this.baseUrl}/api/Transactions/SubmitOrderRequest`;
+            console.log('📤 Submitting payment request to:', url);
+            console.log('📤 Payment data:', JSON.stringify(paymentData, null, 2));
             
             const response = await axios.post(url, paymentData, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${accessToken}`,
                     'Accept': 'application/json'
-                }
+                },
+                timeout: 30000 // 30 second timeout
             });
 
+            console.log('📥 Pesapal response status:', response.status);
+            console.log('📥 Pesapal response data:', JSON.stringify(response.data, null, 2));
+
             if (response.data && response.data.redirect_url) {
+                console.log('✅ Payment request created successfully');
                 return {
                     success: true,
                     orderTrackingId: response.data.order_tracking_id,
@@ -231,10 +252,47 @@ class PesapalService {
                 };
             }
 
-            throw new Error('Failed to create payment request');
+            // Check for alternative response formats
+            if (response.data && response.data.redirectUrl) {
+                console.log('✅ Payment request created (alternative format)');
+                return {
+                    success: true,
+                    orderTrackingId: response.data.orderTrackingId || response.data.order_tracking_id,
+                    redirectUrl: response.data.redirectUrl,
+                    merchantReference: orderData.orderNumber
+                };
+            }
+
+            console.error('❌ Unexpected response format:', response.data);
+            throw new Error(`Unexpected response from Pesapal: ${JSON.stringify(response.data)}`);
         } catch (error) {
-            console.error('Pesapal Payment Request Error:', error.response?.data || error.message);
-            throw new Error(`Failed to create payment request: ${error.message}`);
+            console.error('❌ Pesapal Payment Request Error:');
+            console.error('   Error message:', error.message);
+            console.error('   Error response status:', error.response?.status);
+            console.error('   Error response data:', JSON.stringify(error.response?.data, null, 2));
+            console.error('   Request URL:', error.config?.url);
+            console.error('   Request data:', JSON.stringify(error.config?.data, null, 2));
+            
+            // Provide more specific error messages
+            if (error.response) {
+                const status = error.response.status;
+                const data = error.response.data;
+                
+                if (status === 401) {
+                    throw new Error('Pesapal authentication failed. Please check your Consumer Key and Secret.');
+                } else if (status === 400) {
+                    const errorMsg = data?.error?.message || data?.message || JSON.stringify(data);
+                    throw new Error(`Invalid payment request: ${errorMsg}`);
+                } else if (status === 500) {
+                    throw new Error('Pesapal server error. Please try again later.');
+                } else {
+                    throw new Error(`Pesapal API error (${status}): ${JSON.stringify(data)}`);
+                }
+            } else if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+                throw new Error('Cannot connect to Pesapal. Please check your internet connection and try again.');
+            } else {
+                throw new Error(`Failed to create payment request: ${error.message}`);
+            }
         }
     }
 

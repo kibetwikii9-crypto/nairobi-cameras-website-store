@@ -9,7 +9,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const fs = require('fs');
-const { upload, buildImageResponse } = require('./services/fileStorage');
+const { upload, processImage } = require('./services/imageStorage');
 const { syncDatabase, User, Product, Order, getDatabaseType } = require('./config/database');
 
 const app = express();

@@ -127,3 +127,5 @@ Once you complete the setup, your data will **NEVER disappear** again!
 
 **The code is ready - just add your Supabase connection string and you're done!** 🚀
 
+
+

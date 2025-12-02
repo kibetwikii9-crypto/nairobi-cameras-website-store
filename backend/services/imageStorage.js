@@ -8,7 +8,7 @@ const path = require('path');
 const multer = require('multer');
 
 // Supabase Storage bucket name (can be overridden via environment variable)
-const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'product-images';
+const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'images';
 
 // Create upload directory if it doesn't exist
 const uploadDir = path.join(__dirname, '../../images/uploads');

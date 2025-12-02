@@ -76,3 +76,5 @@ Your website now uses Supabase JS Client (HTTPS REST API):
 
 **Ready to test! Run `npm start` and see the magic happen!** 🚀
 
+
+

@@ -74,13 +74,42 @@ router.post('/pesapal/initiate', [
             
             if (!product) {
                 console.error(`❌ Product not found: ID=${productId}, received item:`, item);
+                
+                // Try to list available products for debugging
+                try {
+                    const allProducts = await Product.findAll({ 
+                        limit: 20,
+                        attributes: ['id', 'name', 'isActive']
+                    });
+                    const productList = Array.isArray(allProducts) 
+                        ? allProducts 
+                        : (allProducts.rows || []);
+                    console.log(`📦 Available products in database:`, productList.map(p => ({ id: p.id, name: p.name, isActive: p.isActive })));
+                    console.log(`📦 Product IDs in database:`, productList.map(p => p.id).join(', '));
+                } catch (debugError) {
+                    console.error('Could not fetch product list for debugging:', debugError.message);
+                }
+                
                 return res.status(400).json({ 
                     success: false,
-                    message: `Product with ID ${productId} not found. Please check the product ID and try again.` 
+                    message: `Product with ID ${productId} not found in database. This product may have been removed or the cart contains outdated data. Please clear your cart and re-add products.`,
+                    debug: {
+                        requestedId: productId,
+                        suggestion: 'Clear your cart and re-add products from the product pages'
+                    }
                 });
             }
             
-            console.log(`✅ Found product: ${product.name} (ID: ${product.id})`);
+            // Check if product is active (if isActive field exists)
+            if (product.isActive === false) {
+                console.warn(`⚠️ Product ${productId} (${product.name}) is inactive`);
+                return res.status(400).json({ 
+                    success: false,
+                    message: `Product "${product.name}" is currently unavailable.` 
+                });
+            }
+            
+            console.log(`✅ Found product: ${product.name} (ID: ${product.id}, Active: ${product.isActive !== false})`);
 
             // Check stock (handle both number and string stock values)
             const stock = typeof product.stock === 'string' ? parseInt(product.stock, 10) : (product.stock || 0);
@@ -137,13 +166,24 @@ router.post('/pesapal/initiate', [
         // Create payment request with Pesapal FIRST
         let paymentResponse;
         try {
+            console.log('💳 Initiating Pesapal payment request...');
+            console.log('💳 Order data:', JSON.stringify(orderData, null, 2));
+            console.log('💳 Customer data:', JSON.stringify(customerData, null, 2));
+            
             paymentResponse = await pesapalService.createPaymentRequest(orderData, customerData);
+            
+            console.log('✅ Pesapal payment request successful:', paymentResponse);
         } catch (error) {
-            console.error('Pesapal payment request error:', error);
+            console.error('❌ Pesapal payment request error:');
+            console.error('   Error message:', error.message);
+            console.error('   Error stack:', error.stack);
+            console.error('   Full error:', error);
+            
             return res.status(500).json({ 
                 success: false,
-                message: 'Failed to create payment request',
-                error: error.message 
+                message: error.message || 'Failed to create payment request',
+                error: error.message,
+                details: process.env.NODE_ENV === 'development' ? error.stack : undefined
             });
         }
 
