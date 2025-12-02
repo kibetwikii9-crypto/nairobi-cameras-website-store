@@ -14,16 +14,9 @@ async function testAPIConnection() {
     }
 }
 
-// Helper function to normalize image URLs (replace broken local paths)
+// Helper function to normalize image URLs
 function normalizeImageUrl(imageUrl) {
     if (!imageUrl) return '/images/default.jpg';
-    
-    // Check if this is a local upload path that won't work on production
-    if (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/')) {
-        console.warn('⚠️ Replacing broken local upload path with placeholder:', imageUrl);
-        return '/images/default.jpg';
-    }
-    
     return imageUrl;
 }
 
