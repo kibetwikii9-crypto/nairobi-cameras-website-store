@@ -1101,6 +1101,8 @@ async function saveProduct() {
         const url = productId ? `${API_BASE}/products/${productId}` : `${API_BASE}/products`;
         const method = productId ? 'PUT' : 'POST';
 
+        console.log('📦 Sending product data:', productData);
+        
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -1110,14 +1112,33 @@ async function saveProduct() {
             body: JSON.stringify(productData)
         });
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            console.error('❌ Failed to parse response:', parseError);
+            const text = await response.text();
+            console.error('❌ Raw response:', text);
+            showAlert(`Failed to save product: Invalid server response (Status: ${response.status})`, 'danger');
+            return;
+        }
         
         console.log('📦 Product save response:', data);
         console.log('📦 Response status:', response.status);
+        console.log('📦 Response ok:', response.ok);
         
         if (!response.ok) {
-            const errorMsg = data.message || data.error || `Server error: ${response.status}`;
-            console.error('❌ Product save failed:', errorMsg);
+            const errorMsg = data.message || data.error || data.errorDetails || `Server error: ${response.status}`;
+            console.error('❌ Product save failed (HTTP error):', {
+                status: response.status,
+                statusText: response.statusText,
+                message: data.message,
+                error: data.error,
+                errorCode: data.errorCode,
+                errorDetails: data.errorDetails,
+                errorHint: data.errorHint,
+                fullData: data
+            });
             showAlert(`Failed to save product: ${errorMsg}`, 'danger');
             return;
         }
@@ -1128,9 +1149,15 @@ async function saveProduct() {
             loadProducts();
             resetProductForm();
         } else {
-            const errorMsg = data.message || data.error || 'Unknown error occurred';
-            console.error('❌ Product save failed:', errorMsg);
-            console.error('❌ Full error data:', data);
+            const errorMsg = data.message || data.error || data.errorDetails || 'Unknown error occurred';
+            console.error('❌ Product save failed (success: false):', {
+                message: data.message,
+                error: data.error,
+                errorCode: data.errorCode,
+                errorDetails: data.errorDetails,
+                errorHint: data.errorHint,
+                fullData: data
+            });
             showAlert(`Failed to save product: ${errorMsg}`, 'danger');
         }
     } catch (error) {
