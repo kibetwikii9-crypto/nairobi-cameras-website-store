@@ -93,6 +93,12 @@ async function processImage(file) {
 
       if (uploadError) {
         console.warn('⚠️ Supabase upload failed, using local storage:', uploadError.message);
+        console.warn('⚠️ Error details:', {
+          status: uploadError.status,
+          statusCode: uploadError.statusCode,
+          message: uploadError.message
+        });
+        // Continue with local storage below
       } else {
         // Get public URL
         const { data: urlData } = supabase.storage
