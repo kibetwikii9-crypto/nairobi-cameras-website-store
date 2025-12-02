@@ -264,11 +264,14 @@ app.delete('/api/products/:id', async (req, res) => {
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));
 
+// Payment routes
+app.use('/api/payments', require('./routes/payments'));
+
 // Simple upload endpoint for local development
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
     if (req.file) {
-      const imageResponse = buildImageResponse(req.file);
+      const imageResponse = await buildImageResponse(req.file);
       console.log('📸 Image uploaded:', imageResponse);
       
       if (!imageResponse || !imageResponse.url) {

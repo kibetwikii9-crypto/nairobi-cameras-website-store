@@ -37,30 +37,71 @@ router.post('/pesapal/initiate', [
         const orderItems = [];
 
         for (const item of items) {
-            const product = await Product.findOne({ where: { id: item.id } });
+            // Convert ID to number if needed (Supabase uses integer IDs)
+            let productId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
+            
+            // Validate product ID
+            if (!productId || isNaN(productId)) {
+                console.error('❌ Invalid product ID received:', item);
+                return res.status(400).json({ 
+                    success: false,
+                    message: `Invalid product ID: ${item.id}. Product IDs must be valid numbers.` 
+                });
+            }
+            
+            console.log(`🔍 Looking up product with ID: ${productId} (type: ${typeof productId})`);
+            
+            // Use findByPk for Supabase adapter (or findOne if available)
+            let product;
+            try {
+                if (Product.findByPk) {
+                    product = await Product.findByPk(productId);
+                } else {
+                    product = await Product.findOne({ where: { id: productId } });
+                }
+            } catch (error) {
+                console.error(`❌ Error finding product ${productId}:`, error);
+                console.error(`❌ Error details:`, {
+                    message: error.message,
+                    code: error.code,
+                    details: error.details
+                });
+                return res.status(500).json({ 
+                    success: false,
+                    message: `Error looking up product ${productId}: ${error.message}` 
+                });
+            }
+            
             if (!product) {
+                console.error(`❌ Product not found: ID=${productId}, received item:`, item);
                 return res.status(400).json({ 
                     success: false,
-                    message: `Product ${item.id} not found` 
+                    message: `Product with ID ${productId} not found. Please check the product ID and try again.` 
+                });
+            }
+            
+            console.log(`✅ Found product: ${product.name} (ID: ${product.id})`);
+
+            // Check stock (handle both number and string stock values)
+            const stock = typeof product.stock === 'string' ? parseInt(product.stock, 10) : (product.stock || 0);
+            if (stock < item.quantity) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: `Insufficient stock for ${product.name}. Available: ${stock}` 
                 });
             }
 
-            if (product.stock < item.quantity) {
-                return res.status(400).json({ 
-                    success: false,
-                    message: `Insufficient stock for ${product.name}. Available: ${product.stock}` 
-                });
-            }
-
-            const itemTotal = parseFloat(product.price) * item.quantity;
+            const itemTotal = parseFloat(product.price || 0) * item.quantity;
             subtotal += itemTotal;
 
             orderItems.push({
                 id: product.id,
                 name: product.name,
                 quantity: item.quantity,
-                price: parseFloat(product.price),
-                image: product.images && product.images[0] ? product.images[0].url : ''
+                price: parseFloat(product.price || 0),
+                image: (product.images && Array.isArray(product.images) && product.images[0]?.url) 
+                    ? product.images[0].url 
+                    : (product.image || '')
             });
         }
 
@@ -69,29 +110,15 @@ router.post('/pesapal/initiate', [
         const tax = 0; // Tax set to 0.00 as per your current setup
         const total = subtotal + shippingCost + tax;
 
-        // Create order in database
-        const order = await Order.create({
-            orderNumber: `GST-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            userId: 1, // Guest user - can be updated later with actual user system
-            items: orderItems,
-            shippingAddress: shippingAddress,
-            billingAddress: billingAddress || shippingAddress,
-            paymentMethod: 'pesapal',
-            paymentStatus: 'pending',
-            orderStatus: 'pending',
-            subtotal: subtotal,
-            shippingCost: shippingCost,
-            tax: tax,
-            total: total,
-            notes: notes || ''
-        });
-
-        // Prepare order data for Pesapal
+        // Generate order number
+        const orderNumber = `GST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        
+        // Prepare order data for Pesapal first (before creating order)
         const orderData = {
-            orderNumber: order.orderNumber,
+            orderNumber: orderNumber,
             amount: total,
             currency: 'KES',
-            description: `Order ${order.orderNumber} - ${orderItems.length} item(s)`
+            description: `Order ${orderNumber} - ${orderItems.length} item(s)`
         };
 
         // Prepare customer data for Pesapal
@@ -107,14 +134,94 @@ router.post('/pesapal/initiate', [
             postalCode: shippingAddress.postalCode || ''
         };
 
-        // Create payment request with Pesapal
-        const paymentResponse = await pesapalService.createPaymentRequest(orderData, customerData);
+        // Create payment request with Pesapal FIRST
+        let paymentResponse;
+        try {
+            paymentResponse = await pesapalService.createPaymentRequest(orderData, customerData);
+        } catch (error) {
+            console.error('Pesapal payment request error:', error);
+            return res.status(500).json({ 
+                success: false,
+                message: 'Failed to create payment request',
+                error: error.message 
+            });
+        }
 
-        // Update order with Pesapal tracking information
-        await order.update({
-            pesapalOrderTrackingId: paymentResponse.orderTrackingId,
-            pesapalMerchantReference: paymentResponse.merchantReference
-        });
+        // Create order in database AFTER payment request is successful
+        let order;
+        try {
+            // Ensure we have a valid user ID (create guest user if needed)
+            let userId = 1;
+            try {
+                // Check if user 1 exists, if not create a guest user
+                const { User } = require('../config/database');
+                if (User && User.findByPk) {
+                    const existingUser = await User.findByPk(1);
+                    if (!existingUser) {
+                        console.log('Creating guest user (ID: 1)...');
+                        try {
+                            await User.create({
+                                id: 1,
+                                email: 'guest@example.com',
+                                password: 'guest', // Placeholder - not used for guest orders
+                                name: 'Guest User',
+                                role: 'guest'
+                            });
+                            console.log('✅ Guest user created');
+                        } catch (createError) {
+                            console.warn('⚠️ Could not create guest user, will try with userId: 1:', createError.message);
+                        }
+                    }
+                }
+            } catch (userError) {
+                console.warn('⚠️ Could not verify/create guest user, proceeding with userId: 1:', userError.message);
+                // Continue with userId: 1 even if user doesn't exist (Supabase might allow it)
+            }
+            
+            // Prepare order data - Supabase orders table has minimal schema
+            // Store all extra data in shippingAddress JSON field
+            const orderData = {
+                userId: userId,
+                items: orderItems,
+                total: total,
+                status: 'pending', // Supabase uses 'status' not 'orderStatus'
+                shippingAddress: {
+                    // Store shipping info
+                    ...shippingAddress,
+                    // Store additional order metadata in shippingAddress JSON
+                    orderNumber: orderNumber,
+                    billingAddress: billingAddress || shippingAddress,
+                    paymentMethod: 'pesapal',
+                    paymentStatus: 'pending',
+                    orderStatus: 'pending',
+                    subtotal: subtotal,
+                    shippingCost: shippingCost,
+                    tax: tax,
+                    notes: notes || '',
+                    pesapalOrderTrackingId: paymentResponse.orderTrackingId || null,
+                    pesapalMerchantReference: paymentResponse.merchantReference || null
+                }
+            };
+            
+            console.log('📦 Creating order with data:', JSON.stringify(orderData, null, 2));
+            order = await Order.create(orderData);
+            console.log('✅ Order created successfully:', order.id);
+        } catch (error) {
+            console.error('Error creating order:', error);
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+                stack: error.stack
+            });
+            return res.status(500).json({ 
+                success: false,
+                message: 'Failed to create order in database',
+                error: error.message,
+                details: process.env.NODE_ENV === 'development' ? error.details : undefined
+            });
+        }
 
         res.json({
             success: true,
@@ -128,10 +235,18 @@ router.post('/pesapal/initiate', [
 
     } catch (error) {
         console.error('Payment initiation error:', error);
+        console.error('Error stack:', error.stack);
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+        });
         res.status(500).json({ 
             success: false,
             message: 'Failed to initiate payment',
-            error: error.message 
+            error: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
@@ -181,25 +296,53 @@ router.get('/pesapal/ipn', async (req, res) => {
         const status = paymentStatus.payment_status_description || paymentStatus.status;
         
         if (status === 'COMPLETED' || status === 'Paid') {
-            await order.update({
-                paymentStatus: 'paid',
-                orderStatus: 'confirmed',
-                pesapalPaymentMethod: paymentStatus.payment_method || null
-            });
+            // Update order using Supabase update method
+            try {
+                await Order.update(
+                    {
+                        paymentStatus: 'paid',
+                        orderStatus: 'confirmed',
+                        pesapalPaymentMethod: paymentStatus.payment_method || null
+                    },
+                    { where: { id: order.id } }
+                );
+            } catch (updateError) {
+                console.error('Error updating order:', updateError);
+            }
 
             // Update product stock
             for (const item of order.items) {
-                const product = await Product.findOne({ where: { id: item.id } });
-                if (product) {
-                    await product.update({
-                        stock: product.stock - item.quantity
-                    });
+                try {
+                    const productId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
+                    let product;
+                    if (Product.findByPk) {
+                        product = await Product.findByPk(productId);
+                    } else {
+                        product = await Product.findOne({ where: { id: productId } });
+                    }
+                    
+                    if (product) {
+                        const currentStock = typeof product.stock === 'string' ? parseInt(product.stock, 10) : (product.stock || 0);
+                        const newStock = currentStock - item.quantity;
+                        
+                        await Product.update(
+                            { stock: newStock },
+                            { where: { id: productId } }
+                        );
+                    }
+                } catch (stockError) {
+                    console.error(`Error updating stock for product ${item.id}:`, stockError);
                 }
             }
         } else if (status === 'FAILED' || status === 'Failed') {
-            await order.update({
-                paymentStatus: 'failed'
-            });
+            try {
+                await Order.update(
+                    { paymentStatus: 'failed' },
+                    { where: { id: order.id } }
+                );
+            } catch (updateError) {
+                console.error('Error updating order status:', updateError);
+            }
         }
 
         // Respond to Pesapal
@@ -260,25 +403,53 @@ router.post('/pesapal/ipn', async (req, res) => {
         const status = paymentStatus.payment_status_description || paymentStatus.status;
         
         if (status === 'COMPLETED' || status === 'Paid') {
-            await order.update({
-                paymentStatus: 'paid',
-                orderStatus: 'confirmed',
-                pesapalPaymentMethod: paymentStatus.payment_method || null
-            });
+            // Update order using Supabase update method
+            try {
+                await Order.update(
+                    {
+                        paymentStatus: 'paid',
+                        orderStatus: 'confirmed',
+                        pesapalPaymentMethod: paymentStatus.payment_method || null
+                    },
+                    { where: { id: order.id } }
+                );
+            } catch (updateError) {
+                console.error('Error updating order:', updateError);
+            }
 
             // Update product stock
             for (const item of order.items) {
-                const product = await Product.findOne({ where: { id: item.id } });
-                if (product) {
-                    await product.update({
-                        stock: product.stock - item.quantity
-                    });
+                try {
+                    const productId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
+                    let product;
+                    if (Product.findByPk) {
+                        product = await Product.findByPk(productId);
+                    } else {
+                        product = await Product.findOne({ where: { id: productId } });
+                    }
+                    
+                    if (product) {
+                        const currentStock = typeof product.stock === 'string' ? parseInt(product.stock, 10) : (product.stock || 0);
+                        const newStock = currentStock - item.quantity;
+                        
+                        await Product.update(
+                            { stock: newStock },
+                            { where: { id: productId } }
+                        );
+                    }
+                } catch (stockError) {
+                    console.error(`Error updating stock for product ${item.id}:`, stockError);
                 }
             }
         } else if (status === 'FAILED' || status === 'Failed') {
-            await order.update({
-                paymentStatus: 'failed'
-            });
+            try {
+                await Order.update(
+                    { paymentStatus: 'failed' },
+                    { where: { id: order.id } }
+                );
+            } catch (updateError) {
+                console.error('Error updating order status:', updateError);
+            }
         }
 
         // Respond to Pesapal
@@ -342,11 +513,18 @@ router.get('/pesapal/status/:orderId', async (req, res) => {
         const status = paymentStatus.payment_status_description || paymentStatus.status;
         if (status === 'COMPLETED' || status === 'Paid') {
             if (order.paymentStatus !== 'paid') {
-                await order.update({
-                    paymentStatus: 'paid',
-                    orderStatus: 'confirmed',
-                    pesapalPaymentMethod: paymentStatus.payment_method || null
-                });
+                try {
+                    await Order.update(
+                        {
+                            paymentStatus: 'paid',
+                            orderStatus: 'confirmed',
+                            pesapalPaymentMethod: paymentStatus.payment_method || null
+                        },
+                        { where: { id: order.id } }
+                    );
+                } catch (updateError) {
+                    console.error('Error updating order status:', updateError);
+                }
             }
         }
 

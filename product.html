@@ -1267,8 +1267,15 @@
                         return;
                     }
                     if (window.cartManager) {
+                        // Use id field (Supabase standard) - ensure it's valid
+                        const productId = product.id || product._id;
+                        if (!productId) {
+                            alert('Error: Product ID is missing. Please refresh the page.');
+                            console.error('Product missing ID:', product);
+                            return;
+                        }
                         window.cartManager.addToCart(
-                            product._id || product.id,
+                            productId,
                             product.name,
                             product.price,
                             product.images?.[0]?.url || product.images?.[0] || 'images/placeholder.jpg'

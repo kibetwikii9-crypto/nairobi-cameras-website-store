@@ -25,12 +25,12 @@ function renderInto(containerId, products) {
     container.innerHTML = products.map(function(p){
         const img = (p.images && p.images[0] && p.images[0].url) ? p.images[0].url : '/images/default.jpg';
         const original = p.originalPrice ? '<span class="original-price">KSh ' + Number(p.originalPrice).toLocaleString() + '</span>' : '';
-        const pid = p._id || p.id;
-        // Wishlist functionality removed
+        // Use id field (Supabase standard) - fallback to _id for compatibility
+        const pid = p.id || p._id;
         
         // Ensure product ID is valid
-        if (!pid) {
-            console.warn('⚠️ Product missing ID:', p.name);
+        if (!pid || pid === 'undefined' || pid === 'null') {
+            console.warn('⚠️ Product missing ID:', p.name, 'Product data:', p);
             return ''; // Skip products without IDs
         }
         // Calculate discount percentage
@@ -416,12 +416,12 @@ class HomePageTabs {
         container.innerHTML = products.map(p => {
             const img = (p.images && p.images[0] && p.images[0].url) ? p.images[0].url : '/images/default.jpg';
             const original = p.originalPrice ? '<span class="original-price">KSh ' + Number(p.originalPrice).toLocaleString() + '</span>' : '';
-            const pid = p._id || p.id;
-            // Wishlist functionality removed
+            // Use id field (Supabase standard) - fallback to _id for compatibility
+            const pid = p.id || p._id;
             
             // Ensure product ID is valid
-            if (!pid) {
-                console.warn('⚠️ Product missing ID:', p.name);
+            if (!pid || pid === 'undefined' || pid === 'null') {
+                console.warn('⚠️ Product missing ID:', p.name, 'Product data:', p);
                 return ''; // Skip products without IDs
             }
             // Calculate discount percentage

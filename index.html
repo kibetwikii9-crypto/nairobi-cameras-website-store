@@ -183,7 +183,7 @@
     </nav>
 
     <section class="hero">
-        <video class="hero-video" autoplay muted loop playsinline poster="images/logo.png" preload="metadata">
+        <video class="hero-video" autoplay muted loop playsinline poster="images/logo.png" preload="none" onerror="this.style.display='none'; console.warn('Video failed to load');">
             <source src="video/hero-anim.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
@@ -339,7 +339,7 @@
     
     <!-- Hero Section - 50vh -->
     <section class="mobile-hero">
-        <video class="mobile-hero-video" autoplay muted loop playsinline poster="images/logo.png" preload="metadata">
+        <video class="mobile-hero-video" autoplay muted loop playsinline poster="images/logo.png" preload="none" onerror="this.style.display='none'; console.warn('Video failed to load');">
             <source src="video/hero-anim.mp4" type="video/mp4">
         </video>
         <div class="mobile-hero-content">

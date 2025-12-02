@@ -70,7 +70,46 @@ class CartManager {
                 console.log('🛒 Cart loaded successfully:', parsed);
                 console.log('🛒 Cart items count:', parsed.length);
                 if (Array.isArray(parsed)) {
-                    return parsed;
+                    // Normalize and validate cart items
+                    const normalizedCart = parsed.map((item, index) => {
+                        // Normalize product ID to number
+                        let normalizedId = item.id;
+                        if (typeof item.id === 'string') {
+                            normalizedId = parseInt(item.id, 10);
+                        }
+                        
+                        // Validate ID
+                        if (!normalizedId || isNaN(normalizedId) || normalizedId <= 0) {
+                            console.error(`❌ Invalid product ID in cart item ${index}:`, item);
+                            return null; // Mark for removal
+                        }
+                        
+                        return {
+                            ...item,
+                            id: normalizedId
+                        };
+                    }).filter(item => item !== null); // Remove invalid items
+                    
+                    // Check for suspicious ID values (like 1 when products have higher IDs)
+                    const hasSuspiciousIds = normalizedCart.some(item => {
+                        const id = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
+                        return id === 1; // ID 1 is often a placeholder or old data
+                    });
+                    
+                    if (hasSuspiciousIds) {
+                        console.warn('⚠️ WARNING: Cart contains items with ID=1. This might be old/invalid data.');
+                        console.warn('⚠️ Please clear your cart and re-add products to ensure correct IDs.');
+                        console.warn('⚠️ Cart items:', normalizedCart);
+                    }
+                    
+                    // If items were removed, save the cleaned cart
+                    if (normalizedCart.length !== parsed.length) {
+                        console.warn('⚠️ Removed invalid items from cart. Original:', parsed.length, 'Cleaned:', normalizedCart.length);
+                        this.cart = normalizedCart;
+                        this.saveCart();
+                    }
+                    
+                    return normalizedCart;
                 } else {
                     console.warn('⚠️ Cart data is not an array, returning empty array');
                     return [];
@@ -98,17 +137,43 @@ class CartManager {
 
     // Add item to cart with enhanced features
     addToCart(productId, productName, price, image, quantity = 1) {
-        console.log('🛒 Adding to cart:', { productId, productName, price, image, quantity });
+        // Ensure productId is valid and convert to number if string (Supabase uses integer IDs)
+        let normalizedId = productId;
+        if (typeof productId === 'string') {
+            normalizedId = parseInt(productId, 10);
+            if (isNaN(normalizedId)) {
+                console.error('❌ Invalid product ID (cannot convert to number):', productId);
+                this.showNotification('Error: Invalid product ID. Please try again.', 'error');
+                return;
+            }
+        }
         
-        const existingItem = this.cart.find(item => item.id === productId);
+        if (!normalizedId || normalizedId <= 0) {
+            console.error('❌ Invalid product ID:', productId, 'Normalized:', normalizedId);
+            this.showNotification('Error: Invalid product ID. Please try again.', 'error');
+            return;
+        }
+        
+        console.log('🛒 Adding to cart:', { 
+            originalId: productId, 
+            normalizedId: normalizedId,
+            productName, 
+            price, 
+            quantity 
+        });
+        
+        const existingItem = this.cart.find(item => {
+            const itemId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
+            return itemId === normalizedId;
+        });
         
         if (existingItem) {
             existingItem.quantity += quantity;
             this.showNotification(`${productName} quantity updated!`, 'success');
-            this.trackEvent('cart:quantityIncrement', { productId, quantity: existingItem.quantity });
+            this.trackEvent('cart:quantityIncrement', { productId: normalizedId, quantity: existingItem.quantity });
         } else {
             const newItem = {
-                id: productId,
+                id: normalizedId, // Store as number for consistency
                 name: productName,
                 price: parseFloat(price),
                 image: image,
@@ -116,8 +181,9 @@ class CartManager {
                 addedAt: new Date().toISOString()
             };
             this.cart.push(newItem);
+            console.log('✅ Added new item to cart:', newItem);
             this.showNotification(`${productName} added to cart!`, 'success');
-            this.trackEvent('cart:add', { productId, name: productName, quantity });
+            this.trackEvent('cart:add', { productId: normalizedId, name: productName, quantity });
         }
         
         this.saveCart();
@@ -178,6 +244,14 @@ class CartManager {
         this.updateCartDisplay();
         this.showNotification('Cart cleared', 'info');
         this.trackEvent('cart:clear');
+    }
+    
+    // Clear cart with confirmation (for fixing invalid data)
+    clearCartWithConfirmation() {
+        if (confirm('This will clear your cart. Are you sure? You can re-add items after clearing.')) {
+            this.clearCart();
+            this.showNotification('Cart cleared. Please re-add products to ensure correct IDs.', 'success');
+        }
     }
 
     // Get cart total
@@ -623,36 +697,37 @@ class CartManager {
                 <style>
                     .checkout-grid {
                         display: flex;
-                        flex-wrap: wrap;
-                        gap: 24px;
+                        flex-direction: column;
+                        gap: 16px;
                     }
                     .checkout-modal .order-summary,
                     .checkout-modal .checkout-details {
-                        flex: 1 1 280px;
                         background: #ffffff;
-                        border-radius: 16px;
-                        padding: 20px;
+                        border-radius: 12px;
+                        padding: 16px;
                         border: 1px solid #f1f1f5;
-                        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+                        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
                     }
                     .checkout-form-group {
                         display: flex;
                         flex-direction: column;
                         gap: 6px;
-                        margin-bottom: 12px;
+                        margin-bottom: 16px;
                     }
                     .checkout-form-group label {
-                        font-size: 0.85rem;
+                        font-size: 0.875rem;
                         color: #475467;
                         font-weight: 600;
                     }
                     .checkout-form-group input,
                     .checkout-form-group textarea {
                         border: 1px solid #e4e7ec;
-                        border-radius: 10px;
-                        padding: 10px 12px;
-                        font-size: 0.95rem;
+                        border-radius: 8px;
+                        padding: 12px 14px;
+                        font-size: 1rem;
                         transition: border 0.2s ease, box-shadow 0.2s ease;
+                        width: 100%;
+                        box-sizing: border-box;
                     }
                     .checkout-form-group input:focus,
                     .checkout-form-group textarea:focus {
@@ -660,16 +735,87 @@ class CartManager {
                         box-shadow: 0 0 0 3px rgba(233, 1, 0, 0.12);
                         outline: none;
                     }
+                    .checkout-form-row {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+                    }
                     .checkout-modal .payment-methods {
                         margin-top: 16px;
                         display: flex;
                         flex-direction: column;
-                        gap: 10px;
+                        gap: 12px;
                     }
                     .payment-note {
-                        font-size: 0.85rem;
-                        color: #475467;
+                        font-size: 0.8rem;
+                        color: #6b7280;
                         text-align: center;
+                        line-height: 1.4;
+                    }
+                    
+                    /* Mobile optimizations */
+                    @media (max-width: 768px) {
+                        .checkout-modal .modal-content {
+                            max-width: 100% !important;
+                            width: 100% !important;
+                            max-height: 100vh !important;
+                            height: 100vh !important;
+                            border-radius: 0 !important;
+                            margin: 0 !important;
+                        }
+                        .checkout-modal .modal-header {
+                            padding: 16px !important;
+                            position: sticky;
+                            top: 0;
+                            background: white;
+                            z-index: 10;
+                            border-bottom: 1px solid #e5e7eb;
+                        }
+                        .checkout-modal .modal-header h3 {
+                            font-size: 1.25rem !important;
+                        }
+                        .checkout-modal .modal-body {
+                            padding: 16px !important;
+                            padding-bottom: 100px !important;
+                        }
+                        .checkout-modal .order-summary,
+                        .checkout-modal .checkout-details {
+                            padding: 16px !important;
+                            border-radius: 8px !important;
+                        }
+                        .checkout-form-group input,
+                        .checkout-form-group textarea {
+                            padding: 14px 16px !important;
+                            font-size: 16px !important; /* Prevents zoom on iOS */
+                        }
+                        .checkout-form-row {
+                            flex-direction: column !important;
+                        }
+                        .payment-btn {
+                            padding: 14px 16px !important;
+                            font-size: 1rem !important;
+                            min-height: 48px !important; /* Better touch target */
+                        }
+                        .payment-btn.pay-now-btn {
+                            padding: 16px !important;
+                            font-size: 1.1rem !important;
+                        }
+                    }
+                    
+                    /* Desktop styles */
+                    @media (min-width: 769px) {
+                        .checkout-grid {
+                            flex-direction: row;
+                            gap: 24px;
+                        }
+                        .checkout-modal .order-summary,
+                        .checkout-modal .checkout-details {
+                            flex: 1 1 300px;
+                            padding: 20px;
+                        }
+                        .checkout-form-row {
+                            flex-direction: row;
+                        }
                     }
                 </style>
                 <div class="modal-header">
@@ -746,25 +892,16 @@ class CartManager {
                                 </div>
                             </form>
                             <div class="payment-methods">
-                                <h4 style="margin-bottom: 0.75rem; font-size: 0.9rem; color: #374151; font-weight: 500;">Choose Payment Method</h4>
-                                <button class="payment-btn mpesa-btn" type="button" data-action="pesapal-payment" data-method="mpesa" style="background: #ffffff; border: 1px solid #e5e7eb; color: #374151; padding: 0.625rem 1rem; font-size: 0.875rem; margin-bottom: 0.5rem; border-radius: 6px; width: 100%; text-align: left; transition: all 0.2s;">
-                                    <i class="fas fa-mobile-alt" style="margin-right: 0.5rem;"></i>
-                                    Pay with M-Pesa
-                                </button>
-                                <button class="payment-btn card-btn" type="button" data-action="pesapal-payment" data-method="card" style="background: #ffffff; border: 1px solid #e5e7eb; color: #374151; padding: 0.625rem 1rem; font-size: 0.875rem; margin-bottom: 0.5rem; border-radius: 6px; width: 100%; text-align: left; transition: all 0.2s;">
+                                <button class="payment-btn pay-now-btn" type="button" data-action="pesapal-payment" data-method="pesapal" style="background: #10b981; border: none; color: #ffffff; padding: 0.875rem 1.5rem; font-size: 1rem; font-weight: 600; border-radius: 6px; width: 100%; text-align: center; transition: all 0.2s; margin-bottom: 0.75rem; cursor: pointer;">
                                     <i class="fas fa-credit-card" style="margin-right: 0.5rem;"></i>
-                                    Pay with Card
+                                    Pay Now
                                 </button>
-                                <button class="payment-btn bank-btn" type="button" data-action="pesapal-payment" data-method="bank" style="background: #ffffff; border: 1px solid #e5e7eb; color: #374151; padding: 0.625rem 1rem; font-size: 0.875rem; margin-bottom: 0.5rem; border-radius: 6px; width: 100%; text-align: left; transition: all 0.2s;">
-                                    <i class="fas fa-university" style="margin-right: 0.5rem;"></i>
-                                    Pay with Bank
-                                </button>
-                                <button class="payment-btn" type="button" data-action="confirm-order" style="background: #ffffff; border: 1px solid #e5e7eb; color: #374151; padding: 0.625rem 1rem; font-size: 0.875rem; margin-top: 0.5rem; border-radius: 6px; width: 100%; text-align: left; transition: all 0.2s;">
-                                    <i class="fas fa-headset" style="margin-right: 0.5rem;"></i>
-                                    Confirm order & choose payment with an agent
+                                <button class="payment-btn" type="button" data-action="confirm-order" style="background: #ffffff; border: 1px solid #e5e7eb; color: #374151; padding: 0.625rem 1rem; font-size: 0.875rem; border-radius: 6px; width: 100%; text-align: left; transition: all 0.2s;">
+                                    <i class="fas fa-truck" style="margin-right: 0.5rem;"></i>
+                                    Confirm Order and Pay on Delivery
                                 </button>
                                 <small class="payment-note" style="display: block; margin-top: 0.75rem; font-size: 0.75rem; color: #6b7280;">
-                                    Secure payment via Pesapal or contact our team for alternative payment methods.
+                                    Secure payment via Pesapal (M-Pesa, Card, Bank) or contact our team for alternative payment methods.
                                 </small>
                             </div>
                         </div>
@@ -785,6 +922,8 @@ class CartManager {
             align-items: center;
             justify-content: center;
             z-index: 2000;
+            padding: 0;
+            overflow-y: auto;
         `;
         
         document.body.appendChild(modal);
@@ -797,8 +936,17 @@ class CartManager {
                 border-color: #d1d5db !important;
                 cursor: pointer;
             }
+            .payment-btn.pay-now-btn:hover {
+                background: #059669 !important;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            }
             .payment-btn:active {
                 background: #f3f4f6 !important;
+            }
+            .payment-btn.pay-now-btn:active {
+                background: #047857 !important;
+                transform: translateY(0);
             }
             .payment-btn:disabled {
                 opacity: 0.6;
@@ -858,12 +1006,38 @@ class CartManager {
         const firstName = nameParts[0] || formData.fullName;
         const lastName = nameParts.slice(1).join(' ') || formData.fullName;
 
+        // Validate cart before proceeding
+        if (!this.cart || this.cart.length === 0) {
+            this.showNotification('Your cart is empty. Please add items before checkout.', 'warning');
+            return;
+        }
+        
+        // Log current cart state for debugging
+        console.log('🛒 Current cart items before payment:', JSON.stringify(this.cart, null, 2));
+        
         // Prepare order data for backend
+        // Ensure product IDs are properly formatted (convert to number if string)
         const paymentData = {
-            items: this.cart.map(item => ({
-                id: item.id,
-                quantity: item.quantity
-            })),
+            items: this.cart.map((item, index) => {
+                // Ensure ID is a number (Supabase uses integer IDs)
+                let productId = item.id;
+                if (typeof item.id === 'string') {
+                    productId = parseInt(item.id, 10);
+                }
+                
+                // Validate ID
+                if (!productId || isNaN(productId) || productId <= 0) {
+                    console.error(`❌ Invalid product ID in cart item ${index}:`, item);
+                    throw new Error(`Invalid product ID for item: ${item.name || 'Unknown'}. ID: ${item.id}`);
+                }
+                
+                console.log(`✅ Cart item ${index}: Product ID ${productId}, Name: ${item.name}, Quantity: ${item.quantity}`);
+                
+                return {
+                    id: productId,
+                    quantity: item.quantity || 1
+                };
+            }),
             customer: {
                 firstName: firstName,
                 lastName: lastName,
@@ -906,6 +1080,10 @@ class CartManager {
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
                 });
             }
+
+            // Log payment data for debugging
+            console.log('💳 Sending payment request with items:', paymentData.items);
+            console.log('💳 Full payment data:', JSON.stringify(paymentData, null, 2));
 
             // Send payment request to backend
             const response = await fetch('/api/payments/pesapal/initiate', {
@@ -1146,10 +1324,12 @@ style.textContent = `
     .checkout-modal .modal-content {
         background: white;
         border-radius: 16px;
-        max-width: 500px;
+        max-width: 900px;
         width: 90%;
-        max-height: 80vh;
+        max-height: 90vh;
         overflow-y: auto;
+        margin: auto;
+        position: relative;
     }
     
     .modal-header {
@@ -1160,16 +1340,108 @@ style.textContent = `
         border-bottom: 1px solid #e5e7eb;
     }
     
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #1f2937;
+    }
+    
     .close-btn {
         background: none;
         border: none;
-        font-size: 20px;
+        font-size: 24px;
         cursor: pointer;
         color: #6b7280;
+        padding: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    
+    .close-btn:hover {
+        background: #f3f4f6;
+        color: #1f2937;
     }
     
     .modal-body {
         padding: 20px;
+    }
+    
+    /* Mobile optimizations for checkout modal */
+    @media (max-width: 768px) {
+        .checkout-modal {
+            padding: 0 !important;
+            align-items: flex-start !important;
+        }
+        
+        .checkout-modal .modal-content {
+            max-width: 100% !important;
+            width: 100% !important;
+            max-height: 100vh !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .modal-header {
+            padding: 16px !important;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .modal-header h3 {
+            font-size: 1.25rem !important;
+        }
+        
+        .close-btn {
+            width: 44px !important;
+            height: 44px !important;
+            font-size: 20px !important;
+        }
+        
+        .modal-body {
+            padding: 16px !important;
+            padding-bottom: 120px !important; /* Space for buttons at bottom */
+        }
+        
+        .checkout-grid {
+            flex-direction: column !important;
+            gap: 16px !important;
+        }
+        
+        .checkout-modal .order-summary,
+        .checkout-modal .checkout-details {
+            padding: 16px !important;
+            border-radius: 8px !important;
+        }
+        
+        .checkout-form-group input,
+        .checkout-form-group textarea {
+            padding: 14px 16px !important;
+            font-size: 16px !important; /* Prevents zoom on iOS */
+        }
+        
+        .checkout-form-row {
+            flex-direction: column !important;
+        }
+        
+        .payment-btn {
+            padding: 14px 16px !important;
+            font-size: 1rem !important;
+            min-height: 48px !important; /* Better touch target */
+        }
+        
+        .payment-btn.pay-now-btn {
+            padding: 16px !important;
+            font-size: 1.1rem !important;
+        }
     }
     
     .summary-item {
