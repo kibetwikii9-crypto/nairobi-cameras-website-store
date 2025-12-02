@@ -221,15 +221,69 @@ app.get('/api/search', async (req, res) => {
 // Create product (Admin only)
 app.post('/api/products', async (req, res) => {
     try {
-        const productData = req.body;
+        console.log('📦 Creating product (dev)...');
+        console.log('📦 Product data:', JSON.stringify(req.body, null, 2));
+        
+        // Validate required fields
+        if (!req.body.name || !req.body.category || !req.body.price) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Missing required fields: name, category, and price are required' 
+            });
+        }
+        
+        // Ensure at least one image
+        if (!req.body.images || !Array.isArray(req.body.images) || req.body.images.length === 0) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'At least one image is required' 
+            });
+        }
+        
+        const productData = {
+            name: req.body.name,
+            description: req.body.description || null,
+            price: parseFloat(req.body.price),
+            originalPrice: req.body.originalPrice ? parseFloat(req.body.originalPrice) : null,
+            category: req.body.category.toLowerCase().trim(),
+            brand: req.body.brand || null,
+            model: req.body.model || null,
+            stock: parseInt(req.body.stock) || 0,
+            isActive: req.body.isActive !== undefined ? req.body.isActive : true,
+            isFeatured: req.body.isFeatured || false,
+            images: Array.isArray(req.body.images) ? req.body.images : [],
+            specifications: req.body.specifications || {}
+        };
+        
+        console.log('📦 Prepared product data:', JSON.stringify(productData, null, 2));
+        
         const product = await Product.create(productData);
-        res.status(201).json({ success: true, data: product });
+        
+        if (!product || !product.id) {
+            console.error('❌ Product.create returned null or no ID!');
+            throw new Error('Product creation returned no data');
+        }
+        
+        console.log('✅ Product created with ID:', product.id);
+        
+        res.status(201).json({ 
+            success: true, 
+            message: 'Product created successfully',
+            data: { product } 
+        });
     } catch (error) {
-        console.error('Create product error:', error);
+        console.error('❌ Create product error:', error);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error code:', error.code);
+        console.error('❌ Error details:', error.details);
+        console.error('❌ Error stack:', error.stack);
+        
         res.status(500).json({ 
             success: false,
-            message: 'Server error',
-            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+            message: error.message || 'Failed to create product',
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+            errorCode: error.code,
+            errorDetails: process.env.NODE_ENV === 'development' ? error.details : undefined
         });
     }
 });

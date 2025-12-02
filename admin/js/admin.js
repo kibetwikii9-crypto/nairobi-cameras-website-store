@@ -1112,17 +1112,30 @@ async function saveProduct() {
 
         const data = await response.json();
         
+        console.log('📦 Product save response:', data);
+        console.log('📦 Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorMsg = data.message || data.error || `Server error: ${response.status}`;
+            console.error('❌ Product save failed:', errorMsg);
+            showAlert(`Failed to save product: ${errorMsg}`, 'danger');
+            return;
+        }
+        
         if (data.success) {
-            showAlert(data.message, 'success');
+            showAlert(data.message || 'Product saved successfully', 'success');
             bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
             loadProducts();
             resetProductForm();
         } else {
-            showAlert(data.message, 'danger');
+            const errorMsg = data.message || data.error || 'Unknown error occurred';
+            console.error('❌ Product save failed:', errorMsg);
+            console.error('❌ Full error data:', data);
+            showAlert(`Failed to save product: ${errorMsg}`, 'danger');
         }
     } catch (error) {
-        console.error('Save product error:', error);
-        showAlert('Failed to save product', 'danger');
+        console.error('❌ Save product error:', error);
+        showAlert(`Failed to save product: ${error.message}`, 'danger');
     }
 }
 
