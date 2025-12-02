@@ -478,7 +478,8 @@ function updateProductsTable(products, pagination) {
                                 </div>
                             </td>
                         </tr>
-                    `).join('')}
+                    `;
+                    }).join('')}
                 </tbody>
             </table>
         </div>
@@ -1432,7 +1433,8 @@ function updateImagePreview() {
                     ${index === 0 ? 'Primary' : index + 1}
                 </span>
             </div>
-        `)
+        `;
+        })
         .join('');
 }
 
