@@ -425,12 +425,19 @@ function updateProductsTable(products, pagination) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${products.map(product => `
+                    ${products.map(product => {
+                        let imageUrl = product.images?.[0]?.url || '/images/placeholder.svg';
+                        // Replace broken local upload paths
+                        if (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/')) {
+                            imageUrl = '/images/placeholder.svg';
+                        }
+                        return `
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <img src="${product.images?.[0]?.url || '/images/placeholder.svg'}" 
-                                         class="rounded me-3" width="50" height="50" style="object-fit: cover;">
+                                    <img src="${imageUrl}" 
+                                         class="rounded me-3" width="50" height="50" style="object-fit: cover;"
+                                         onerror="this.src='/images/placeholder.svg'">
                                     <div>
                                         <h6 class="mb-1">${product.name}</h6>
                                         <small class="text-muted">${product.brand}</small>
@@ -1405,9 +1412,15 @@ function updateImagePreview() {
     }
 
     preview.innerHTML = urls
-        .map((url, index) => `
+        .map((url, index) => {
+            // Replace broken local upload paths
+            let imageUrl = url;
+            if (imageUrl && (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/'))) {
+                imageUrl = '/images/default.jpg';
+            }
+            return `
             <div class="d-inline-block me-2 mb-2 position-relative">
-                <img src="${url}" class="rounded border" width="80" height="80" style="object-fit: cover;"
+                <img src="${imageUrl}" class="rounded border" width="80" height="80" style="object-fit: cover;"
                      onerror="this.src='/images/default.jpg'">
                 <span class="badge bg-${index === 0 ? 'primary' : 'secondary'} position-absolute top-0 start-0 mt-1 ms-1">
                     ${index === 0 ? 'Primary' : index + 1}

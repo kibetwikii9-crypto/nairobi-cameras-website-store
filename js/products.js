@@ -115,6 +115,12 @@ class ProductLoader {
             }
         }
         
+        // Normalize image URL (replace broken local upload paths)
+        if (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/')) {
+            console.warn('⚠️ Replacing broken local upload path with placeholder:', imageUrl);
+            imageUrl = '/images/default.jpg';
+        }
+        
         // Handle pricing safely
         const price = Number(product.price) || 0;
         const originalPrice = Number(product.originalPrice) || 0;

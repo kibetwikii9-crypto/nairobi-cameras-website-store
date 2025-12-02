@@ -31,8 +31,20 @@ class ImageHandler {
         // Remove loading class
         img.classList.remove('loading');
         
-        // Get current image source
-        const currentSrc = img.src;
+        // Get current image source (remove query params for comparison)
+        const currentSrc = img.src.split('?')[0];
+        
+        // Check if this is a local upload path that will never work
+        const isLocalUploadPath = currentSrc.includes('/images/uploads/') || 
+                                  currentSrc.includes('images/uploads/');
+        
+        // Don't retry local upload paths - they're permanently gone
+        if (isLocalUploadPath) {
+            console.warn(`⚠️ Local upload image not found (likely lost on redeploy): ${currentSrc}`);
+            this.failedImages.add(currentSrc);
+            this.setFallbackImage(img, fallbackIndex, customFallback);
+            return;
+        }
         
         // Check if we've already tried this image
         if (this.failedImages.has(currentSrc)) {
@@ -43,8 +55,8 @@ class ImageHandler {
         // Mark image as failed
         this.failedImages.add(currentSrc);
         
-        // Try retry logic if enabled
-        if (retryOnError && this.shouldRetry(currentSrc)) {
+        // Try retry logic if enabled (only for non-local paths)
+        if (retryOnError && !isLocalUploadPath && this.shouldRetry(currentSrc)) {
             this.retryImageLoad(img, currentSrc);
             return;
         }
@@ -52,8 +64,10 @@ class ImageHandler {
         // Set fallback image
         this.setFallbackImage(img, fallbackIndex, customFallback);
         
-        // Log error for monitoring
-        console.warn(`Image failed to load: ${currentSrc}`);
+        // Log error for monitoring (only if not a local upload path)
+        if (!isLocalUploadPath) {
+            console.warn(`Image failed to load: ${currentSrc}`);
+        }
     }
 
     // Set fallback image
@@ -80,8 +94,16 @@ class ImageHandler {
     }
 
     retryImageLoad(img, src) {
-        const attempts = this.retryAttempts.get(src) || 0;
-        this.retryAttempts.set(src, attempts + 1);
+        // Don't retry local upload paths - they're permanently gone
+        const cleanSrc = src.split('?')[0];
+        if (cleanSrc.includes('/images/uploads/') || cleanSrc.includes('images/uploads/')) {
+            console.warn(`⚠️ Skipping retry for local upload path: ${cleanSrc}`);
+            this.setFallbackImage(img);
+            return;
+        }
+        
+        const attempts = this.retryAttempts.get(cleanSrc) || 0;
+        this.retryAttempts.set(cleanSrc, attempts + 1);
         
         // Add loading state
         img.classList.add('loading');
@@ -90,7 +112,7 @@ class ImageHandler {
         const delay = Math.pow(2, attempts) * 1000; // 1s, 2s, 4s
         
         setTimeout(() => {
-            img.src = src + '?retry=' + attempts; // Add cache buster
+            img.src = cleanSrc + '?retry=' + attempts; // Add cache buster
         }, delay);
     }
 

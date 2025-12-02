@@ -14,6 +14,19 @@ async function testAPIConnection() {
     }
 }
 
+// Helper function to normalize image URLs (replace broken local paths)
+function normalizeImageUrl(imageUrl) {
+    if (!imageUrl) return '/images/default.jpg';
+    
+    // Check if this is a local upload path that won't work on production
+    if (imageUrl.includes('/images/uploads/') || imageUrl.includes('images/uploads/')) {
+        console.warn('⚠️ Replacing broken local upload path with placeholder:', imageUrl);
+        return '/images/default.jpg';
+    }
+    
+    return imageUrl;
+}
+
 // Render helper for home sections
 function renderInto(containerId, products) {
     const container = document.getElementById(containerId);
@@ -23,7 +36,8 @@ function renderInto(containerId, products) {
         return;
     }
     container.innerHTML = products.map(function(p){
-        const img = (p.images && p.images[0] && p.images[0].url) ? p.images[0].url : '/images/default.jpg';
+        const rawImg = (p.images && p.images[0] && p.images[0].url) ? p.images[0].url : '/images/default.jpg';
+        const img = normalizeImageUrl(rawImg);
         const original = p.originalPrice ? '<span class="original-price">KSh ' + Number(p.originalPrice).toLocaleString() + '</span>' : '';
         // Use id field (Supabase standard) - fallback to _id for compatibility
         const pid = p.id || p._id;
