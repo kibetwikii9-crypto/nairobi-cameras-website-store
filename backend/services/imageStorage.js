@@ -7,6 +7,9 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
+// Supabase Storage bucket name (can be overridden via environment variable)
+const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'product-images';
+
 // Create upload directory if it doesn't exist
 const uploadDir = path.join(__dirname, '../../images/uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -85,7 +88,7 @@ async function processImage(file) {
       
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('product-images')
+        .from(STORAGE_BUCKET)
         .upload(file.filename, fileBuffer, {
           contentType: file.mimetype || 'image/jpeg',
           upsert: false
@@ -102,7 +105,7 @@ async function processImage(file) {
       } else {
         // Get public URL
         const { data: urlData } = supabase.storage
-          .from('product-images')
+          .from(STORAGE_BUCKET)
           .getPublicUrl(uploadData.path);
 
         if (urlData && urlData.publicUrl) {
