@@ -12,7 +12,7 @@ const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
-const { upload, buildImageResponse } = require('./services/fileStorage');
+const { upload, processImage } = require('./services/imageStorage');
 const fs = require('fs');
 const { syncDatabase, User, Product, Order, getDatabasePath, getDatabaseType, sequelize } = require('./config/database');
 const { backupData, restoreData, startAutoBackup } = require('./database/backup-data');
@@ -927,69 +927,46 @@ app.post('/api/auth/login', async (req, res) => {
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/payments', require('./routes/payments'));
 
-// Simple image upload endpoint
+// Image upload endpoint
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
-    if (req.file) {
-      console.log('📸 File received:', {
-        filename: req.file.filename,
-        size: req.file.size,
-        mimetype: req.file.mimetype,
-        path: req.file.path
-      });
-      
-      const imageResponse = await buildImageResponse(req.file);
-      console.log('📸 Image response:', imageResponse);
-      
-      if (!imageResponse || !imageResponse.url) {
-        console.error('❌ buildImageResponse did not return a valid URL');
-        console.error('❌ Response object:', imageResponse);
-        return res.status(500).json({
-          success: false,
-          message: 'Upload succeeded but failed to generate URL',
-          error: 'buildImageResponse returned invalid response'
-        });
-      }
-      
-      return res.json({
-        success: true,
-        message: 'Image uploaded successfully',
-        data: imageResponse
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image file provided'
       });
     }
 
-    const { imageUrl } = req.body;
-    if (imageUrl && typeof imageUrl === 'string') {
-      const trimmed = imageUrl.trim();
-      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
-        return res.status(400).json({
-          success: false,
-          message: 'Image URL must start with http:// or https://'
-        });
-      }
-
-      return res.json({
-        success: true,
-        message: 'Image URL saved successfully',
-        data: {
-          filename: 'external-image',
-          url: trimmed,
-          size: 0,
-          mimetype: 'external/url',
-          uploadedAt: new Date().toISOString()
-        }
-      });
+    console.log('📸 Processing image:', req.file.filename);
+    
+    const imageData = await processImage(req.file);
+    
+    if (!imageData || !imageData.url) {
+      throw new Error('Failed to process image');
     }
 
-    return res.status(400).json({
-      success: false,
-      message: 'No image file or URL provided'
+    console.log('✅ Image processed successfully:', imageData.url);
+    
+    return res.json({
+      success: true,
+      message: 'Image uploaded successfully',
+      data: imageData
     });
   } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({
+    console.error('❌ Upload error:', error);
+    
+    // Clean up file if it exists
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (deleteError) {
+        console.warn('⚠️ Could not delete file:', deleteError.message);
+      }
+    }
+    
+    return res.status(500).json({
       success: false,
-      message: `Upload failed: ${error.message}`
+      message: error.message || 'Image upload failed'
     });
   }
 });
