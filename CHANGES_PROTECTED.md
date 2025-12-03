@@ -106,3 +106,5 @@ But this is **NOT RECOMMENDED** as it will bring back the 404 errors.
 
 The image 404 fix is now permanent and protected from reversion.
 
+
+

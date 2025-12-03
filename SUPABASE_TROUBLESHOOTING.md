@@ -178,3 +178,5 @@ You should see: **✅ SUCCESS! Connected to Supabase!**
 
 
 
+
+

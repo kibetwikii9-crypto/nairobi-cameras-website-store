@@ -1,35 +1,16 @@
 /**
- * Simple Image Storage Service
- * Handles image uploads with automatic fallback
+ * Image Storage Service - Supabase Storage Only
+ * All images are stored in Supabase Storage. No local storage.
  */
 
-const fs = require('fs');
-const path = require('path');
 const multer = require('multer');
 
 // Supabase Storage bucket name (can be overridden via environment variable)
 const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'images';
 
-// Create upload directory if it doesn't exist
-const uploadDir = path.join(__dirname, '../../images/uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log('✅ Created upload directory:', uploadDir);
-}
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    const timestamp = Date.now();
-    const random = Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname) || '.jpg';
-    const filename = `product-${timestamp}-${random}${ext.toLowerCase()}`;
-    cb(null, filename);
-  }
-});
+// Use memory storage - files are never saved to disk
+// They are uploaded directly to Supabase from memory
+const storage = multer.memoryStorage();
 
 // Multer upload middleware
 const upload = multer({
@@ -41,7 +22,7 @@ const upload = multer({
   fileFilter: (_req, file, cb) => {
     // Accept only image files
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = allowedTypes.test(require('path').extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
     
     if (extname && mimetype) {
@@ -54,9 +35,9 @@ const upload = multer({
 
 /**
  * Process uploaded image file
- * Returns image URL and metadata
+ * Uploads directly to Supabase Storage - no local storage
  * 
- * @param {Object} file - Multer file object
+ * @param {Object} file - Multer file object (from memory storage)
  * @returns {Object} Image response with URL and metadata
  */
 async function processImage(file) {
@@ -64,83 +45,74 @@ async function processImage(file) {
     throw new Error('No file provided');
   }
 
-  if (!file.path) {
-    throw new Error('File path is missing');
+  if (!file.buffer) {
+    throw new Error('File buffer is missing');
   }
 
-  if (!file.filename) {
-    throw new Error('File filename is missing');
+  // Generate unique filename
+  const path = require('path');
+  const timestamp = Date.now();
+  const random = Math.round(Math.random() * 1e9);
+  const ext = path.extname(file.originalname) || '.jpg';
+  const filename = `product-${timestamp}-${random}${ext.toLowerCase()}`;
+
+  // Supabase is REQUIRED - no fallback to local storage
+  const { getSupabaseClient, isSupabaseConfigured } = require('../config/supabase');
+  
+  if (!isSupabaseConfigured()) {
+    throw new Error('Supabase Storage is required but not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your environment variables.');
   }
 
-  // Generate local URL
-  const localUrl = `/images/uploads/${file.filename}`;
+  console.log('📤 Uploading image to Supabase Storage:', filename);
+  console.log('📦 Using bucket:', STORAGE_BUCKET);
+  
+  const supabase = getSupabaseClient();
+  
+  // Upload directly to Supabase Storage from memory buffer
+  const { data: uploadData, error: uploadError } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(filename, file.buffer, {
+      contentType: file.mimetype || 'image/jpeg',
+      upsert: false
+    });
 
-  // Try Supabase upload if configured
-  let finalUrl = localUrl;
-  let storageType = 'local';
-
-  try {
-    const { getSupabaseClient, isSupabaseConfigured } = require('../config/supabase');
-    
-    if (isSupabaseConfigured()) {
-      const supabase = getSupabaseClient();
-      const fileBuffer = fs.readFileSync(file.path);
-      
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(file.filename, fileBuffer, {
-          contentType: file.mimetype || 'image/jpeg',
-          upsert: false
-        });
-
-      if (uploadError) {
-        console.warn('⚠️ Supabase upload failed, using local storage:', uploadError.message);
-        console.warn('⚠️ Error details:', {
-          status: uploadError.status,
-          statusCode: uploadError.statusCode,
-          message: uploadError.message
-        });
-        // Continue with local storage below
-      } else {
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from(STORAGE_BUCKET)
-          .getPublicUrl(uploadData.path);
-
-        if (urlData && urlData.publicUrl) {
-          finalUrl = urlData.publicUrl;
-          storageType = 'supabase';
-          
-          // Delete local file after successful Supabase upload
-          try {
-            fs.unlinkSync(file.path);
-            console.log('✅ Uploaded to Supabase, deleted local file');
-          } catch (deleteError) {
-            console.warn('⚠️ Could not delete local file:', deleteError.message);
-          }
-        }
-      }
-    }
-  } catch (error) {
-    // If Supabase fails, just use local storage
-    console.warn('⚠️ Supabase not available, using local storage:', error.message);
+  if (uploadError) {
+    console.error('❌ Supabase upload failed:', uploadError.message);
+    console.error('❌ Error details:', {
+      status: uploadError.status,
+      statusCode: uploadError.statusCode,
+      message: uploadError.message,
+      error: uploadError
+    });
+    throw new Error(`Failed to upload image to Supabase Storage: ${uploadError.message}. Please check your Supabase configuration and ensure bucket '${STORAGE_BUCKET}' exists and is accessible.`);
   }
+
+  console.log('✅ Supabase upload successful:', uploadData.path);
+  
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(uploadData.path);
+
+  if (!urlData || !urlData.publicUrl) {
+    throw new Error('Failed to generate public URL from Supabase Storage');
+  }
+
+  const finalUrl = urlData.publicUrl;
+  console.log('✅ Public URL generated:', finalUrl);
 
   // Return image response
   return {
-    filename: file.filename,
+    filename: filename,
     url: finalUrl,
     size: file.size || 0,
     mimetype: file.mimetype || 'image/jpeg',
     uploadedAt: new Date().toISOString(),
-    storage: storageType
+    storage: 'supabase'
   };
 }
 
 module.exports = {
   upload,
-  processImage,
-  uploadDir
+  processImage
 };
-

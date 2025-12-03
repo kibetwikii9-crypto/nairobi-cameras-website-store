@@ -937,7 +937,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
       });
     }
 
-    console.log('📸 Processing image:', req.file.filename);
+    console.log('📸 Processing image upload to Supabase Storage');
     
     const imageData = await processImage(req.file);
     
@@ -945,7 +945,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
       throw new Error('Failed to process image');
     }
 
-    console.log('✅ Image processed successfully:', imageData.url);
+    console.log('✅ Image uploaded successfully to Supabase:', imageData.url);
     
     return res.json({
       success: true,
@@ -954,15 +954,6 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Upload error:', error);
-    
-    // Clean up file if it exists
-    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (deleteError) {
-        console.warn('⚠️ Could not delete file:', deleteError.message);
-      }
-    }
     
     return res.status(500).json({
       success: false,
@@ -976,26 +967,8 @@ app.get('/favicon.ico', (req, res) => {
     res.sendFile(path.join(__dirname, '../images/favicon.png'));
 });
 
-// Serve uploaded images with proper headers
-app.use('/images/uploads', express.static(path.join(__dirname, '../images/uploads'), {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
-            res.setHeader('Content-Type', 'image/jpeg');
-        } else if (filePath.endsWith('.png')) {
-            res.setHeader('Content-Type', 'image/png');
-        } else if (filePath.endsWith('.gif')) {
-            res.setHeader('Content-Type', 'image/gif');
-        } else if (filePath.endsWith('.webp')) {
-            res.setHeader('Content-Type', 'image/webp');
-        }
-        // PERFORMANCE: Cache images for 1 year with ETag
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        res.setHeader('ETag', `"${filePath}-${fs.statSync(filePath).mtime.getTime()}"`);
-    },
-    maxAge: 31536000 // 1 year in milliseconds
-}));
-
-// Serve static images from root images directory
+// Serve static images from root images directory (default images, placeholders, etc.)
+// Note: Uploaded product images are stored in Supabase Storage, not locally
 app.use('/images', express.static(path.join(__dirname, '../images'), {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
@@ -1113,6 +1086,35 @@ const startServer = async () => {
             // Don't exit - let the server start with limited functionality
         } else {
             console.log('✅ Database connection established');
+        }
+
+        // Check Supabase Storage configuration
+        try {
+            const { isSupabaseConfigured } = require('./config/supabase');
+            const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'images';
+            
+            if (isSupabaseConfigured()) {
+                console.log('✅ Supabase Storage is configured');
+                console.log('📦 Storage bucket:', STORAGE_BUCKET);
+                console.log('💡 Image uploads will be stored in Supabase Storage');
+            } else {
+                console.error('');
+                console.error('🚨 ============================================');
+                console.error('🚨 SUPABASE STORAGE NOT CONFIGURED');
+                console.error('🚨 ============================================');
+                console.error('🚨 Image uploads will FAIL!');
+                console.error('🚨 Supabase Storage is REQUIRED - no local storage available.');
+                console.error('');
+                console.error('✅ TO FIX:');
+                console.error('   1. Set SUPABASE_URL in your environment variables');
+                console.error('   2. Set SUPABASE_SERVICE_ROLE_KEY in your environment variables');
+                console.error('   3. Create a storage bucket named "' + STORAGE_BUCKET + '" in Supabase');
+                console.error('   4. Make the bucket public');
+                console.error('🚨 ============================================');
+                console.error('');
+            }
+        } catch (error) {
+            console.error('⚠️ Could not check Supabase configuration:', error.message);
         }
 
         // Only perform database operations if database is connected

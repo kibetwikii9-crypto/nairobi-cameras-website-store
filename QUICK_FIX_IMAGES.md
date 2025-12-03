@@ -74,3 +74,5 @@ If you want to use Supabase Storage for permanent image storage:
 - **Supabase storage is permanent** - Images persist across redeploys
 - **Both work** - You can use local storage for development, Supabase for production
 
+
+

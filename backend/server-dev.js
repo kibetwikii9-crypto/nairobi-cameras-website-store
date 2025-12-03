@@ -359,7 +359,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
       });
     }
 
-    console.log('📸 Processing image:', req.file.filename);
+    console.log('📸 Processing image upload to Supabase Storage');
     
     const imageData = await processImage(req.file);
     
@@ -367,7 +367,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
       throw new Error('Failed to process image');
     }
 
-    console.log('✅ Image processed successfully:', imageData.url);
+    console.log('✅ Image uploaded successfully to Supabase:', imageData.url);
     
     return res.json({
       success: true,
@@ -376,15 +376,6 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Upload error:', error);
-    
-    // Clean up file if it exists
-    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (deleteError) {
-        console.warn('⚠️ Could not delete file:', deleteError.message);
-      }
-    }
     
     return res.status(500).json({
       success: false,
@@ -440,6 +431,23 @@ const startServer = async () => {
         }
         
         console.log('✅ Database connection established');
+
+        // Check Supabase Storage configuration
+        try {
+            const { isSupabaseConfigured } = require('./config/supabase');
+            const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'images';
+            
+            if (isSupabaseConfigured()) {
+                console.log('✅ Supabase Storage is configured');
+                console.log('📦 Storage bucket:', STORAGE_BUCKET);
+            } else {
+                console.error('❌ Supabase Storage is not configured');
+                console.error('❌ Image uploads will FAIL without Supabase Storage');
+                console.error('💡 To enable image uploads, set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+            }
+        } catch (error) {
+            console.warn('⚠️ Could not check Supabase configuration:', error.message);
+        }
         
         // Start server
         app.listen(PORT, () => {

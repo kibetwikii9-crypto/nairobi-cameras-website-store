@@ -105,3 +105,5 @@ If images still don't appear:
 4. Test image URLs directly in browser (e.g., `http://localhost:5000/images/default.jpg`)
 5. Check server logs for any errors
 
+
+

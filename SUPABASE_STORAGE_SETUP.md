@@ -87,3 +87,5 @@ Existing products with local image URLs (`/images/uploads/...`) will need to be 
 2. Re-upload them through the admin panel
 3. Or create a migration script to upload existing images to Supabase Storage
 
+
+

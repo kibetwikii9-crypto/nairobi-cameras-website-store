@@ -72,3 +72,5 @@ If images still show 404:
 - Verify environment variables are set correctly
 - Check that Service Role Key (not anon key) is being used
 
+
+

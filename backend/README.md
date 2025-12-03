@@ -42,7 +42,7 @@ JWT_SECRET=your-super-secret-jwt-key-here
 PORT=5000
 NODE_ENV=development
 
-# File uploads are stored locally in /images/uploads
+# File uploads are stored in Supabase Storage (cloud storage only - no local storage)
 ```
 
 **To get Supabase credentials:**
