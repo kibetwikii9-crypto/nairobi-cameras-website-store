@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en" class="coming-soon-page">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- SEO Meta Tags -->
+    <title>Coming Soon - Golden Source Technologies | Nairobi, Kenya</title>
+    <meta name="description" content="Exciting deals and new products coming soon! Check back for amazing offers on electronics, laptops, phones, cameras, and more.">
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="https://goldensourcetech.co.ke/coming-soon">
+    
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/mobile-home.css?v=1" media="(max-width: 991px)">
+    
+    <style>
+        /* Desktop visible by default */
+        .desktop-shell {
+            display: block;
+        }
+        .mobile-shell {
+            display: none;
+        }
+        @media (max-width: 991px) {
+            .desktop-shell {
+                display: none !important;
+            }
+            .mobile-shell {
+                display: block !important;
+            }
+        }
+        
+        /* Coming Soon Styles */
+        .coming-soon-section {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 80px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .coming-soon-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(233, 1, 0, 0.05) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .coming-soon-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 700px;
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .coming-soon-icon {
+            font-size: 5rem;
+            color: #e90100;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+            display: inline-block;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+        
+        .coming-soon-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #140407;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #140407 0%, #e90100 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeIn 1s ease-out 0.2s both;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .coming-soon-message {
+            font-size: 1.5rem;
+            color: #495057;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            animation: fadeIn 1s ease-out 0.4s both;
+        }
+        
+        .coming-soon-subtitle {
+            font-size: 1.1rem;
+            color: #6c757d;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+        
+        .pulse-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-out 0.8s both;
+        }
+        
+        .pulse-dot {
+            width: 12px;
+            height: 12px;
+            background: #e90100;
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .pulse-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .pulse-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.7;
+            }
+        }
+        
+        .back-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #e90100 0%, #c0392b 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(233, 1, 0, 0.3);
+            animation: fadeIn 1s ease-out 1s both;
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(233, 1, 0, 0.4);
+            color: white;
+        }
+        
+        .back-button:active {
+            transform: translateY(0);
+        }
+        
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .coming-soon-section {
+                min-height: 70vh;
+                padding: 40px 15px;
+            }
+            
+            .coming-soon-content {
+                padding: 30px 20px;
+                border-radius: 15px;
+            }
+            
+            .coming-soon-icon {
+                font-size: 3.5rem;
+                margin-bottom: 20px;
+            }
+            
+            .coming-soon-title {
+                font-size: 2rem;
+                margin-bottom: 15px;
+            }
+            
+            .coming-soon-message {
+                font-size: 1.2rem;
+                margin-bottom: 20px;
+            }
+            
+            .coming-soon-subtitle {
+                font-size: 1rem;
+                margin-bottom: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Desktop Layout -->
+    <div class="desktop-shell">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <img src="images/logo.png" alt="Golden Source Technologies" height="40">
+                    <div class="brand-text">
+                        <div>GOLDEN SOURCE</div>
+                        <div>TECHNOLOGIES</div>
+                    </div>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/laptops">Laptops</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/phones">Phones</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/cameras">Cameras</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/audio">Audio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/accessories">Accessories</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/smart-home">Smart Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/deals">Deals</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/cart">
+                                <i class="fas fa-shopping-cart"></i> Cart
+                                <span class="cart-count-badge" id="cartBadge" style="display: none;">0</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Coming Soon Section -->
+        <section class="coming-soon-section">
+            <div class="coming-soon-content">
+                <div class="coming-soon-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <h1 class="coming-soon-title">Coming Soon</h1>
+                <p class="coming-soon-message">Check back soon, deals coming!</p>
+                <p class="coming-soon-subtitle">We're preparing something amazing for you. Stay tuned for exciting offers and new products!</p>
+                <div class="pulse-dots">
+                    <div class="pulse-dot"></div>
+                    <div class="pulse-dot"></div>
+                    <div class="pulse-dot"></div>
+                </div>
+                <a href="/" class="back-button">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Home
+                </a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-dark text-white py-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h5>Golden Source Technologies</h5>
+                        <p>Your trusted electronics store. Quality products at competitive prices.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Quick Links</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="/" class="text-light">Home</a></li>
+                            <li><a href="/laptops" class="text-light">Laptops</a></li>
+                            <li><a href="/phones" class="text-light">Phones</a></li>
+                            <li><a href="/cameras" class="text-light">Cameras</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Contact Info</h5>
+                        <p><i class="fas fa-phone me-2"></i> +254 724 369 971</p>
+                        <p><i class="fas fa-envelope me-2"></i> Goldensourcetechnologies@gmail.com</p>
+                        <p><i class="fas fa-map-marker-alt me-2"></i> Nairobi, Kenya</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Mobile Layout -->
+    <div class="mobile-shell">
+        <!-- Scrolling Logo Header -->
+        <div class="mobile-logo-header" id="mobileLogoHeader">
+            <div class="mobile-logo-brand">
+                <img src="images/logo.png" alt="Golden Source Technologies" class="mobile-logo-img">
+                <span class="mobile-brand-name">Golden Source Technologies</span>
+            </div>
+        </div>
+        
+        <!-- Fixed Icon Header -->
+        <header class="mobile-icon-header">
+            <div class="icon-group">
+                <button class="mobile-icon-btn" id="mobileMenuToggle" aria-label="Open menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+            <div class="icon-group">
+                <button class="mobile-icon-btn" id="mobileSearchToggle" aria-label="Search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <a href="/cart" class="mobile-icon-btn" aria-label="Cart">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="cart-count-badge" id="mobileCartBadge" style="display:none;">0</span>
+                </a>
+            </div>
+        </header>
+        
+        <!-- Menu Overlay -->
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+        
+        <!-- Menu Drawer -->
+        <nav class="mobile-menu-drawer" id="mobileMenuDrawer">
+            <div class="mobile-menu-header">
+                <h3>Menu</h3>
+                <button class="mobile-icon-btn" id="mobileMenuClose" aria-label="Close menu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mobile-menu-links">
+                <a href="/">Home</a>
+                <a href="/laptops">Laptops</a>
+                <a href="/phones">Phones</a>
+                <a href="/cameras">Cameras</a>
+                <a href="/audio">Audio &amp; Headphones</a>
+                <a href="/accessories">Accessories</a>
+                <a href="/smart-home">Smart Home</a>
+                <a href="/deals">Deals</a>
+            </div>
+        </nav>
+        
+        <!-- Search Overlay -->
+        <div class="mobile-search-overlay" id="mobileSearchOverlay"></div>
+        
+        <!-- Search Panel -->
+        <div class="mobile-search-panel" id="mobileSearchPanel">
+            <form class="mobile-search-form" id="mobileSearchForm">
+                <input 
+                    type="search" 
+                    class="mobile-search-input" 
+                    id="mobileSearchInput"
+                    placeholder="Search products..."
+                    autocomplete="off"
+                >
+                <button type="button" class="mobile-icon-btn" id="mobileSearchClose" aria-label="Close search">
+                    <i class="fas fa-times"></i>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Coming Soon Section -->
+        <section class="coming-soon-section" style="min-height: calc(100vh - 120px); padding-top: 100px;">
+            <div class="coming-soon-content">
+                <div class="coming-soon-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <h1 class="coming-soon-title">Coming Soon</h1>
+                <p class="coming-soon-message">Check back soon, deals coming!</p>
+                <p class="coming-soon-subtitle">We're preparing something amazing for you. Stay tuned for exciting offers and new products!</p>
+                <div class="pulse-dots">
+                    <div class="pulse-dot"></div>
+                    <div class="pulse-dot"></div>
+                    <div class="pulse-dot"></div>
+                </div>
+                <a href="/" class="back-button">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Home
+                </a>
+            </div>
+        </section>
+
+        <!-- Mobile Footer -->
+        <footer class="mobile-footer">
+            <div class="footer-container">
+                <div class="footer-section footer-brand">
+                    <p class="footer-tagline">Your trusted partner for electronics and smart living essentials.</p>
+                    <div class="footer-social">
+                        <a href="https://www.facebook.com/goldensourcetechnology" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://www.instagram.com/computers_and_cameras" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://wa.me/254724369971" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">Contact</h4>
+                    <div class="contact-item">
+                        <i class="fas fa-phone-alt"></i>
+                        <a href="tel:+254724369971">+254 724 369 971</a>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:Goldensourcetechnologies@gmail.com">Goldensourcetechnologies@gmail.com</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/mobile-home.js"></script>
+</body>
+</html>
+
