@@ -43,13 +43,7 @@ function setupEventListeners() {
     }
 
     // Signup form
-    const signupForm = document.getElementById('signupForm');
-    if (signupForm) {
-        signupForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            signup();
-        });
-    }
+    // Signup removed - admin users are created via seed script only
 
     // Logout
     const logoutBtn = document.getElementById('logout');
@@ -172,59 +166,7 @@ async function login() {
     }
 }
 
-// Signup function
-async function signup() {
-    const name = document.getElementById('signupName').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const password = document.getElementById('signupPassword').value;
-    
-    if (!name || !email || !password) {
-        showAlert('Please fill in all fields', 'warning');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE}/auth/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name, email, password })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            // Store credentials
-            authToken = data.token;
-            localStorage.setItem('adminToken', authToken);
-            currentUser = data.user;
-            
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-            if (modal) {
-                modal.hide();
-            }
-            
-            // Clear signup form
-            document.getElementById('signupForm').reset();
-            
-            // Initialize admin panel
-            try {
-                await initializeAdmin();
-                showAlert('Account created and logged in successfully!', 'success');
-            } catch (initError) {
-                console.error('Initialization error:', initError);
-                showAlert('Account created! Please refresh the page.', 'success');
-            }
-        } else {
-            showAlert(data.message || 'Signup failed', 'danger');
-        }
-    } catch (error) {
-        console.error('Signup error:', error);
-        showAlert('Signup failed: ' + (error.message || 'Please try again.'), 'danger');
-    }
-}
+// Signup function removed - admin users are created via seed script only
 
 // Logout function
 function logout() {
@@ -316,7 +258,7 @@ function updateRecentOrders(orders) {
             </div>
             <div class="text-end">
                 <span class="status-badge status-${order.orderStatus}">${order.orderStatus}</span>
-                <div class="text-muted small">$${order.total}</div>
+                <div class="text-muted small">KSh ${order.total}</div>
             </div>
         </div>
     `).join('');
@@ -361,7 +303,7 @@ function updateTopProducts(products) {
                 <small class="text-muted">${product.brand}</small>
             </div>
             <div class="text-end">
-                <div class="fw-bold">$${product.price}</div>
+                <div class="fw-bold">KSh ${product.price}</div>
                 <small class="text-muted">Stock: ${product.stock}</small>
             </div>
         </div>
@@ -438,10 +380,18 @@ function updateProductsTable(products, pagination) {
     }
 
     const tableHtml = `
+        <div class="mb-3">
+            <button class="btn btn-danger-modern btn-modern" id="deleteSelectedBtn" onclick="deleteSelectedProducts()" disabled>
+                <i class="fas fa-trash me-2"></i>Delete Selected (<span id="selectedCount">0</span>)
+            </button>
+        </div>
         <div class="table-responsive">
             <table class="table">
                 <thead>
                     <tr>
+                        <th width="50">
+                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" title="Select All">
+                        </th>
                         <th>Product</th>
                         <th>Category</th>
                         <th>Price</th>
@@ -455,6 +405,9 @@ function updateProductsTable(products, pagination) {
                         const imageUrl = product.images?.[0]?.url || '/images/placeholder.svg';
                         return `
                         <tr>
+                            <td>
+                                <input type="checkbox" class="product-checkbox" value="${product.id}" onchange="updateSelectedCount()">
+                            </td>
                             <td>
                                 <div class="d-flex align-items-center">
                                     <img src="${imageUrl}" 
@@ -471,9 +424,9 @@ function updateProductsTable(products, pagination) {
                                 <span class="badge bg-secondary">${product.category}</span>
                             </td>
                             <td>
-                                <strong>$${product.price}</strong>
+                                <strong>KSh ${product.price}</strong>
                                 ${product.originalPrice && product.originalPrice > product.price ? 
-                                    `<div class="text-muted small">Was $${product.originalPrice}</div>` : ''}
+                                    `<div class="text-muted small">Was KSh ${product.originalPrice}</div>` : ''}
                             </td>
                             <td>
                                 <span class="badge ${product.stock > 10 ? 'bg-success' : product.stock > 0 ? 'bg-warning' : 'bg-danger'}">
@@ -510,6 +463,121 @@ function updateProductsTable(products, pagination) {
     `;
 
     container.innerHTML = tableHtml;
+    updateSelectedCount(); // Initialize selected count
+}
+
+// Toggle select all checkboxes
+function toggleSelectAll(checked) {
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = checked;
+    });
+    updateSelectedCount();
+}
+
+// Update selected count and enable/disable delete button
+function updateSelectedCount() {
+    const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+    const count = checkboxes.length;
+    const deleteBtn = document.getElementById('deleteSelectedBtn');
+    const countSpan = document.getElementById('selectedCount');
+    
+    if (countSpan) {
+        countSpan.textContent = count;
+    }
+    
+    if (deleteBtn) {
+        deleteBtn.disabled = count === 0;
+    }
+    
+    // Update select all checkbox state
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        const allCheckboxes = document.querySelectorAll('.product-checkbox');
+        selectAllCheckbox.checked = allCheckboxes.length > 0 && allCheckboxes.length === count;
+        selectAllCheckbox.indeterminate = count > 0 && count < allCheckboxes.length;
+    }
+}
+
+// Get selected product IDs
+function getSelectedProducts() {
+    const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+    return Array.from(checkboxes).map(checkbox => parseInt(checkbox.value));
+}
+
+// Delete selected products
+async function deleteSelectedProducts() {
+    const selectedIds = getSelectedProducts();
+    
+    if (selectedIds.length === 0) {
+        showAlert('Please select at least one product to delete', 'warning');
+        return;
+    }
+    
+    const confirmMessage = `Are you sure you want to delete ${selectedIds.length} product(s)? This action cannot be undone.`;
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    console.log('🗑️ Deleting selected products:', selectedIds);
+    
+    // Disable delete button during operation
+    const deleteBtn = document.getElementById('deleteSelectedBtn');
+    if (deleteBtn) {
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+    }
+    
+    try {
+        // Delete products one by one (or we could create a bulk delete endpoint)
+        const deletePromises = selectedIds.map(productId => 
+            fetch(`${API_BASE}/products/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            }).then(async response => {
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `Failed to delete product ${productId}`);
+                }
+                return response.json();
+            })
+        );
+        
+        const results = await Promise.allSettled(deletePromises);
+        
+        // Count successes and failures
+        const successful = results.filter(r => r.status === 'fulfilled').length;
+        const failed = results.filter(r => r.status === 'rejected').length;
+        
+        if (successful > 0) {
+            showAlert(`Successfully deleted ${successful} product(s)${failed > 0 ? `. ${failed} failed.` : ''}`, successful === selectedIds.length ? 'success' : 'warning');
+            loadProducts(); // Reload the products list
+        } else {
+            showAlert(`Failed to delete products. ${failed > 0 ? results.find(r => r.status === 'rejected')?.reason?.message || 'Unknown error' : ''}`, 'danger');
+        }
+        
+        // Reset checkboxes
+        document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = false);
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+        updateSelectedCount();
+        
+    } catch (error) {
+        console.error('❌ Delete selected products error:', error);
+        showAlert(`Failed to delete products: ${error.message}`, 'danger');
+    } finally {
+        // Re-enable delete button
+        if (deleteBtn) {
+            deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Selected (<span id="selectedCount">0</span>)';
+            updateSelectedCount(); // This will update the count and enable/disable button
+        }
+    }
 }
 
 // Load orders
@@ -577,7 +645,7 @@ function updateOrdersTable(orders, pagination) {
                                 </div>
                             </td>
                             <td>
-                                <strong>$${order.total}</strong>
+                                <strong>KSh ${order.total}</strong>
                             </td>
                             <td>
                                 <span class="status-badge status-${order.orderStatus}">${order.orderStatus}</span>
@@ -677,10 +745,8 @@ function updateUsersTable(users, pagination) {
                             </td>
                             <td>${new Date(user.createdAt).toLocaleDateString()}</td>
                             <td>
-                                <select class="form-select form-select-sm" onchange="updateUserRole(${user.id}, this.value)">
-                                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
-                                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                                </select>
+                                <span class="badge ${user.role === 'admin' ? 'bg-danger' : 'bg-primary'}">${user.role}</span>
+                                ${user.role === 'user' ? '<button class="btn btn-sm btn-outline-secondary ms-2" disabled title="Role changes disabled. Admin users are created via seed script only.">Change Role</button>' : '<span class="text-muted small ms-2">(Admin - cannot change)</span>'}
                             </td>
                         </tr>
                     `).join('')}
@@ -706,8 +772,8 @@ async function loadAnalytics() {
 
         if (data.success) {
             // Update analytics cards
-            document.getElementById('totalRevenue').textContent = `$${data.data.totalRevenue || 0}`;
-            document.getElementById('avgOrderValue').textContent = `$${Math.round((data.data.totalRevenue || 0) / (data.data.totalOrders || 1))}`;
+            document.getElementById('totalRevenue').textContent = `KSh ${data.data.totalRevenue || 0}`;
+            document.getElementById('avgOrderValue').textContent = `KSh ${Math.round((data.data.totalRevenue || 0) / (data.data.totalOrders || 1))}`;
             document.getElementById('conversionRate').textContent = '2.5%'; // Placeholder
             document.getElementById('newCustomers').textContent = '12'; // Placeholder
 
@@ -1451,6 +1517,12 @@ function updateOrderStatus(orderId, status) {
 
 // User management functions
 function updateUserRole(userId, role) {
+    // Prevent creating admin users through UI - admins are created via seed script only
+    if (role === 'admin') {
+        showAlert('Cannot assign admin role. Admin users are created via seed script only.', 'warning');
+        loadUsers(); // Reload to reset the UI
+        return;
+    }
     fetch(`${API_BASE}/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: {

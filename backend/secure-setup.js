@@ -54,7 +54,7 @@ ADMIN_PHONE=+254 724 369 971
 
 # Contact Information
 CONTACT_PHONE=+254 724 369 971
-CONTACT_EMAIL=info@goldensource.com
+CONTACT_EMAIL=Goldensourcetechnologies@gmail.com
 `;
 
     const envPath = path.join(__dirname, '.env');

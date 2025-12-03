@@ -114,7 +114,7 @@ Access the site at `http://localhost:5000` and the admin panel at `http://localh
 
 ## 🤝 Support
 
-- **Email:** support@goldensource.co.ke  
+- **Email:** Goldensourcetechnologies@gmail.com  
 - **Phone:** +254 724 369 971
 
 For DNS/hosting assistance, open a TrueHost ticket. For deployment/runtime issues, inspect Render logs and the health endpoints above.

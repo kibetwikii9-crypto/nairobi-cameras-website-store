@@ -816,11 +816,12 @@ app.post('/api/auth/register', async (req, res) => {
         const userCountBefore = stateBefore ? stateBefore.userCount : await User.count();
         
         // Create new user (simple password storage - in production, use bcrypt)
+        // Always create as regular user - admin users are created via seed script only
         const user = await User.create({
             name: name.trim(),
             email: normalizedEmail,
             password, // In production, hash this with bcrypt
-            role: 'admin' // Default to admin for admin panel
+            role: 'user' // Always create as regular user
         });
         
         // Record state AFTER user creation
@@ -1130,17 +1131,34 @@ const startServer = async () => {
                     dbFileSize: initialState?.dbFileSize
                 });
                 
-                // Create admin user if it doesn't exist
-                const adminExists = await User.findOne({ where: { email: 'admin@goldensource.com' } });
+                // Create admin user if it doesn't exist (seed script)
+                // Admin users are only created via seed script - no public signup for admin role
+                const adminEmail = process.env.ADMIN_EMAIL || 'Goldensourcetechnologies@gmail.com';
+                const adminPassword = process.env.ADMIN_PASSWORD || 'golden@2025';
+                const adminExists = await User.findOne({ where: { email: adminEmail } });
                 if (!adminExists) {
                     await User.create({
-                        name: 'Admin User',
-                        email: 'admin@goldensource.com',
-                        password: process.env.ADMIN_PASSWORD || 'SecureAdmin2024!',
+                        name: process.env.ADMIN_NAME || 'Admin User',
+                        email: adminEmail,
+                        password: adminPassword,
                         role: 'admin',
-                        phone: process.env.ADMIN_PHONE || '+254 724 369 971'
+                        phone: process.env.ADMIN_PHONE || '+254 724 369 971',
+                        isActive: true
                     });
-                    console.log('✅ Admin user created');
+                    console.log('✅ Admin user created via seed script');
+                    console.log(`   Email: ${adminEmail}`);
+                    console.log(`   Password: ${process.env.ADMIN_PASSWORD ? '*** (from env)' : '*** (default)'}`);
+                } else {
+                    // Update existing admin user with new credentials if needed
+                    const needsUpdate = adminExists.role !== 'admin' || adminExists.password !== adminPassword;
+                    if (needsUpdate) {
+                        await adminExists.update({ 
+                            role: 'admin',
+                            password: adminPassword,
+                            isActive: true
+                        });
+                        console.log('✅ Existing admin user updated with new credentials');
+                    }
                 }
 
                 // Try to restore data from backup

@@ -242,10 +242,27 @@ router.put('/users/:id/role', [
         }
 
         const { role } = req.body;
+        
+        // Prevent creating admin users through API - admins are created via seed script only
+        if (role === 'admin') {
+            return res.status(403).json({ 
+                success: false,
+                message: 'Cannot assign admin role. Admin users are created via seed script only.' 
+            });
+        }
+        
         const user = await User.findByPk(req.params.id);
         
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
+        }
+        
+        // Also prevent downgrading existing admin users
+        if (user.role === 'admin' && role !== 'admin') {
+            return res.status(403).json({ 
+                success: false,
+                message: 'Cannot change admin user role. Admin users are managed via seed script only.' 
+            });
         }
 
         await user.update({ role });

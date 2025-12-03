@@ -102,8 +102,8 @@ npm start
 Access the admin panel at: `http://localhost:5000/admin`
 
 **Default Admin Credentials:**
-- Email: `admin@goldensource.com`
-- Password: Set via `ADMIN_PASSWORD` in `.env` (default: `SecureAdmin2024!`)
+- Email: `Goldensourcetechnologies@gmail.com`
+- Password: Set via `ADMIN_PASSWORD` in `.env` (default: `golden@2025`)
 
 ### Admin Features:
 - **Dashboard** - Overview of sales, orders, and users
